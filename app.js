@@ -1,16 +1,27 @@
 // ==========================================
-// DYNAMIC IMPORTS - App loads even if CDN fails
+// DYNAMIC IMPORTS - Supabase from CDN, MiniKit from World App
 // ==========================================
-let MiniKit = null, Tokens = null, tokenToDecimals = null, createClient = null;
+// MiniKit is injected by World App as window.MiniKit — NEVER import from CDN
+// CDN MiniKit creates a SEPARATE object with NO native bridge to World App
+let createClient = null;
 
 async function loadDependencies() {
-  try {
-    const minikitModule = await import('https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm');
-    MiniKit = minikitModule.MiniKit;
-    Tokens = minikitModule.Tokens;
-    tokenToDecimals = minikitModule.tokenToDecimals;
-    console.log('[OK] MiniKit loaded');
-  } catch (e) { console.warn('[WARN] MiniKit CDN failed:', e.message); }
+  // MiniKit: wait for World App to inject window.MiniKit (poll for 5s)
+  await new Promise((resolve) => {
+    const start = Date.now();
+    (function check() {
+      if (window.MiniKit && window.MiniKit.commandsAsync) {
+        console.log('[OK] MiniKit found from World App');
+        resolve();
+      } else if (Date.now() - start > 5000) {
+        console.warn('[WARN] MiniKit not found after 5s — wallet features disabled');
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    })();
+  });
+  // Supabase: load from CDN
   try {
     const supaModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
     createClient = supaModule.createClient;
@@ -246,8 +257,7 @@ window.copyAddress = async function(address) {
 
 
 function getMiniKit() {
-  // ALWAYS prefer window.MiniKit (World App's native bridge) over CDN import
-  return window.MiniKit || MiniKit || null;
+  return window.MiniKit || null;
 }
 
 function waitForMiniKitReady(timeoutMs = 3000) {
@@ -256,10 +266,7 @@ function waitForMiniKitReady(timeoutMs = 3000) {
     (function check() {
       try {
         const mk = getMiniKit();
-        if (mk && mk.isInstalled && mk.isInstalled()) {
-          if (!MiniKit && window.MiniKit) MiniKit = window.MiniKit;
-          if (!Tokens && window.Tokens) Tokens = window.Tokens;
-          if (!tokenToDecimals && window.tokenToDecimals) tokenToDecimals = window.tokenToDecimals;
+        if (mk && mk.commandsAsync) {
           resolve(true);
           return;
         }
@@ -276,7 +283,7 @@ function waitForMiniKitReady(timeoutMs = 3000) {
 function isWorldAppReady() {
   try {
     const mk = getMiniKit();
-    return mk && mk.isInstalled && mk.isInstalled();
+    return !!(mk && mk.commandsAsync);
   } catch(e) { return false; }
 }
 
@@ -298,17 +305,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
   await depsLoaded;
 
-  // Try to init MiniKit - prefer World App's native window.MiniKit
+  // MiniKit comes from World App (window.MiniKit) — no CDN import needed
   const mk = getMiniKit();
   if (mk) {
-    try { mk.install(APP_ID); } catch (e) { console.warn('MiniKit install error:', e); }
-    // Sync our variables from whichever source is live
-    if (window.MiniKit) MiniKit = window.MiniKit;
-    if (window.Tokens) Tokens = window.Tokens;
-    if (window.tokenToDecimals) tokenToDecimals = window.tokenToDecimals;
+    try { mk.install(APP_ID); } catch (e) { console.warn('[MiniKit] install skipped:', e.message); }
     await waitForMiniKitReady();
+    console.log('[OK] MiniKit ready, wallet features enabled');
   } else {
-    console.warn('[MiniKit] Not available - wallet features disabled');
+    console.warn('[MiniKit] Not found — wallet features disabled, browsing still works');
   }
   
   // ALWAYS initialize the app regardless of CDN status
@@ -608,16 +612,17 @@ async function handlePostAd(e) {
   if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
-  if (!isValidEthAddress(userWallet)) { await showNeonPopup('Error', 'Invalid wallet. Please re-login.', '❌'); return; }
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
-  if (!Tokens || !tokenToDecimals) { await showNeonPopup('Error', 'Payment system not loaded. Please restart the app.', '❌'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
     const mk = getMiniKit();
+    // Tokens/tokenToDecimals may be on window, on MiniKit, or accessed directly
+    const T = (typeof Tokens !== 'undefined' && Tokens) || (window.Tokens) || (mk && mk.Tokens) || { WLD: 'WLD' };
+    const toDec = (typeof tokenToDecimals !== 'undefined' && tokenToDecimals) || (window.tokenToDecimals) || (mk && mk.tokenToDecimals) || ((amt, sym) => (BigInt(Math.round(amt * 1e18))).toString());
     const { finalPayload } = await mk.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
-      tokens: [{ symbol: Tokens.WLD, token_amount: tokenToDecimals(1, Tokens.WLD).toString() }],
+      tokens: [{ symbol: T.WLD, token_amount: toDec(1, T.WLD).toString() }],
       description: 'Listing Fee: 1 WLD',
     });
     paymentSuccessful = (finalPayload?.status === 'success');
