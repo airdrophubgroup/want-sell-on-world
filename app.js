@@ -10,11 +10,14 @@ async function loadDependencies() {
     Tokens = minikitModule.Tokens;
     tokenToDecimals = minikitModule.tokenToDecimals;
     console.log('[OK] MiniKit loaded');
-  } catch (e) { console.warn('[WARN] MiniKit CDN failed, wallet features disabled:', e.message); }
+  } catch (e) { console.warn('[WARN] MiniKit CDN failed:', e.message); }
   try {
     const supaModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
     createClient = supaModule.createClient;
-    console.log('[OK] Supabase loaded');
+    if (createClient) {
+      supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log('[OK] Supabase client created');
+    }
   } catch (e) { console.error('[ERROR] Supabase CDN failed:', e.message); }
 }
 
@@ -24,7 +27,8 @@ const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
 // SECURITY: Enable Supabase RLS on all tables to prevent client-side data manipulation!
-const supabase = (createClient) ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+// NOTE: supabase client is created AFTER CDN loads in loadDependencies()
+let supabase = null;
 let userWallet = null;
 let currentUsername = null; 
 let currentChatSeller = null;
@@ -241,12 +245,20 @@ window.copyAddress = async function(address) {
 
 
 
+function getMiniKit() {
+  return MiniKit || window.MiniKit || null;
+}
+
 function waitForMiniKitReady(timeoutMs = 3000) {
   return new Promise((resolve) => {
     const start = Date.now();
     (function check() {
       try {
-        if (typeof MiniKit !== 'undefined' && MiniKit.isInstalled && MiniKit.isInstalled()) {
+        const mk = getMiniKit();
+        if (mk && mk.isInstalled && mk.isInstalled()) {
+          if (!MiniKit && window.MiniKit) MiniKit = window.MiniKit;
+          if (!Tokens && window.Tokens) Tokens = window.Tokens;
+          if (!tokenToDecimals && window.tokenToDecimals) tokenToDecimals = window.tokenToDecimals;
           resolve(true);
           return;
         }
@@ -262,7 +274,8 @@ function waitForMiniKitReady(timeoutMs = 3000) {
 
 function isWorldAppReady() {
   try {
-    return typeof MiniKit !== 'undefined' && MiniKit.isInstalled && MiniKit.isInstalled();
+    const mk = getMiniKit();
+    return mk && mk.isInstalled && mk.isInstalled();
   } catch(e) { return false; }
 }
 
@@ -284,9 +297,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
   await depsLoaded;
 
-  // Try to init MiniKit if loaded
-  if (MiniKit) {
-    try { MiniKit.install(APP_ID); } catch (e) { console.warn('MiniKit install error:', e); }
+  // Try to init MiniKit - check both CDN import and World App global
+  const mk = getMiniKit();
+  if (mk) {
+    try { mk.install(APP_ID); } catch (e) { console.warn('MiniKit install error:', e); }
+    if (!MiniKit) MiniKit = mk;
+    await waitForMiniKitReady();
+  } else {
+    console.warn('[MiniKit] Not available - wallet features disabled');
     await waitForMiniKitReady();
   }
   
@@ -324,7 +342,8 @@ async function handleLogin() {
   if (!supabase) { await showNeonPopup('Offline', 'Database not available. Check your internet connection.', '📡'); return; }
   if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
   try {
-    const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+    const mk = getMiniKit();
+    const { finalPayload } = await mk.commandsAsync.walletAuth({
       nonce: randomAlphaNumeric(24),
       requestId: 'req_login_' + Date.now(),
       expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -586,10 +605,12 @@ async function handlePostAd(e) {
 
   if (!isValidEthAddress(userWallet)) { await showNeonPopup('Error', 'Invalid wallet. Please re-login.', '❌'); return; }
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
+  if (!Tokens || !tokenToDecimals) { await showNeonPopup('Error', 'Payment system not loaded. Please restart the app.', '❌'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
-    const { finalPayload } = await MiniKit.commandsAsync.pay({
+    const mk = getMiniKit();
+    const { finalPayload } = await mk.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
       tokens: [{ symbol: Tokens.WLD, token_amount: tokenToDecimals(1, Tokens.WLD).toString() }],
       description: 'Listing Fee: 1 WLD',
