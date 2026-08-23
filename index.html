@@ -138,6 +138,15 @@
   <div id="leaderboardModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">&#8592; Back</button><span class="modal-header-title">Top Sellers</span></div><div id="leaderboardContainer" class="leaderboard-list"></div></div></div>
   <div id="adminModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adminModal').style.display='none'">&#8592; Back</button><span class="modal-header-title">Admin Dashboard</span></div><div id="adminStatsContainer" class="admin-stats"></div><div id="adminListingsContainer" class="admin-listings"></div></div></div>
   <div id="imageViewerModal" class="image-viewer" style="display:none;"><button class="image-viewer-close" onclick="document.getElementById('imageViewerModal').style.display='none'">&#8592; Back</button><div class="image-viewer-container"><button class="slider-btn" onclick="window.prevImage()">&#10094;</button><img id="viewerImage" src="" class="viewer-img"><button class="slider-btn" onclick="window.nextImage()">&#10095;</button></div><div id="imageCounter" class="image-counter">1 / 1</div></div>
+  <div id="worldAppBlocker" class="world-app-blocker" style="display:none;">
+    <div class="blocker-content">
+      <div class="blocker-icon">🌍</div>
+      <h1 class="blocker-title">World App Required</h1>
+      <p class="blocker-text">This app can only be used inside the <b>World App</b>. Please open it from World App to continue.</p>
+      <div class="blocker-badge">🚫 Access Denied Outside World App</div>
+    </div>
+  </div>
+
   <div id="neonPopup" class="neon-popup-overlay" style="display:none;"><div id="neonPopupBox" class="neon-popup-box"><div id="neonPopupIcon" class="neon-popup-icon"></div><h2 id="neonPopupTitle" class="neon-popup-title">Notice</h2><p id="neonPopupText" class="neon-popup-text"></p><div id="neonPopupInputContainer" style="display:none;" class="neon-popup-input-wrap"><input type="text" id="neonPopupInput" placeholder="Type your username..." maxlength="20"></div><div id="neonPopupAlertBtnContainer"><button id="neonPopupAlertBtn" class="neon-btn primary">OK</button></div><div id="neonPopupConfirmBtnContainer" style="display:none;" class="neon-confirm-row"><button id="neonPopupConfirmNoBtn" class="neon-btn secondary">Cancel</button><button id="neonPopupConfirmYesBtn" class="neon-btn danger">Confirm</button></div></div></div>
 
   <script type="module" src="app.js"></script>

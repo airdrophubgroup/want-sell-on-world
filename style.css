@@ -263,3 +263,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: v
 
 /* Toast / snackbar style */
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 99999; animation: fadeInUp 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+
+/* World App Blocker */
+.world-app-blocker { position: fixed; inset: 0; z-index: 99998; background: linear-gradient(135deg, #0f172a, #1e293b); display: flex; align-items: center; justify-content: center; }
+.blocker-content { text-align: center; padding: 40px; max-width: 380px; }
+.blocker-icon { font-size: 80px; margin-bottom: 20px; animation: iconBounce 2s infinite; }
+.blocker-title { color: #ef4444; font-size: 1.8rem; font-weight: 900; margin-bottom: 12px; text-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+.blocker-text { color: #cbd5e1; font-size: 1rem; line-height: 1.6; margin-bottom: 24px; }
+.blocker-badge { background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; padding: 12px 24px; border-radius: 14px; color: #ef4444; font-weight: bold; font-size: 0.9rem; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); animation: pulse 2s infinite; }
+
+/* Wallet Required Overlay */
+.wallet-required-overlay { position: fixed; inset: 0; z-index: 4000; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
+.wallet-required-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #4f46e5; border-radius: 20px; padding: 32px; text-align: center; max-width: 320px; width: 85%; box-shadow: 0 0 40px rgba(79,70,229,0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.wallet-required-icon { font-size: 50px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+.wallet-required-title { color: #fff; font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+.wallet-required-text { color: #94a3b8; font-size: 0.85rem; margin-bottom: 16px; line-height: 1.4; }
+.wallet-required-btn { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; padding: 12px 24px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(79,70,229,0.4); width: 100%; transition: all 0.2s; }
+.wallet-required-btn:active { transform: scale(0.97); }

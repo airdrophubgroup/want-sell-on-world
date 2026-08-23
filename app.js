@@ -91,6 +91,10 @@ function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
 // TAB NAVIGATION
 // =========================================
 window.switchTab = function(screenId) {
+  // Tabs that require wallet: Post Ad, My Ads, Profile
+  if (['screenPost', 'screenMyAds', 'screenProfile'].includes(screenId)) {
+    if (!requireWallet()) return;
+  }
   document.querySelectorAll('.tab-item').forEach(t => {
     t.classList.remove('active');
     if (t.getAttribute('data-screen') === screenId) t.classList.add('active');
@@ -151,7 +155,7 @@ function initApp() {
   const fabBtn = document.getElementById('fabPost');
   if (fabBtn) {
     fabBtn.addEventListener('click', () => {
-      if (!userWallet) { showNeonPopup('Hold On', 'Connect wallet first to post ads!', '🔗'); return; }
+      if (!requireWallet()) return;
       window.switchTab('screenPost');
     });
   }
@@ -287,6 +291,31 @@ function isWorldAppReady() {
   } catch(e) { return false; }
 }
 
+// WALLET REQUIRED CHECK — blocks action if not logged in
+function requireWallet() {
+  if (userWallet && currentUsername) return true;
+  showWalletRequiredOverlay();
+  return false;
+}
+
+function showWalletRequiredOverlay() {
+  // Remove existing overlay if any
+  const existing = document.getElementById('walletRequiredOverlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'walletRequiredOverlay';
+  overlay.className = 'wallet-required-overlay';
+  overlay.innerHTML = `
+    <div class="wallet-required-box">
+      <div class="wallet-required-icon">🔐</div>
+      <h2 class="wallet-required-title">Connect Your Wallet</h2>
+      <p class="wallet-required-text">You need to connect your World wallet to use this feature.</p>
+      <button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
 function randomAlphaNumeric(len) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const bytes = new Uint8Array(len);
@@ -298,28 +327,34 @@ function randomAlphaNumeric(len) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load CDN dependencies with a max 5s timeout - app MUST show even if CDN fails
+  // Load Supabase CDN (with timeout)
   const depsLoaded = Promise.race([
     loadDependencies(),
-    new Promise(resolve => setTimeout(() => { console.warn('[TIMEOUT] CDN loading took too long'); resolve(); }, 5000))
+    new Promise(resolve => setTimeout(() => { console.warn('[TIMEOUT] CDN loading took too long'); resolve(); }, 8000))
   ]);
   await depsLoaded;
 
-  // MiniKit comes from World App (window.MiniKit) — no CDN import needed
+  // STEP 1: Check if running inside World App — if NOT, block everything
   const mk = getMiniKit();
-  if (mk) {
-    try { mk.install(APP_ID); } catch (e) { console.warn('[MiniKit] install skipped:', e.message); }
-    await waitForMiniKitReady();
-    console.log('[OK] MiniKit ready, wallet features enabled');
-  } else {
-    console.warn('[MiniKit] Not found — wallet features disabled, browsing still works');
+  if (!mk) {
+    // Hide splash, show blocker screen
+    const splash = document.getElementById('splashScreen');
+    if (splash) splash.style.display = 'none';
+    document.getElementById('worldAppBlocker').style.display = 'flex';
+    console.error('[BLOCKED] Not running inside World App');
+    return; // STOP — nothing else runs
   }
-  
-  // ALWAYS initialize the app regardless of CDN status
+
+  // STEP 2: MiniKit found — install and wait for ready
+  try { mk.install(APP_ID); } catch (e) { console.warn('[MiniKit] install:', e.message); }
+  await waitForMiniKitReady();
+  console.log('[OK] MiniKit ready — World App detected');
+
+  // STEP 3: Initialize app — everything gated behind wallet
   setupUI();
   initApp();
-  detectUserCurrentPosition();
   fetchListings();
+  // NOTE: detectUserCurrentPosition() NOT called here — only after wallet connect
 });
 
 function setupUI() {
@@ -401,6 +436,7 @@ function detectUserCurrentPosition() {
 }
 
 window.detectLocation = async function() {
+  if (!requireWallet()) return;
   const addressField = document.getElementById('adAddress');
   addressField.value = "Detecting precise location...";
 
@@ -582,8 +618,8 @@ function compressImage(file, maxWidth = 1000, quality = 0.7) {
 
 async function handlePostAd(e) {
   e.preventDefault();
+  if (!requireWallet()) return;
   if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', 'Please wait before posting another ad.', '⏳'); return; }
-  if (!userWallet || !currentUsername) { await showNeonPopup('Hold On', 'Please connect your wallet first!', '🔗'); return; }
   if (!supabase) { await showNeonPopup('Offline', 'Database not available.', '📡'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
@@ -804,7 +840,7 @@ window.openAdDetails = async function(id) {
 // CHAT SYSTEM (XSS-Safe + Anti-Self)
 // ==========================================
 window.openChat = async function(sellerWallet, adTitle, sellerName) {
-  if (!userWallet || !currentUsername) { await showNeonPopup('Hold On', 'Please connect wallet first!', '💬'); return; }
+  if (!requireWallet()) return;
   if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'ℹ️'); return; }
   currentChatSeller = sellerWallet;
   window.currentChatAdTitle = adTitle;    document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
@@ -873,8 +909,8 @@ window.openReviews = async function(sellerAddress, sellerName) {
 };
 
 window.submitReview = async function() {
+  if (!requireWallet()) return;
   if (!checkRateLimit('review', 5000)) { await showNeonPopup('Slow Down', 'Please wait before another review.', '⏳'); return; }
-  if (!userWallet || !currentUsername) { await showNeonPopup('Hold On', 'Please connect wallet first!', '⭐'); return; }
   if (userWallet === window.targetSellerAddress) { await showNeonPopup('Not Allowed', 'You cannot review yourself! 🚫', '❌'); return; }
   const rating = parseInt(document.getElementById('reviewRating').value);
   if (rating < 1 || rating > 5) { await showNeonPopup('Invalid Rating', 'Rating must be 1-5.', '⚠️'); return; }
@@ -957,8 +993,7 @@ window.adminDeleteAd = async function(id) {
 
 window.openMyAdsScreen = async function() {
   if (!userWallet) {
-    const container = document.getElementById('myAdsContainer');
-    container.innerHTML = '<p style="text-align:center; color:#64748b; padding:30px;">Please connect wallet first.</p>';
+    document.getElementById('myAdsContainer').innerHTML = '<p style="text-align:center; color:#64748b; padding:30px;">Please connect wallet first.</p>';
     document.getElementById('myAdsBalanceCard').innerHTML = '';
     return;
   }
@@ -1072,7 +1107,7 @@ window.openLeaderboard = async function() {
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b;"><p style="font-size:1.2rem; margin-bottom:10px;">Not logged in</p><p style="font-size:0.85rem;">Tap Connect Wallet to get started</p></div>';
+    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b;"><p style="font-size:1.5rem; margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your World wallet to access your profile</p></div>';
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
