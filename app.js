@@ -1,35 +1,37 @@
 // ==========================================
-// DYNAMIC IMPORTS - Supabase from CDN, MiniKit from World App
+// INIT - World App MiniKit + Supabase CDN
 // ==========================================
-// MiniKit is injected by World App as window.MiniKit — NEVER import from CDN
-// CDN MiniKit creates a SEPARATE object with NO native bridge to World App
-let createClient = null;
 
-async function loadDependencies() {
-  // MiniKit: wait for World App to inject window.MiniKit (poll for 8s)
-  // NOTE: window.MiniKit exists BEFORE .install() — commandsAsync comes after install
-  await new Promise((resolve) => {
-    const start = Date.now();
-    (function check() {
-      if (window.MiniKit) {
-        console.log('[OK] MiniKit found from World App');
-        resolve();
-        return;
-      }
-      if (Date.now() - start > 8000) {
-        console.warn('[WARN] MiniKit not found after 8s');
-        resolve();
-        return;
-      }
-      setTimeout(check, 100);
-    })();
-  });
-  // Supabase: load from CDN
+async function initMiniKit() {
+  if (window.MiniKit) {
+    console.log('[INIT] window.MiniKit found');
+    try { window.MiniKit.install(APP_ID); } catch(e) {}
+    return true;
+  }
+  console.log('[INIT] Trying CDN fallback...');
   try {
-    const supaModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-    createClient = supaModule.createClient;
-    if (createClient) {
-      supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const mod = await import('https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm');
+    if (mod && mod.MiniKit) {
+      window.MiniKit = mod.MiniKit;
+      window.Tokens = mod.Tokens;
+      window.tokenToDecimals = mod.tokenToDecimals;
+      try { window.MiniKit.install(APP_ID); } catch(e) {}
+      return true;
+    }
+  } catch (e) { console.warn('[INIT] CDN failed:', e.message); }
+  return false;
+}
+
+async function loadSupabase() {
+  try {
+    const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    if (mod && mod.createClient) {
+      supabase = mod.createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log('[INIT] Supabase connected');
+    }
+  } catch (e) { console.error('[INIT] Supabase failed:', e.message); }
+}
+
       console.log('[OK] Supabase client created');
     }
   } catch (e) { console.error('[ERROR] Supabase CDN failed:', e.message); }
@@ -40,8 +42,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
-// SECURITY: Enable Supabase RLS on all tables to prevent client-side data manipulation!
-// NOTE: supabase client is created AFTER CDN loads in loadDependencies()
 let supabase = null;
 let userWallet = null;
 let currentUsername = null; 
@@ -330,38 +330,19 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
-
-document.addEventListener('DOMContentLoaded', async () => {
-  // Load Supabase CDN (with timeout)
-  const depsLoaded = Promise.race([
-    loadDependencies(),
-    new Promise(resolve => setTimeout(() => { console.warn('[TIMEOUT] CDN loading took too long'); resolve(); }, 8000))
-  ]);
-  await depsLoaded;
-
-  // STEP 1: Check if running inside World App — if NOT, block everything
-  const mk = getMiniKit();
-  if (!mk) {
-    // Hide splash, show blocker screen
-    const splash = document.getElementById('splashScreen');
-    if (splash) splash.style.display = 'none';
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('[BOOT] Starting...');
+  const mkReady = await initMiniKit();
+  await loadSupabase();
+  if (!mkReady || !getMiniKit()) {
+    console.error('[BLOCKED] No MiniKit');
+    const s = document.getElementById('splashScreen');
+    if (s) s.style.display = 'none';
     document.getElementById('worldAppBlocker').style.display = 'flex';
-    console.error('[BLOCKED] Not running inside World App — window.MiniKit not found');
-    return; // STOP — nothing else runs
+    return;
   }
-
-  // STEP 2: MiniKit found — install it to activate commandsAsync
-  console.log('[OK] window.MiniKit found, installing...');
-  try { mk.install(APP_ID); } catch (e) { console.warn('[MiniKit] install:', e.message); }
-  await waitForMiniKitReady();
-  console.log('[OK] MiniKit ready — World App detected');
-
-  // STEP 3: Initialize app — everything gated behind wallet
-  setupUI();
-  initApp();
-  fetchListings();
-  detectUserCurrentPosition();
-  // GPS detection runs immediately so distance filter works for browsing
+  console.log('[BOOT] Ready');
+  setupUI(); initApp(); fetchListings(); detectUserCurrentPosition();
 });
 
 function setupUI() {
