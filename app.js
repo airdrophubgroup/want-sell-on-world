@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     userWallet = savedAddress;
     currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
     document.getElementById('loginBtn').innerText = currentUsername;
+      updateSowBadge();
     detectUserCurrentPosition();
     fetchListings();
   }
@@ -322,6 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('userWallet', userWallet);
         localStorage.setItem('currentUsername', currentUsername);
         document.getElementById('loginBtn').innerText = currentUsername;
+      updateSowBadge();
         detectUserCurrentPosition();
       }
     } catch(err) {}
@@ -389,6 +391,7 @@ async function handleLogin() {
       localStorage.setItem('userWallet', userWallet);
       localStorage.setItem('currentUsername', currentUsername);
       document.getElementById('loginBtn').innerText = currentUsername;
+      updateSowBadge();
       detectUserCurrentPosition();
       fetchListings();
     } else {
@@ -681,6 +684,7 @@ async function handlePostAd(e) {
     await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
     document.getElementById('adForm').reset();
     window.switchTab('screenHome');
+    updateSowBadge();
     await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
   } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', '⚠️'); }
 }
@@ -1088,6 +1092,19 @@ window.openLeaderboard = async function() {
 // ==========================================
 // PROFILE SCREEN
 // =========================================
+// UPDATE SOW BALANCE BADGE IN HEADER
+async function updateSowBadge() {
+  if (!userWallet) return;
+  try {
+    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
+    const sow = balData ? balData.balance : 0;
+    const el = document.getElementById('sowCount');
+    const badge = document.getElementById('sowBadge');
+    if (el) el.innerText = sow;
+    if (badge) badge.style.display = 'inline-flex';
+  } catch(e) {}
+}
+
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
