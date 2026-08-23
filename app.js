@@ -1,55 +1,21 @@
 // ==========================================
-// INIT - World App MiniKit + Supabase CDN
+// WantSell - World App Mini App
+// MiniKit from window.MiniKit (World App)
+// Supabase from window.supabase (CDN script tag)
 // ==========================================
-
-async function initMiniKit() {
-  if (window.MiniKit) {
-    console.log('[INIT] window.MiniKit found');
-    try { window.MiniKit.install(APP_ID); } catch(e) {}
-    return true;
-  }
-  console.log('[INIT] Trying CDN fallback...');
-  try {
-    const mod = await import('https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm');
-    if (mod && mod.MiniKit) {
-      window.MiniKit = mod.MiniKit;
-      window.Tokens = mod.Tokens;
-      window.tokenToDecimals = mod.tokenToDecimals;
-      try { window.MiniKit.install(APP_ID); } catch(e) {}
-      return true;
-    }
-  } catch (e) { console.warn('[INIT] CDN failed:', e.message); }
-  return false;
-}
-
-async function loadSupabase() {
-  try {
-    const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
-    if (mod && mod.createClient) {
-      supabase = mod.createClient(SUPABASE_URL, SUPABASE_KEY);
-      console.log('[INIT] Supabase connected');
-    }
-  } catch (e) { console.error('[INIT] Supabase failed:', e.message); }
-}
-
-      console.log('[OK] Supabase client created');
-    }
-  } catch (e) { console.error('[ERROR] Supabase CDN failed:', e.message); }
-}
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkaWNka3JmaW5idWRwYXFxamFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNzM4MzMsImV4cCI6MjEwMTc0OTgzM30.ksv1zdQVimQTNWnrHaRqEXcLw7-3G6_zjAyEOZZkr0s';
 const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
+// Create Supabase client from global
 let supabase = null;
-let userWallet = null;
-let currentUsername = null; 
-let currentChatSeller = null;
-let currentLat = 28.6139; 
-let currentLng = 77.2090;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('[INIT] Supabase connected');
+} catch(e) { console.error('[INIT] Supabase failed:', e); }
 
-// ==========================================
 // SECURITY: HTML SANITIZER (XSS PREVENTION)
 // ==========================================
 function escapeHtml(str) {
@@ -362,10 +328,7 @@ function setupUI() {
 }
 
 async function handleLogin() {
-  if (!getMiniKit()) {
-    console.log('[LOGIN] Lazy init MiniKit...');
-    await initMiniKit();
-  }
+
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Please open this app inside the World App to connect your wallet.', '🌍'); return; }
   if (!supabase) { await showNeonPopup('Offline', 'Database not available. Check your internet connection.', '📡'); return; }
   if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
@@ -636,8 +599,7 @@ async function handlePostAd(e) {
   if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
-  if (!getMiniKit()) { await initMiniKit(); }
-  if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
+  if (!getMiniKit()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
