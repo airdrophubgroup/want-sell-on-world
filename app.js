@@ -6,6 +6,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
+// SECURITY: Enable Supabase RLS on all tables to prevent client-side data manipulation!
+// sow_balances: only owner can UPDATE their own row
+// listings: only owner can INSERT/UPDATE/DELETE their own rows
+// chats: only sender can INSERT
+// reviews: only buyer can INSERT
+// users: only owner can INSERT/UPDATE their own row
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 let userWallet = null;
 let currentUsername = null; 
@@ -52,6 +58,7 @@ function checkRateLimit(action, cooldownMs) {
 // ADDRESS BOOK - Maps wallet to username
 // ==========================================
 function getDisplayName(addr) { return addr ? addr.substring(0, 10) + '...' : 'Unknown'; }
+function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
 
 // ==========================================
 // TAB NAVIGATION
@@ -311,6 +318,7 @@ async function handleLogin() {
       statement: 'Sign in to WantSell',
     });
     if (finalPayload?.status === 'success' && finalPayload?.address) {
+      if (!isValidEthAddress(finalPayload.address)) { await showNeonPopup('Error', 'Invalid wallet address.', '❌'); return; }
       userWallet = finalPayload.address;
       const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
       if (userData && userData.username) {
@@ -559,7 +567,9 @@ async function handlePostAd(e) {
   const files = fileInput.files;
   if (files.length === 0) { await showNeonPopup('Image Missing', 'Please select at least one product image!', '🖼️'); return; }
   if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
+  for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
+  if (!isValidEthAddress(userWallet)) { await showNeonPopup('Error', 'Invalid wallet. Please re-login.', '❌'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
@@ -580,7 +590,7 @@ async function handlePostAd(e) {
       const cf = await compressImage(files[i]);
       const fn = `${Date.now()}_${randomAlphaNumeric(8)}.jpg`;
       const { error: ue } = await supabase.storage.from('listing').upload(fn, cf);
-      if (ue) { await showNeonPopup('Upload Error', 'Upload failed: ' + ue.message, '❌'); return; }
+      if (ue) { await showNeonPopup('Upload Error', 'Image upload failed. Try again.', '❌'); return; }
       const { data: pd } = supabase.storage.from('listing').getPublicUrl(fn);
       imageUrls[i] = pd.publicUrl;
     } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', '❌'); return; }
@@ -605,7 +615,7 @@ async function handlePostAd(e) {
     document.getElementById('adForm').reset();
     window.switchTab('screenHome');
     await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
-  } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Database Error', 'Error saving ad. Try again.', '⚠️'); }
+  } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', '⚠️'); }
 }
 
 async function fetchListings() {
@@ -753,10 +763,11 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   chatBox.innerHTML = `<p class="loading-placeholder">Loading chat...</p>`;
   document.getElementById('chatModal').style.display = 'flex';
   document.querySelector('#chatModal .modal-content').style.animation = 'slideInUp 0.35s ease';
-  const { data, error } = await supabase.from('chats').select('*').eq('ad_title', adTitle).order('created_at', { ascending: true });
+  const { data, error } = await supabase.from('chats').select('*').order('created_at', { ascending: true });
+  if (!data) return;
   let chatHtml = `<div style="background:#e2e8f0; padding:8px 12px; border-radius:8px; font-size:12px; align-self:flex-start; color:#334155; margin-bottom:4px;">Hello! I am interested in: ${escapeHtml(adTitle)}</div>`;
   if (data && data.length > 0) {
-    data.filter(m => (m.sender === userWallet && m.receiver === sellerWallet) || (m.sender === sellerWallet && m.receiver === userWallet))
+    data.filter(m => m.ad_title === adTitle && ((m.sender === userWallet && m.receiver === sellerWallet) || (m.sender === sellerWallet && m.receiver === userWallet)))
       .forEach(msg => {
         const safe = escapeHtml(msg.message);
         if (msg.sender === userWallet) {
@@ -951,7 +962,7 @@ window.markAsSoldOut = async function(id) {
       window.switchTab('screenMyAds');
       fetchListings();
     } else {
-      await showNeonPopup('Error', 'Could not delete: ' + error.message, '⚠️');
+      await showNeonPopup('Error', 'Could not delete ad. Try again.', '⚠️');
     }
   }
 }

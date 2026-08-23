@@ -114,9 +114,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: v
 .neon-btn.secondary { background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid #475569; }
 .neon-btn.danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; }
 .neon-confirm-row { display: flex; gap: 10px; justify-content: center; }
-.seller-card { background: linear-gradient(135deg, #0f172a, #1e293b); padding: 12px; border-radius: 12px; color: #fff; }
-.seller-card h4 { color: #38bdf8; margin: 2px 0; }
-.seller-card .seller-username { font-size: 0.95rem; font-weight: 700; }
 
 /* ========== OLX-STYLE ANIMATIONS ========== */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -204,19 +201,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: v
 .fab:active { transform: scale(0.9); }
 .fab:hover { box-shadow: 0 8px 30px rgba(79,70,229,0.5); }
 
-/* Quick action chips */
-.quick-actions { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; }
-.quick-actions::-webkit-scrollbar { display: none; }
-.quick-chip {
-  display: flex; align-items: center; gap: 5px;
-  padding: 8px 14px; border-radius: 20px;
-  background: #fff; border: 1px solid var(--border);
-  font-size: 0.8rem; font-weight: 600;
-  color: var(--text); white-space: nowrap;
-  cursor: pointer; transition: all 0.2s;
-}
-.quick-chip:active { transform: scale(0.95); background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-
 /* Header gradient line */
 .app-header { position: relative; }
 .app-header::after {
@@ -259,10 +243,3 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: v
 
 /* Filter box subtle shadow */
 .filter-box { box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-
-/* Gradient text */
-.gradient-text { background: linear-gradient(135deg, var(--primary), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-/* Smooth image loading */
-.listing-thumb { transition: opacity 0.3s; }
-.listing-thumb[loading] { opacity: 0.5; }

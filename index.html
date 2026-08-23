@@ -61,7 +61,7 @@
         <div class="promo-banner" style="position:relative; z-index:1;">
           <div style="position:relative; z-index:2;">
             <p style="font-size:1.1rem; font-weight:800; margin:0 0 4px;">Local Marketplace</p>
-            <p style="font-size:0.8rem; color:#94a3b8; margin:0 0 10px;">Buy &amp; sell from verified humans nearby</p>
+            <p style="font-size:0.8rem; color:#94a3b8; margin:0 0 10px;">Buy &amp; sell with verified World users nearby</p>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:600;">1 WLD per ad</span>
               <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:600;">Earn SOW tokens</span>
@@ -97,7 +97,7 @@
           <div class="form-group"><label>Product Title</label><input type="text" id="title" placeholder="e.g. iPhone 15 Pro Max" required maxlength="80"></div>
           <div class="form-group"><label>Category</label><select id="category" required><option value="" disabled selected>Select Category</option><option value="Electronics">Electronics</option><option value="Phones">Phones</option><option value="Laptops">Laptops</option><option value="Games">Games</option><option value="Clothes">Clothes</option><option value="Shoes">Shoes</option><option value="Bags">Bags</option><option value="Home Appliances">Appliances</option><option value="Books &amp; Sports">Sports/Books</option><option value="Automotive">Automotive</option><option value="Other">Other</option></select></div>
           <div class="form-group"><label>Country / Region</label><select id="adCountry" required><option value="" disabled selected>Select Country</option><option value="IN">India</option><option value="US">United States</option><option value="AE">UAE</option><option value="GB">United Kingdom</option><option value="SG">Singapore</option></select></div>
-          <div class="form-group"><label>Location</label><div class="location-row"><input type="text" id="adAddress" placeholder="Tap detect to auto-fill" required readonly><button type="button" id="detectLocationBtn" class="btn-detect">Detect GPS</button></div></div>
+          <div class="form-group"><label>Location</label><div class="location-row"><input type="text" id="adAddress" placeholder="Tap Detect GPS or type location" required maxlength="200"><button type="button" id="detectLocationBtn" class="btn-detect">Detect GPS</button></div></div>
           <div class="form-row"><div class="form-group half"><label>Condition</label><select id="adCondition" required><option value="" disabled selected>Condition</option><option value="new">Brand New</option><option value="like_new">Like New</option><option value="good">Good</option><option value="fair">Fair</option><option value="used">Used</option></select></div><div class="form-group half"><label>Price Type</label><select id="priceType" required><option value="" disabled selected>Price Type</option><option value="negotiable">Negotiable</option><option value="fixed">Fixed Price</option></select></div></div>
           <div class="form-group"><label>Description</label><textarea id="description" placeholder="Describe your item..." required maxlength="500"></textarea></div>
           <div class="form-group"><label>Price (WLD)</label><input type="number" id="price" placeholder="0.00" required min="0.01" max="1000000" step="0.01"></div>
