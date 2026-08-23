@@ -246,7 +246,8 @@ window.copyAddress = async function(address) {
 
 
 function getMiniKit() {
-  return MiniKit || window.MiniKit || null;
+  // ALWAYS prefer window.MiniKit (World App's native bridge) over CDN import
+  return window.MiniKit || MiniKit || null;
 }
 
 function waitForMiniKitReady(timeoutMs = 3000) {
@@ -297,15 +298,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
   await depsLoaded;
 
-  // Try to init MiniKit - check both CDN import and World App global
+  // Try to init MiniKit - prefer World App's native window.MiniKit
   const mk = getMiniKit();
   if (mk) {
     try { mk.install(APP_ID); } catch (e) { console.warn('MiniKit install error:', e); }
-    if (!MiniKit) MiniKit = mk;
+    // Sync our variables from whichever source is live
+    if (window.MiniKit) MiniKit = window.MiniKit;
+    if (window.Tokens) Tokens = window.Tokens;
+    if (window.tokenToDecimals) tokenToDecimals = window.tokenToDecimals;
     await waitForMiniKitReady();
   } else {
     console.warn('[MiniKit] Not available - wallet features disabled');
-    await waitForMiniKitReady();
   }
   
   // ALWAYS initialize the app regardless of CDN status
@@ -375,8 +378,10 @@ async function handleLogin() {
       await showNeonPopup('Connection Failed', 'Wallet connect nahi ho paaya.', '🔌');
     }
   } catch (err) {
-    console.error('Login error:', err);
-    await showNeonPopup('Error', 'Wallet connect error. Try again.', '❌');
+    console.error('[LOGIN ERROR]', err.message || err);
+    const mk = getMiniKit();
+    const details = mk ? 'MiniKit found but walletAuth failed' : 'MiniKit NOT found';
+    await showNeonPopup('Error', `Wallet connect failed. ${details}. Try restarting the app.`, '❌');
   }
 }
 
