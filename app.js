@@ -994,7 +994,7 @@ window.openMyAdsScreen = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
 
-  const balanceHtml = `<div class="balance-card"><h3 style="color:#38bdf8; margin-bottom:6px;">Your Balance</h3><p style="font-size:1.5rem; font-weight:800; color:#fff;">${earnedSow} SOW</p><p style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">Keep posting to earn more!</p></div>`;
+  const balanceHtml = `<div style="background:linear-gradient(135deg,#0f172a,#1e293b); padding:14px 16px; border-radius:14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(245,158,11,0.2);"><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:1.6rem;">🪙</span><div><p style="font-size:0.7rem; color:#94a3b8; margin:0; text-transform:uppercase; letter-spacing:0.5px;">SOW Balance</p><p style="font-size:1.2rem; font-weight:800; color:#f59e0b; margin:2px 0 0 0;">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; padding:6px 12px; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer;">🏆 Ranks</button></div>`;
 
   const { data: allMyAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).order('created_at', { ascending: false });
 
@@ -1004,7 +1004,7 @@ window.openMyAdsScreen = async function() {
   document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
 
   if (activeAds.length === 0 && soldAds.length === 0) {
-    container.innerHTML = balanceHtml + `<p style="text-align:center; color:#64748b; padding:20px;">You have no ads yet. Post one!</p>`;
+    container.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px;">You have no ads yet. Post one!</p>`;
     return;
   }
 
@@ -1112,10 +1112,10 @@ async function updateSowBadge() {
   try {
     const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
     const sow = balData ? balData.balance : 0;
-    const el = document.getElementById('sowCount');
-    const badge = document.getElementById('sowBadge');
-    if (el) el.innerText = sow;
-    if (badge) badge.style.display = 'inline-flex';
+    const statsCard = document.getElementById('sowStatsCard');
+    const homeCount = document.getElementById('homeSowCount');
+    if (statsCard) statsCard.style.display = 'block';
+    if (homeCount) homeCount.textContent = sow;
   } catch(e) {}
 }
 
@@ -1128,5 +1128,5 @@ window.renderProfile = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
-  container.innerHTML = '<div class="balance-card"><h3 style="color:#38bdf8; margin-bottom:6px;">' + escapeHtml(currentUsername) + '</h3><p style="font-size:1.5rem; font-weight:800; color:#fff;">' + earnedSow + ' SOW</p><p style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">Keep posting to earn more!</p></div><div style="display:flex; flex-direction:column; gap:10px;"><button onclick="window.openLeaderboard()" style="background:#f59e0b; color:#fff; padding:12px; border:none; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer;">Leaderboard</button><a href="mailto:airdrophubgroup@gmail.com" style="text-align:center; color:#64748b; font-size:0.8rem; padding:8px; text-decoration:none;">Support Email</a>' + (isAdmin ? '<button onclick="window.openAdminPanel()" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:12px; border:1px solid #ef4444; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer;">Admin Panel</button>' : '') + '</div>';
+  container.innerHTML = '<div class="balance-card" style="text-align:left; padding:20px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><p style="font-size:0.7rem; color:#94a3b8; margin:0; text-transform:uppercase; letter-spacing:0.5px;">Profile</p><h3 style="color:#38bdf8; margin:4px 0 0 0; font-size:1.1rem;">' + escapeHtml(currentUsername) + '</h3></div><span style="font-size:2rem;">🪙</span></div><div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);"><p style="font-size:0.7rem; color:#94a3b8; margin:0;">SOW Balance</p><p style="font-size:1.8rem; font-weight:800; color:#f59e0b; margin:2px 0 0 0; font-family:monospace;">' + earnedSow + '</p></div></div><div style="display:flex; flex-direction:column; gap:10px;"><button onclick="window.openLeaderboard()" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; padding:14px; border:none; border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer; box-shadow:0 4px 15px rgba(245,158,11,0.3);">🏆 View Leaderboard</button><a href="mailto:airdrophubgroup@gmail.com" style="text-align:center; color:#64748b; font-size:0.8rem; padding:10px; text-decoration:none; border:1px solid #e2e8f0; border-radius:10px;">📧 Support</a>' + (isAdmin ? '<button onclick="window.openAdminPanel()" style="background:rgba(239,68,68,0.08); color:#ef4444; padding:14px; border:1px solid rgba(239,68,68,0.3); border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer;">🛡️ Admin Panel</button>' : '') + '</div>';
 };

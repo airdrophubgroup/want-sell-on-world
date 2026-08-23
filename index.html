@@ -21,11 +21,7 @@
   <div id="appShell" class="app-shell" style="display:none;">
     <div class="app-header">
       <h1 class="app-logo">🛒 WantSell</h1>
-      <div class="header-actions">
-        <button id="leaderboardBtn" class="leaderboard-btn-sm" onclick="window.openLeaderboard()" title="Top Sellers">🏆</button>
-        <span id="sowBadge" class="sow-badge" style="display:none;">🪙 <span id="sowCount">0</span> SOW</span>
-        <button id="loginBtn" class="login-btn">Connect Wallet</button>
-      </div>
+      <button id="loginBtn" class="login-btn">Connect Wallet</button>
     </div>
 
     <div id="screenHome" class="app-screen active">
@@ -68,8 +64,19 @@
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:600;">💳 1 WLD per ad</span>
               <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:600;">🪙 Earn 1 SOW per ad</span>
-              <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:600;">🏆 Top sellers earn rewards</span>
             </div>
+          </div>
+        </div>
+        <div id="sowStatsCard" class="sow-stats-card" style="display:none;">
+          <div class="sow-stats-inner">
+            <div class="sow-stats-left">
+              <span class="sow-stats-icon">🪙</span>
+              <div>
+                <p class="sow-stats-label">Your SOW Balance</p>
+                <p class="sow-stats-value"><span id="homeSowCount">0</span></p>
+              </div>
+            </div>
+            <button class="sow-stats-lead-btn" onclick="window.openLeaderboard()">🏆 Rankings</button>
           </div>
         </div>
 
