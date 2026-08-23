@@ -332,30 +332,11 @@ function randomAlphaNumeric(len) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[BOOT] Starting...');
-
-  // Run MiniKit detection AND Supabase load IN PARALLEL with timeout
-  // App MUST show regardless - wallet features just get disabled
-  const mkPromise = initMiniKit();
-  const dbPromise = loadSupabase();
-  const timeout = new Promise(r => setTimeout(() => {
-    console.warn('[BOOT] CDN timeout - proceeding without full features');
-    r(false);
-  }, 6000));
-
-  const mkReady = await Promise.race([mkPromise, timeout]);
-  await Promise.race([dbPromise, timeout]);
-
-  // ALWAYS initialize the app - splash MUST dismiss
   setupUI();
   initApp();
   fetchListings();
   detectUserCurrentPosition();
-
-  if (!mkReady || !getMiniKit()) {
-    console.warn('[BOOT] MiniKit not available - wallet features disabled');
-  } else {
-    console.log('[BOOT] All systems ready');
-  }
+  console.log('[BOOT] App initialized');
 });
 
 function setupUI() {
@@ -381,6 +362,10 @@ function setupUI() {
 }
 
 async function handleLogin() {
+  if (!getMiniKit()) {
+    console.log('[LOGIN] Lazy init MiniKit...');
+    await initMiniKit();
+  }
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Please open this app inside the World App to connect your wallet.', '🌍'); return; }
   if (!supabase) { await showNeonPopup('Offline', 'Database not available. Check your internet connection.', '📡'); return; }
   if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
@@ -651,6 +636,7 @@ async function handlePostAd(e) {
   if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
+  if (!getMiniKit()) { await initMiniKit(); }
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
