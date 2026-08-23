@@ -17,7 +17,7 @@ function checkWorldAppEnvironment() {
   let miniOk = false;
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
-    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#050000;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;text-align:center;padding:20px;"><div style="background:rgba(255,0,0,0.08);border:2px solid #ff3333;padding:30px;border-radius:20px;max-width:400px;"><h1 style="color:#ff3333;font-size:24px;margin-bottom:15px;">ACCESS DENIED</h1><p style="color:#fff;font-size:16px;margin-bottom:20px;">This app can only be used inside the official <b>World App</b>.</p></div></div>';
+    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#050000;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;text-align:center;padding:20px;"><div style="background:rgba(255,0,0,0.08);border:2px solid #ff3333;padding:30px;border-radius:20px;max-width:400px;"><h1 style="color:#ff3333;font-size:24px;margin-bottom:15px;">ACCESS DENIED</h1><p style="color:#fff;font-size:16px;margin-bottom:20px;">This app can only be used inside <b>World App</b>.</p></div></div>';
     document.getElementById('splashScreen').style.display = 'flex';
     return false;
   }
@@ -272,7 +272,7 @@ function showWalletRequiredOverlay() {
     <div class="wallet-required-box">
       <div class="wallet-required-icon">🔐</div>
       <h2 class="wallet-required-title">Connect Your Wallet</h2>
-      <p class="wallet-required-text">You need to connect your World wallet to use this feature.</p>
+      <p class="wallet-required-text">You need to connect your wallet to use this feature.</p>
       <button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button>
     </div>
   `;
@@ -807,7 +807,7 @@ window.openAdDetails = async function(id) {
         </div>
         <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
           <span style="font-size:10px; color:#94a3b8;">Username</span>
-          <p onclick="window.copyAddress('${escapeAttr(sAddr)}')" style="margin:2px 0 0 0; font-family:monospace; color:#cbd5e1; font-size:11px; cursor:pointer;">${shortAddr}... 📋 Tap to copy</p>
+          <p onclick="window.copyAddress('${escapeAttr(sAddr)}')" style="margin:2px 0 0 0; font-family:monospace; color:#cbd5e1; font-size:11px; cursor:pointer;">${escapeHtml(data.seller_name || 'User')} · 📋 Tap to copy</p>
         </div>
       </div>
       <hr style="border:0; border-top:1px solid #e2e8f0; margin-bottom:14px;">
@@ -1108,7 +1108,7 @@ async function updateSowBadge() {
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b;"><p style="font-size:1.5rem; margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your World wallet to access your profile</p></div>';
+    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b;"><p style="font-size:1.5rem; margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
