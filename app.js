@@ -1,4 +1,4 @@
-import { MiniKit, Tokens, tokenToDecimals } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
+import { MiniKit, Tokens, tokenToDecimals } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
@@ -10,7 +10,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 let userWallet = null;
 let currentUsername = null; 
 let currentChatSeller = null;
-let currentChatSellerName = null;
 let currentLat = 28.6139; 
 let currentLng = 77.2090;
 
@@ -52,18 +51,7 @@ function checkRateLimit(action, cooldownMs) {
 // ==========================================
 // ADDRESS BOOK - Maps wallet to username
 // ==========================================
-const addressBook = {};
-async function resolveUsername(addr) {
-  if (!addr) return 'Unknown';
-  if (addressBook[addr]) return addressBook[addr];
-  const { data } = await supabase.from('users').select('username').eq('wallet_address', addr).single();
-  if (data && data.username) { addressBook[addr] = data.username; return data.username; }
-  const { data: lst } = await supabase.from('listings').select('seller_name').eq('seller_address', addr).limit(1).single();
-  if (lst && lst.seller_name) { addressBook[addr] = lst.seller_name; return lst.seller_name; }
-  addressBook[addr] = addr.substring(0, 8) + '...';
-  return addressBook[addr];
-}
-function getDisplayName(addr) { return addressBook[addr] || (addr ? addr.substring(0, 8) + '...' : 'Unknown'); }
+function getDisplayName(addr) { return addr ? addr.substring(0, 10) + '...' : 'Unknown'; }
 
 // ==========================================
 // TAB NAVIGATION
@@ -277,19 +265,14 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
-function generatePaymentHash(wallet, amount, reference) {
-  const data = `${wallet}:${amount}:${reference}:${APP_ID}`;
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) { hash = ((hash << 5) - hash) + data.charCodeAt(i); hash = hash & hash; }
-  return Math.abs(hash).toString(16);
-}
 
 document.addEventListener('DOMContentLoaded', async () => {
   try { MiniKit.install(APP_ID); } catch (e) { console.error(e); }
   await waitForMiniKitReady();
   
   const isAllowed = await enforceWorldAppEnvironment();
-  if (!isAllowed) return;    setupUI();
+  if (!isAllowed) return;
+  setupUI();
   initApp();
   detectUserCurrentPosition();
   fetchListings();
@@ -346,7 +329,7 @@ async function handleLogin() {
         if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
       }
       document.getElementById('loginBtn').innerText = `${currentUsername}`;
-      if (userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase()) { const ab = document.getElementById('adminPanelBtn'); if (ab) ab.style.display = 'block'; }
+
     } else {
       await showNeonPopup('Connection Failed', 'Wallet connect nahi ho paaya.', '🔌');
     }
@@ -467,7 +450,7 @@ function getPriceTypeBadge(pt) {
 // ==========================================
 // PROHIBITED / ILLEGAL WORDS CHECKER
 // ==========================================
-const forbiddenWords = ['weapon', 'drug', 'gun', 'hack', 'counterfeit', 'illegal', 'adult', 'bomb', 'firearm', 'steal', 'scam', 'phishing', 'crack', 'exploit', 'cheat', 'fraud', 'narcotics', 'meth', 'cocaine', 'bomb'];
+const forbiddenWords = ['weapon', 'drug', 'gun', 'hack', 'counterfeit', 'illegal', 'adult', 'bomb', 'firearm', 'steal', 'scam', 'phishing', 'crack', 'exploit', 'cheat', 'fraud', 'narcotics', 'meth', 'cocaine', 'terrorist', 'kill', 'murder', 'porn', 'nsfw', 'sex', 'prostitution'];
 
 function validateListingContent(title, description) {
   const content = (title + " " + description).toLowerCase();
@@ -619,8 +602,8 @@ async function handlePostAd(e) {
     const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
     let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
     await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
-    document.getElementById('adModal').style.display = 'none';
-    document.getElementById('adForm').reset(); fetchListings();
+    document.getElementById('adForm').reset();
+    window.switchTab('screenHome');
     await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
   } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Database Error', 'Error saving ad. Try again.', '⚠️'); }
 }
@@ -765,7 +748,6 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   if (!userWallet || !currentUsername) { await showNeonPopup('Hold On', 'Please connect wallet first!', '💬'); return; }
   if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'ℹ️'); return; }
   currentChatSeller = sellerWallet;
-  currentChatSellerName = sellerName;
   window.currentChatAdTitle = adTitle;    document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
   const chatBox = document.getElementById('chatMessages');
   chatBox.innerHTML = `<p class="loading-placeholder">Loading chat...</p>`;
