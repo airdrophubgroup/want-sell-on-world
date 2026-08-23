@@ -634,11 +634,11 @@ async function handlePostAd(e) {
     // MiniKit is imported from CDN
     // Tokens/tokenToDecimals from World App globals or fallback to hardcoded values
     // 1 WLD = 1e18 wei (1000000000000000000)
-    const WLD_SYMBOL = (window.Tokens && window.Tokens.WLD) || (mk && mk.Tokens && mk.Tokens.WLD) || 'WLD';
-    const WLD_TO_DEC = window.tokenToDecimals || (mk && mk.tokenToDecimals);
+    const WLD_SYMBOL = (Tokens && Tokens.WLD) || 'WLD';
+    const WLD_TO_DEC = tokenToDecimals;
     const tokenAmount = WLD_TO_DEC ? WLD_TO_DEC(1, WLD_SYMBOL).toString() : '1000000000000000000';
     console.log(`[PAY] Sending ${tokenAmount} ${WLD_SYMBOL} to ${ADMIN_WALLET}`);
-    const { finalPayload } = await mk.commandsAsync.pay({
+    const { finalPayload } = await MiniKit.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
       tokens: [{ symbol: WLD_SYMBOL, token_amount: tokenAmount }],
       description: 'Listing Fee: 1 WLD',
@@ -671,12 +671,14 @@ async function handlePostAd(e) {
     image1: imageUrls[0], image2: imageUrls[1], image3: imageUrls[2], image4: imageUrls[3],
     status: 'active'
   };
-  // condition/price_type: try adding them, if DB rejects (column missing) continue without
-  const condVal = document.getElementById('adCondition').value;
-  const ptVal = document.getElementById('priceType').value;
-  if (condVal) listingPayload.condition = condVal;
-  if (ptVal) listingPayload.price_type = ptVal;
-  const { error: insertError } = await supabase.from('listings').insert([listingPayload]);
+  let { error: insertError } = await supabase.from('listings').insert([listingPayload]);
+  // If insert failed (possibly missing condition/price_type columns), retry without them
+  if (insertError && insertError.message && (insertError.message.includes('condition') || insertError.message.includes('price_type') || insertError.message.includes('column'))) {
+    delete listingPayload.condition;
+    delete listingPayload.price_type;
+    const retry = await supabase.from('listings').insert([listingPayload]);
+    insertError = retry.error;
+  }
 
   if (!insertError) {
     const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
@@ -994,47 +996,59 @@ window.openMyAdsScreen = async function() {
 
   const balanceHtml = `<div class="balance-card"><h3 style="color:#38bdf8; margin-bottom:6px;">Your Balance</h3><p style="font-size:1.5rem; font-weight:800; color:#fff;">${earnedSow} SOW</p><p style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">Keep posting to earn more!</p></div>`;
 
-  const { data: activeAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).eq('status', 'active');
+  const { data: allMyAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).order('created_at', { ascending: false });
 
-  if (!activeAds || activeAds.length === 0) {
-    container.innerHTML = balanceHtml + `<p style="text-align:center; color:#64748b; padding:20px;">You have no active ads.</p>`;
+  const activeAds = (allMyAds || []).filter(a => a.status === 'active');
+  const soldAds = (allMyAds || []).filter(a => a.status === 'sold');
+
+  document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
+
+  if (activeAds.length === 0 && soldAds.length === 0) {
+    container.innerHTML = balanceHtml + `<p style="text-align:center; color:#64748b; padding:20px;">You have no ads yet. Post one!</p>`;
     return;
   }
 
-  document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
-  container.innerHTML = activeAds.map(item => {
-    const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
-    return `<div onclick="window.openAdDetails('${sI}')" style="background:rgba(0,0,0,0.03); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-      <div><h4 style="font-size:0.9rem; color:#1e293b;">${sT}</h4><p style="font-size:0.8rem; color:#10b981;">${sP} WLD (${sC})</p></div>
-      <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" style="background:#ef4444; color:#fff; padding:6px 10px; font-size:11px; border-radius:6px; font-weight:bold; cursor:pointer;">Delete</button>
-    </div>`;
-  }).join('');
+  let html = '';
+  if (activeAds.length > 0) {
+    html += `<p style="font-size:0.75rem; color:#64748b; margin:8px 0 4px; font-weight:600; text-transform:uppercase;">Active (${activeAds.length})</p>`;
+    html += activeAds.map(item => {
+      const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
+      return `<div onclick="window.openAdDetails('${sI}')" style="background:rgba(0,0,0,0.03); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+        <div><h4 style="font-size:0.9rem; color:#1e293b;">${sT}</h4><p style="font-size:0.8rem; color:#10b981;">${sP} WLD (${sC})</p></div>
+        <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" style="background:#f59e0b; color:#fff; padding:6px 10px; font-size:11px; border-radius:6px; font-weight:bold; cursor:pointer;">Mark Sold</button>
+      </div>`;
+    }).join('');
+  }
+  if (soldAds.length > 0) {
+    html += `<p style="font-size:0.75rem; color:#64748b; margin:12px 0 4px; font-weight:600; text-transform:uppercase;">Sold (${soldAds.length})</p>`;
+    html += soldAds.map(item => {
+      const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
+      return `<div onclick="window.openAdDetails('${sI}')" style="background:rgba(0,0,0,0.03); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; opacity:0.6;">
+        <div><h4 style="font-size:0.9rem; color:#1e293b; text-decoration:line-through;">${sT}</h4><p style="font-size:0.8rem; color:#64748b;">${sP} WLD (${sC})</p></div>
+        <span style="background:#10b981; color:#fff; padding:6px 10px; font-size:11px; border-radius:6px; font-weight:bold;">✅ Sold</span>
+      </div>`;
+    }).join('');
+  }
+  container.innerHTML = html;
 }
 
 window.markAsSoldOut = async function(id) {
-  const isConfirmed = await showNeonPopup('Delete Ad?', 'Are you sure this item is Sold Out? This will permanently delete the ad, its images, and chat history.', '🗑️', 'confirm');
-  
+  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', '🔐'); return; }
+  const isConfirmed = await showNeonPopup('Mark as Sold?', 'This ad will be marked as sold. Your SOW coins will stay! 🪙', '🏷️', 'confirm');
   if (isConfirmed) {
-    const { data: adData } = await supabase.from('listings').select('title, image1, image2, image3, image4').eq('id', id).single();
-
-    if (adData) {
-      const imagesList = [adData.image1, adData.image2, adData.image3, adData.image4];
-      for (const imgUrl of imagesList) {
-        if (imgUrl && imgUrl.includes('/listing/')) {
-          const filePath = imgUrl.split('/listing/')[1];
-          if (filePath) await supabase.storage.from('listing').remove([filePath]);
-        }
-      }
-      await supabase.from('chats').delete().eq('ad_title', adData.title);
+    // SECURITY: Verify ownership — only the ad's seller can mark it sold
+    const { data: adData } = await supabase.from('listings').select('seller_address').eq('id', id).single();
+    if (!adData || adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
+      await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', '🚫');
+      return;
     }
-
-    const { error } = await supabase.from('listings').delete().match({ id });
+    const { error } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id);
     if (!error) {
-      await showNeonPopup('Deleted', 'Ad, storage images, and related chat history deleted successfully!', '✅');
+      await showNeonPopup('Sold! 🎉', 'Ad marked as sold. Your SOW coins are safe! 🪙', '✅');
       window.switchTab('screenMyAds');
       fetchListings();
     } else {
-      await showNeonPopup('Error', 'Could not delete ad. Try again.', '⚠️');
+      await showNeonPopup('Error', 'Could not update ad. Try again.', '⚠️');
     }
   }
 }
