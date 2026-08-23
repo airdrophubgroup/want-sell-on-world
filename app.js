@@ -691,17 +691,22 @@ async function handlePostAd(e) {
     } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', '❌'); return; }
   }
 
-  const { error: insertError } = await supabase.from('listings').insert([{
+  // Build insert payload
+  const listingPayload = {
     seller_address: userWallet, seller_name: currentUsername,
     title: titleV.clean, description: descV.clean, price: priceV.clean,
     category: document.getElementById('category').value,
     country: document.getElementById('adCountry').value, address: addrV.clean,
-    condition: document.getElementById('adCondition').value,
-    price_type: document.getElementById('priceType').value,
     lat: currentLat, lng: currentLng,
     image1: imageUrls[0], image2: imageUrls[1], image3: imageUrls[2], image4: imageUrls[3],
     status: 'active'
-  }]);
+  };
+  // condition/price_type: try adding them, if DB rejects (column missing) continue without
+  const condVal = document.getElementById('adCondition').value;
+  const ptVal = document.getElementById('priceType').value;
+  if (condVal) listingPayload.condition = condVal;
+  if (ptVal) listingPayload.price_type = ptVal;
+  const { error: insertError } = await supabase.from('listings').insert([listingPayload]);
 
   if (!insertError) {
     const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
