@@ -330,13 +330,13 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   console.log('[BOOT] Starting...');
-  setupUI();
-  initApp();
-  fetchListings();
-  detectUserCurrentPosition();
-  console.log('[BOOT] App initialized');
+  try { setupUI(); } catch(e) { console.error('[BOOT] setupUI error:', e); }
+  try { initApp(); } catch(e) { console.error('[BOOT] initApp error:', e); }
+  try { fetchListings(); } catch(e) { console.error('[BOOT] fetchListings error:', e); }
+  try { detectUserCurrentPosition(); } catch(e) { console.error('[BOOT] GPS error:', e); }
+  console.log('[BOOT] Done');
 });
 
 function setupUI() {
