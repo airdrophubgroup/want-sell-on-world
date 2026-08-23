@@ -330,19 +330,32 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   console.log('[BOOT] Starting...');
-  const mkReady = await initMiniKit();
-  await loadSupabase();
+
+  // Run MiniKit detection AND Supabase load IN PARALLEL with timeout
+  // App MUST show regardless - wallet features just get disabled
+  const mkPromise = initMiniKit();
+  const dbPromise = loadSupabase();
+  const timeout = new Promise(r => setTimeout(() => {
+    console.warn('[BOOT] CDN timeout - proceeding without full features');
+    r(false);
+  }, 6000));
+
+  const mkReady = await Promise.race([mkPromise, timeout]);
+  await Promise.race([dbPromise, timeout]);
+
+  // ALWAYS initialize the app - splash MUST dismiss
+  setupUI();
+  initApp();
+  fetchListings();
+  detectUserCurrentPosition();
+
   if (!mkReady || !getMiniKit()) {
-    console.error('[BLOCKED] No MiniKit');
-    const s = document.getElementById('splashScreen');
-    if (s) s.style.display = 'none';
-    document.getElementById('worldAppBlocker').style.display = 'flex';
-    return;
+    console.warn('[BOOT] MiniKit not available - wallet features disabled');
+  } else {
+    console.log('[BOOT] All systems ready');
   }
-  console.log('[BOOT] Ready');
-  setupUI(); initApp(); fetchListings(); detectUserCurrentPosition();
 });
 
 function setupUI() {
