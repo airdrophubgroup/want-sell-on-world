@@ -6,19 +6,22 @@
 let createClient = null;
 
 async function loadDependencies() {
-  // MiniKit: wait for World App to inject window.MiniKit (poll for 5s)
+  // MiniKit: wait for World App to inject window.MiniKit (poll for 8s)
+  // NOTE: window.MiniKit exists BEFORE .install() — commandsAsync comes after install
   await new Promise((resolve) => {
     const start = Date.now();
     (function check() {
-      if (window.MiniKit && window.MiniKit.commandsAsync) {
+      if (window.MiniKit) {
         console.log('[OK] MiniKit found from World App');
         resolve();
-      } else if (Date.now() - start > 5000) {
-        console.warn('[WARN] MiniKit not found after 5s — wallet features disabled');
-        resolve();
-      } else {
-        setTimeout(check, 100);
+        return;
       }
+      if (Date.now() - start > 8000) {
+        console.warn('[WARN] MiniKit not found after 8s');
+        resolve();
+        return;
+      }
+      setTimeout(check, 100);
     })();
   });
   // Supabase: load from CDN
@@ -264,13 +267,14 @@ function getMiniKit() {
   return window.MiniKit || null;
 }
 
-function waitForMiniKitReady(timeoutMs = 3000) {
+function waitForMiniKitReady(timeoutMs = 5000) {
   return new Promise((resolve) => {
     const start = Date.now();
     (function check() {
       try {
         const mk = getMiniKit();
-        if (mk && mk.commandsAsync) {
+        // After install(), MiniKit should have commandsAsync
+        if (mk && mk.commandsAsync && mk.commandsAsync.walletAuth) {
           resolve(true);
           return;
         }
@@ -287,7 +291,8 @@ function waitForMiniKitReady(timeoutMs = 3000) {
 function isWorldAppReady() {
   try {
     const mk = getMiniKit();
-    return !!(mk && mk.commandsAsync);
+    // Check both: after install (commandsAsync) or at minimum window.MiniKit exists
+    return !!(mk && (mk.commandsAsync || mk.isInstalled));
   } catch(e) { return false; }
 }
 
@@ -341,11 +346,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const splash = document.getElementById('splashScreen');
     if (splash) splash.style.display = 'none';
     document.getElementById('worldAppBlocker').style.display = 'flex';
-    console.error('[BLOCKED] Not running inside World App');
+    console.error('[BLOCKED] Not running inside World App — window.MiniKit not found');
     return; // STOP — nothing else runs
   }
 
-  // STEP 2: MiniKit found — install and wait for ready
+  // STEP 2: MiniKit found — install it to activate commandsAsync
+  console.log('[OK] window.MiniKit found, installing...');
   try { mk.install(APP_ID); } catch (e) { console.warn('[MiniKit] install:', e.message); }
   await waitForMiniKitReady();
   console.log('[OK] MiniKit ready — World App detected');
