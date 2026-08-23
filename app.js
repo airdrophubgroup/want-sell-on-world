@@ -1,5 +1,22 @@
-import { MiniKit, Tokens, tokenToDecimals } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm";
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+// ==========================================
+// DYNAMIC IMPORTS - App loads even if CDN fails
+// ==========================================
+let MiniKit = null, Tokens = null, tokenToDecimals = null, createClient = null;
+
+async function loadDependencies() {
+  try {
+    const minikitModule = await import('https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm');
+    MiniKit = minikitModule.MiniKit;
+    Tokens = minikitModule.Tokens;
+    tokenToDecimals = minikitModule.tokenToDecimals;
+    console.log('[OK] MiniKit loaded');
+  } catch (e) { console.warn('[WARN] MiniKit CDN failed, wallet features disabled:', e.message); }
+  try {
+    const supaModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    createClient = supaModule.createClient;
+    console.log('[OK] Supabase loaded');
+  } catch (e) { console.error('[ERROR] Supabase CDN failed:', e.message); }
+}
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkaWNka3JmaW5idWRwYXFxamFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNzM4MzMsImV4cCI6MjEwMTc0OTgzM30.ksv1zdQVimQTNWnrHaRqEXcLw7-3G6_zjAyEOZZkr0s';
@@ -7,12 +24,7 @@ const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
 // SECURITY: Enable Supabase RLS on all tables to prevent client-side data manipulation!
-// sow_balances: only owner can UPDATE their own row
-// listings: only owner can INSERT/UPDATE/DELETE their own rows
-// chats: only sender can INSERT
-// reviews: only buyer can INSERT
-// users: only owner can INSERT/UPDATE their own row
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = (createClient) ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 let userWallet = null;
 let currentUsername = null; 
 let currentChatSeller = null;
@@ -132,6 +144,7 @@ function initApp() {
   const detBtn = document.getElementById('detectLocationBtn');
   if (detBtn) detBtn.addEventListener('click', () => window.detectLocation());
 
+  // Dismiss splash and show app - ALWAYS runs regardless of CDN
   setTimeout(() => {
     const splash = document.getElementById('splashScreen');
     const shell = document.getElementById('appShell');
@@ -139,7 +152,8 @@ function initApp() {
     if (splash) { splash.style.opacity = '0'; splash.style.transition = 'opacity 0.5s'; setTimeout(() => splash.style.display = 'none', 500); }
     if (shell) shell.style.display = 'flex';
     if (fab) fab.style.display = 'flex';
-  }, 2000);
+    console.log('[APP] Splash dismissed, app shell visible');
+  }, 1500);
 }
 
 // ==========================================
@@ -263,10 +277,20 @@ function randomAlphaNumeric(len) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-  try { MiniKit.install(APP_ID); } catch (e) { console.warn('MiniKit install error (non-fatal):', e); }
-  await waitForMiniKitReady();
+  // Load CDN dependencies with a max 5s timeout - app MUST show even if CDN fails
+  const depsLoaded = Promise.race([
+    loadDependencies(),
+    new Promise(resolve => setTimeout(() => { console.warn('[TIMEOUT] CDN loading took too long'); resolve(); }, 5000))
+  ]);
+  await depsLoaded;
+
+  // Try to init MiniKit if loaded
+  if (MiniKit) {
+    try { MiniKit.install(APP_ID); } catch (e) { console.warn('MiniKit install error:', e); }
+    await waitForMiniKitReady();
+  }
   
-  // Always initialize the app - don't destroy DOM
+  // ALWAYS initialize the app regardless of CDN status
   setupUI();
   initApp();
   detectUserCurrentPosition();
@@ -297,6 +321,7 @@ function setupUI() {
 
 async function handleLogin() {
   if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Please open this app inside the World App to connect your wallet.', '🌍'); return; }
+  if (!supabase) { await showNeonPopup('Offline', 'Database not available. Check your internet connection.', '📡'); return; }
   if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
   try {
     const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
@@ -531,6 +556,7 @@ async function handlePostAd(e) {
   e.preventDefault();
   if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', 'Please wait before posting another ad.', '⏳'); return; }
   if (!userWallet || !currentUsername) { await showNeonPopup('Hold On', 'Please connect your wallet first!', '🔗'); return; }
+  if (!supabase) { await showNeonPopup('Offline', 'Database not available.', '📡'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
   if (!titleV.valid) { await showNeonPopup('Invalid Title', titleV.error, '📝'); return; }
@@ -610,6 +636,8 @@ async function handlePostAd(e) {
 
 async function fetchListings() {
   const container = document.getElementById('listingsContainer');
+  if (!container) return;
+  if (!supabase) { container.innerHTML = '<p class="loading-placeholder">Database not available. Check your connection.</p>'; return; }
   const selectedCountry = document.getElementById('countryFilter').value;
   const selectedCategory = document.getElementById('categoryFilter').value;
   const maxDistance = parseInt(document.getElementById('distanceRange').value);
