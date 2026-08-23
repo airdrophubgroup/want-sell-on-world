@@ -354,7 +354,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupUI();
   initApp();
   fetchListings();
-  // NOTE: detectUserCurrentPosition() NOT called here — only after wallet connect
+  detectUserCurrentPosition();
+  // GPS detection runs immediately so distance filter works for browsing
 });
 
 function setupUI() {
@@ -412,6 +413,8 @@ async function handleLogin() {
         if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
       }
       document.getElementById('loginBtn').innerText = `${currentUsername}`;
+      detectUserCurrentPosition();
+      fetchListings();
 
     } else {
       await showNeonPopup('Connection Failed', 'Wallet connect nahi ho paaya.', '🔌');
@@ -653,12 +656,15 @@ async function handlePostAd(e) {
   const paymentRef = randomAlphaNumeric(16);
   try {
     const mk = getMiniKit();
-    // Tokens/tokenToDecimals may be on window, on MiniKit, or accessed directly
-    const T = (typeof Tokens !== 'undefined' && Tokens) || (window.Tokens) || (mk && mk.Tokens) || { WLD: 'WLD' };
-    const toDec = (typeof tokenToDecimals !== 'undefined' && tokenToDecimals) || (window.tokenToDecimals) || (mk && mk.tokenToDecimals) || ((amt, sym) => (BigInt(Math.round(amt * 1e18))).toString());
+    // Tokens/tokenToDecimals from World App globals or fallback to hardcoded values
+    // 1 WLD = 1e18 wei (1000000000000000000)
+    const WLD_SYMBOL = (window.Tokens && window.Tokens.WLD) || (mk && mk.Tokens && mk.Tokens.WLD) || 'WLD';
+    const WLD_TO_DEC = window.tokenToDecimals || (mk && mk.tokenToDecimals);
+    const tokenAmount = WLD_TO_DEC ? WLD_TO_DEC(1, WLD_SYMBOL).toString() : '1000000000000000000';
+    console.log(`[PAY] Sending ${tokenAmount} ${WLD_SYMBOL} to ${ADMIN_WALLET}`);
     const { finalPayload } = await mk.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
-      tokens: [{ symbol: T.WLD, token_amount: toDec(1, T.WLD).toString() }],
+      tokens: [{ symbol: WLD_SYMBOL, token_amount: tokenAmount }],
       description: 'Listing Fee: 1 WLD',
     });
     paymentSuccessful = (finalPayload?.status === 'success');
