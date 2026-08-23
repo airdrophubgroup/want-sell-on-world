@@ -1,20 +1,41 @@
-// ==========================================
-// WantSell - World App Mini App
-// MiniKit from window.MiniKit (World App)
-// Supabase from window.supabase (CDN script tag)
-// ==========================================
+import { MiniKit, Tokens, tokenToDecimals } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkaWNka3JmaW5idWRwYXFxamFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNzM4MzMsImV4cCI6MjEwMTc0OTgzM30.ksv1zdQVimQTNWnrHaRqEXcLw7-3G6_zjAyEOZZkr0s';
 const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
-// Create Supabase client from global
-let supabase = null;
-try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log('[INIT] Supabase connected');
-} catch(e) { console.error('[INIT] Supabase failed:', e); }
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+let userWallet = null;
+let currentUsername = null;
+let currentChatSeller = null;
+let currentLat = 28.6139;
+let currentLng = 77.2090;
+
+function checkWorldAppEnvironment() {
+  let miniOk = false;
+  try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
+  if (!miniOk) {
+    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#050000;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;text-align:center;padding:20px;"><div style="background:rgba(255,0,0,0.08);border:2px solid #ff3333;padding:30px;border-radius:20px;max-width:400px;"><h1 style="color:#ff3333;font-size:24px;margin-bottom:15px;">ACCESS DENIED</h1><p style="color:#fff;font-size:16px;margin-bottom:20px;">This app can only be used inside the official <b>World App</b>.</p></div></div>';
+    document.getElementById('splashScreen').style.display = 'flex';
+    return false;
+  }
+  return true;
+}
+
+function waitForMiniKitReady(timeoutMs = 5000) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    (function check() {
+      let miniOk = false;
+      try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
+      if (miniOk) { resolve(true); }
+      else if (Date.now() - start > timeoutMs) { resolve(false); }
+      else { setTimeout(check, 100); }
+    })();
+  });
+}
 
 // SECURITY: HTML SANITIZER (XSS PREVENTION)
 // ==========================================
@@ -229,38 +250,9 @@ window.copyAddress = async function(address) {
 
 
 
-function getMiniKit() {
-  return window.MiniKit || null;
-}
 
-function waitForMiniKitReady(timeoutMs = 5000) {
-  return new Promise((resolve) => {
-    const start = Date.now();
-    (function check() {
-      try {
-        const mk = getMiniKit();
-        // After install(), MiniKit should have commandsAsync
-        if (mk && mk.commandsAsync && mk.commandsAsync.walletAuth) {
-          resolve(true);
-          return;
-        }
-      } catch(e) {}
-      if (Date.now() - start > timeoutMs) {
-        resolve(false);
-        return;
-      }
-      setTimeout(check, 100);
-    })();
-  });
-}
 
-function isWorldAppReady() {
-  try {
-    const mk = getMiniKit();
-    // Check both: after install (commandsAsync) or at minimum window.MiniKit exists
-    return !!(mk && (mk.commandsAsync || mk.isInstalled));
-  } catch(e) { return false; }
-}
+
 
 // WALLET REQUIRED CHECK — blocks action if not logged in
 function requireWallet() {
@@ -296,13 +288,49 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('[BOOT] Starting...');
-  try { setupUI(); } catch(e) { console.error('[BOOT] setupUI error:', e); }
-  try { initApp(); } catch(e) { console.error('[BOOT] initApp error:', e); }
-  try { fetchListings(); } catch(e) { console.error('[BOOT] fetchListings error:', e); }
-  try { detectUserCurrentPosition(); } catch(e) { console.error('[BOOT] GPS error:', e); }
-  console.log('[BOOT] Done');
+document.addEventListener('DOMContentLoaded', async () => {
+  try { MiniKit.install(APP_ID); } catch(e) {}
+
+  // Restore saved wallet immediately
+  const savedAddress = localStorage.getItem('userWallet');
+  const savedUsername = localStorage.getItem('currentUsername');
+  if (savedAddress && !userWallet) {
+    userWallet = savedAddress;
+    currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
+    document.getElementById('loginBtn').innerText = currentUsername;
+    detectUserCurrentPosition();
+    fetchListings();
+  }
+
+  const ready = await waitForMiniKitReady();
+  if (!ready) { checkWorldAppEnvironment(); return; }
+
+  // Silent wallet auth (like Dice Duel)
+  if (typeof MiniKit !== 'undefined') {
+    try {
+      const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+        nonce: randomAlphaNumeric(24),
+        requestId: 'req_silent_' + Date.now(),
+        expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        notBefore: new Date(Date.now() - 60 * 1000),
+        statement: 'Sign in to WantSell',
+      });
+      if (finalPayload?.status === 'success' && finalPayload?.address) {
+        userWallet = finalPayload.address;
+        const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
+        currentUsername = userData?.username || ('User_' + userWallet.substring(2, 8));
+        localStorage.setItem('userWallet', userWallet);
+        localStorage.setItem('currentUsername', currentUsername);
+        document.getElementById('loginBtn').innerText = currentUsername;
+        detectUserCurrentPosition();
+      }
+    } catch(err) {}
+  }
+
+  setupUI();
+  initApp();
+  fetchListings();
+  if (!userWallet) detectUserCurrentPosition();
 });
 
 function setupUI() {
@@ -328,13 +356,11 @@ function setupUI() {
 }
 
 async function handleLogin() {
-
-  if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Please open this app inside the World App to connect your wallet.', '🌍'); return; }
-  if (!supabase) { await showNeonPopup('Offline', 'Database not available. Check your internet connection.', '📡'); return; }
-  if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
+  if (!checkWorldAppEnvironment()) return;
+  if (!supabase) { showNeonPopup('Offline', 'Database not available.', '📡'); return; }
+  if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
   try {
-    const mk = getMiniKit();
-    const { finalPayload } = await mk.commandsAsync.walletAuth({
+    const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
       nonce: randomAlphaNumeric(24),
       requestId: 'req_login_' + Date.now(),
       expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -342,36 +368,35 @@ async function handleLogin() {
       statement: 'Sign in to WantSell',
     });
     if (finalPayload?.status === 'success' && finalPayload?.address) {
-      if (!isValidEthAddress(finalPayload.address)) { await showNeonPopup('Error', 'Invalid wallet address.', '❌'); return; }
+      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', 'Invalid wallet address.', '❌'); return; }
       userWallet = finalPayload.address;
       const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
       if (userData && userData.username) {
         currentUsername = userData.username;
       } else {
-        let usernameInput = await showNeonPopup('Welcome! 👋', 'Choose a Username (2-20 chars, letters/numbers only):', '👤', 'prompt');
+        let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', '👤', 'prompt');
         let attempts = 0;
         while (attempts < 3) {
           const v = validateUsername(usernameInput);
           if (v.valid) { currentUsername = v.clean; break; }
           attempts++;
-          if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); await showNeonPopup('Auto Username', `Using: ${currentUsername}`, '👤'); break; }
-          usernameInput = await showNeonPopup('Invalid Username', v.error, '⚠️', 'prompt');
+          if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); break; }
+          usernameInput = await showNeonPopup('Invalid', v.error, '⚠️', 'prompt');
         }
         const { data: exUser } = await supabase.from('users').select('wallet_address').eq('wallet_address', userWallet).single();
         if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
       }
-      document.getElementById('loginBtn').innerText = `${currentUsername}`;
+      localStorage.setItem('userWallet', userWallet);
+      localStorage.setItem('currentUsername', currentUsername);
+      document.getElementById('loginBtn').innerText = currentUsername;
       detectUserCurrentPosition();
       fetchListings();
-
     } else {
-      await showNeonPopup('Connection Failed', 'Wallet connect nahi ho paaya.', '🔌');
+      showNeonPopup('Connection Failed', 'Wallet connect failed.', '🔌');
     }
   } catch (err) {
     console.error('[LOGIN ERROR]', err.message || err);
-    const mk = getMiniKit();
-    const details = mk ? 'MiniKit found but walletAuth failed' : 'MiniKit NOT found';
-    await showNeonPopup('Error', `Wallet connect failed. ${details}. Try restarting the app.`, '❌');
+    showNeonPopup('Error', 'Wallet connect error. Try again.', '❌');
   }
 }
 
@@ -599,11 +624,11 @@ async function handlePostAd(e) {
   if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
-  if (!getMiniKit()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
+  if (!checkWorldAppEnvironment()) { return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
-    const mk = getMiniKit();
+    // MiniKit is imported from CDN
     // Tokens/tokenToDecimals from World App globals or fallback to hardcoded values
     // 1 WLD = 1e18 wei (1000000000000000000)
     const WLD_SYMBOL = (window.Tokens && window.Tokens.WLD) || (mk && mk.Tokens && mk.Tokens.WLD) || 'WLD';
