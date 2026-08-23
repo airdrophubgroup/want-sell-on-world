@@ -124,7 +124,7 @@ function initApp() {
   const fabBtn = document.getElementById('fabPost');
   if (fabBtn) {
     fabBtn.addEventListener('click', () => {
-      if (!userWallet) { showNeonPopup('Hold On', 'Connect wallet first!', ''); return; }
+      if (!userWallet) { showNeonPopup('Hold On', 'Connect wallet first to post ads!', '🔗'); return; }
       window.switchTab('screenPost');
     });
   }
@@ -225,42 +225,31 @@ window.copyAddress = async function(address) {
   }
 }
 
-// ==========================================
-// STRICT WORLD APP ENVIRONMENT CHECK
-// ==========================================
-async function enforceWorldAppEnvironment() {
-  const isWorldApp = (typeof MiniKit !== 'undefined' && MiniKit.isInstalled());
-  if (!isWorldApp) {
-    document.body.innerHTML = `
-      <div style="background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; font-family: sans-serif;">
-        <div style="font-size: 80px; margin-bottom: 20px; animation: iconBounce 2s infinite;">⚠️</div>
-        <h1 style="color: #ef4444; font-size: 2rem; margin-bottom: 10px; font-weight: 900; text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);">STRICT WARNING</h1>
-        <p style="color: #cbd5e1; font-size: 1.1rem; max-width: 400px; line-height: 1.6; margin-bottom: 30px;">
-          This application is secure and can <b>ONLY</b> be opened inside the official <b>World App</b>. Please open this mini-app through World App to continue.
-        </p>
-        <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; padding: 12px 24px; border-radius: 14px; color: #ef4444; font-weight: bold; font-size: 0.95rem; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);">
-          🚫 Access Denied Outside World App
-        </div>
-      </div>
-    `;
-    return false;
-  }
-  return true;
-}
 
-function waitForMiniKitReady(timeoutMs = 2000) {
+
+function waitForMiniKitReady(timeoutMs = 3000) {
   return new Promise((resolve) => {
     const start = Date.now();
     (function check() {
-      if (typeof MiniKit !== 'undefined' && MiniKit.isInstalled()) {
-        resolve(true);
-      } else if (Date.now() - start > timeoutMs) {
+      try {
+        if (typeof MiniKit !== 'undefined' && MiniKit.isInstalled && MiniKit.isInstalled()) {
+          resolve(true);
+          return;
+        }
+      } catch(e) {}
+      if (Date.now() - start > timeoutMs) {
         resolve(false);
-      } else {
-        setTimeout(check, 100);
+        return;
       }
+      setTimeout(check, 100);
     })();
   });
+}
+
+function isWorldAppReady() {
+  try {
+    return typeof MiniKit !== 'undefined' && MiniKit.isInstalled && MiniKit.isInstalled();
+  } catch(e) { return false; }
 }
 
 function randomAlphaNumeric(len) {
@@ -274,11 +263,10 @@ function randomAlphaNumeric(len) {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-  try { MiniKit.install(APP_ID); } catch (e) { console.error(e); }
+  try { MiniKit.install(APP_ID); } catch (e) { console.warn('MiniKit install error (non-fatal):', e); }
   await waitForMiniKitReady();
   
-  const isAllowed = await enforceWorldAppEnvironment();
-  if (!isAllowed) return;
+  // Always initialize the app - don't destroy DOM
   setupUI();
   initApp();
   detectUserCurrentPosition();
@@ -308,6 +296,7 @@ function setupUI() {
 }
 
 async function handleLogin() {
+  if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Please open this app inside the World App to connect your wallet.', '🌍'); return; }
   if (!checkRateLimit('login', 5000)) { await showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
   try {
     const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
@@ -570,6 +559,7 @@ async function handlePostAd(e) {
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
 
   if (!isValidEthAddress(userWallet)) { await showNeonPopup('Error', 'Invalid wallet. Please re-login.', '❌'); return; }
+  if (!isWorldAppReady()) { await showNeonPopup('World App Required', 'Payment requires World App.', '🌍'); return; }
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {

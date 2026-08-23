@@ -243,3 +243,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: v
 
 /* Filter box subtle shadow */
 .filter-box { box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+
+/* Screen transition fade */
+.app-screen.active { animation: fadeIn 0.25s ease; }
+
+/* Chat bubble animation */
+.chat-messages > div { animation: fadeInUp 0.25s ease-out both; }
+
+/* Login button glow when not connected */
+.login-btn { animation: glow 2s ease-in-out infinite; }
+
+/* Category chip bounce on select */
+.category-chip.active { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state-icon { font-size: 3rem; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+.empty-state-text { font-size: 0.95rem; line-height: 1.5; }
+
+/* Toast / snackbar style */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 99999; animation: fadeInUp 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
