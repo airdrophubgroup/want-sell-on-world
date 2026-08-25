@@ -355,6 +355,20 @@ function setupUI() {
       searchDebounceTimer = setTimeout(fetchListings, 300);
     });
   }
+
+  // OFFLINE INDICATOR — technical requirement: handle disconnections
+  const offlineBanner = document.createElement('div');
+  offlineBanner.id = 'offlineBanner';
+  offlineBanner.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; z-index:10000; background:#ef4444; color:#fff; text-align:center; padding:6px; font-size:0.75rem; font-weight:600;';
+  offlineBanner.textContent = '\u26a0\ufe0f You are offline. Some features may be unavailable.';
+  document.body.appendChild(offlineBanner);
+  window.addEventListener('online', () => {
+    offlineBanner.style.display = 'none';
+    if (supabase) fetchListings();
+  });
+  window.addEventListener('offline', () => {
+    offlineBanner.style.display = 'block';
+  });
 }
 
 async function handleLogin() {
@@ -416,6 +430,9 @@ function detectUserCurrentPosition() {
 
 window.detectLocation = async function() {
   if (!requireWallet()) return;
+  // PRIVACY: Ask consent before requesting location
+  const consent = await showNeonPopup('Location Access', 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.', '📍', 'confirm');
+  if (!consent) return;
   const addressField = document.getElementById('adAddress');
   addressField.value = "Detecting precise location...";
 
@@ -706,7 +723,15 @@ async function fetchListings() {
   if (selectedCountry !== 'ALL') query = query.eq('country', selectedCountry);
   if (selectedCategory !== 'ALL') query = query.eq('category', selectedCategory);
 
-  const { data, error } = await query;
+  let data, error;
+  try {
+    const result = await query;
+    data = result.data;
+    error = result.error;
+  } catch (netErr) {
+    container.innerHTML = `<p class="loading-placeholder">\u26a0\ufe0f Network error. Please check your connection and try again.</p>`;
+    return;
+  }
   
   container.innerHTML = showSkeleton(4);
 
@@ -762,7 +787,6 @@ async function fetchListings() {
         </div>
         <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:8px;">
           <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" style="background:#4f46e5; color:#fff; flex:1; padding:8px; font-size:12px; border-radius:8px; border:none; cursor:pointer; font-weight:bold;">💬 Chat Seller</button>
-          <button onclick="event.stopPropagation(); window.copyAddress('${iSeller}')" style="background:#f1f5f9; color:#475569; padding:8px 12px; font-size:12px; border-radius:8px; border:none; cursor:pointer; font-weight:600;">📋 Copy ID</button>
         </div>
       </div>
     `;
@@ -781,7 +805,6 @@ window.openAdDetails = async function(id) {
   const cBadge = getConditionBadge(data.condition);
   const pBadge = getPriceTypeBadge(data.price_type);
   const posted = timeAgo(data.created_at);
-  const shortAddr = escapeHtml(sAddr.substring(0,18));
   const dist = data.calculatedDistance ? ` (~${escapeHtml(data.calculatedDistance)} km)` : '';
   document.getElementById('adDetailsBody').innerHTML = `
     <div style="text-align:left;">
@@ -809,7 +832,7 @@ window.openAdDetails = async function(id) {
         </div>
         <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
           <span style="font-size:10px; color:#94a3b8;">Username</span>
-          <p onclick="window.copyAddress('${escapeAttr(sAddr)}')" style="margin:2px 0 0 0; font-family:monospace; color:#cbd5e1; font-size:11px; cursor:pointer;">${escapeHtml(data.seller_name || 'User')} · 📋 Tap to copy</p>
+          <p style="margin:2px 0 0 0; font-family:monospace; color:#cbd5e1; font-size:11px;">${escapeHtml(data.seller_name || 'User')}</p>
         </div>
       </div>
       <hr style="border:0; border-top:1px solid #e2e8f0; margin-bottom:14px;">
@@ -1077,7 +1100,7 @@ window.openLeaderboard = async function() {
     if(index === 2) rankMedal = '🥉 3rd';
     
     const username = escapeHtml(userMap[item.wallet_address] || 'Unknown User');
-    const shortWallet = escapeHtml(item.wallet_address.substring(0, 6) + '...');
+    const shortWallet = '';
     const bal = escapeHtml(item.balance);
 
     let specialStyle = index < 3 
@@ -1092,7 +1115,7 @@ window.openLeaderboard = async function() {
           <span style="font-weight: 800; min-width: 45px; ${rankStyle}">${rankMedal}</span>
           <div>
             <h4 style="margin: 0; font-size: 0.95rem; ${nameStyle}">${username}</h4>
-            <p style="margin: 2px 0 0 0; font-size: 0.7rem; color: #94a3b8; font-family: monospace;">${shortWallet}</p>
+            <p style="margin: 2px 0 0 0; font-size: 0.7rem; color: #94a3b8;">${escapeHtml(userMap[item.wallet_address] || '')}</p>
           </div>
         </div>
         <div style="font-weight: bold; font-size: 1rem; color: #10b981; text-align:right;">
