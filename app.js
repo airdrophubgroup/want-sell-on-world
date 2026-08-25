@@ -1057,22 +1057,62 @@ window.openMyAdsScreen = async function() {
 
 window.markAsSoldOut = async function(id) {
   if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', '🔐'); return; }
+  if (!checkRateLimit('soldOut', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', '⏳'); return; }
   const isConfirmed = await showNeonPopup('Mark as Sold?', 'This ad will be marked as sold. Your SOW coins will stay! 🪙', '🏷️', 'confirm');
   if (isConfirmed) {
     // SECURITY: Verify ownership — only the ad's seller can mark it sold
-    const { data: adData } = await supabase.from('listings').select('seller_address').eq('id', id).single();
-    if (!adData || adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
+    const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
+    if (fetchErr || !adData) {
+      console.error('[SOLD] Ad fetch failed:', fetchErr);
+      await showNeonPopup('Error', 'Ad not found. Please refresh.', '⚠️');
+      return;
+    }
+    if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
       await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', '🚫');
       return;
     }
-    const { error } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id);
-    if (!error) {
-      await showNeonPopup('Sold! 🎉', 'Ad marked as sold. Your SOW coins are safe! 🪙', '✅');
-      window.switchTab('screenMyAds');
-      fetchListings();
-    } else {
-      await showNeonPopup('Error', 'Could not update ad. Try again.', '⚠️');
+    if (adData.status === 'sold') {
+      await showNeonPopup('Already Sold', 'This ad is already marked as sold.', 'ℹ️');
+      window.openMyAdsScreen();
+      return;
     }
+    // Try RPC function first (bypasses RLS), fall back to direct update
+    let soldOk = false;
+    try {
+      const { data: rpcResult } = await supabase.rpc('mark_ad_sold', {
+        p_ad_id: id,
+        p_wallet: userWallet
+      });
+      console.log('[SOLD] RPC result:', rpcResult);
+      if (rpcResult && rpcResult.success) {
+        soldOk = true;
+      }
+    } catch (rpcErr) {
+      console.log('[SOLD] RPC not available, trying direct update:', rpcErr.message);
+    }
+
+    // Fallback: direct update (may be blocked by RLS)
+    if (!soldOk) {
+      const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id).select('id, status');
+      console.log('[SOLD] Direct update result:', { updateData, updateErr });
+      if (!updateErr && updateData && updateData.length > 0) {
+        soldOk = true;
+      }
+    }
+
+    // Verify the update actually took effect
+    if (soldOk) {
+      const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
+      if (verifyData && verifyData.status === 'sold') {
+        await showNeonPopup('Sold! 🎉', 'Ad marked as sold. Your SOW coins are safe! 🪙', '✅');
+        window.openMyAdsScreen();
+        fetchListings();
+        return;
+      }
+    }
+    // If we get here, something failed
+    await showNeonPopup('Update Failed', 'Could not mark as sold. The database may need a policy update. Please contact support.', '⚠️');
+    console.error('[SOLD] All methods failed for ad:', id);
   }
 }
 
