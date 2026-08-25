@@ -698,13 +698,28 @@ async function handlePostAd(e) {
   }
 
   if (!insertError) {
-    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
-    let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
-    await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
+    // SECURITY: Check for duplicate SOW credit — only 1 SOW per unique ad
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: recentAds } = await supabase.from('listings')
+      .select('id')
+      .eq('seller_address', userWallet)
+      .eq('title', titleV.clean)
+      .gte('created_at', twoMinAgo);
+    const duplicateCount = (recentAds || []).length;
+    if (duplicateCount <= 1) {
+      // First ad with this title — credit SOW
+      const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
+      let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
+      await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
+      updateSowBadge();
+      await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
+    } else {
+      // Duplicate detected — no extra SOW
+      console.log('[SOW] Duplicate ad detected, no extra SOW credited');
+      await showNeonPopup('Ad Posted! 🎉', 'Your ad is now live.', '✅');
+    }
     document.getElementById('adForm').reset();
     window.switchTab('screenHome');
-    updateSowBadge();
-    await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
   } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', '⚠️'); }
 }
 
@@ -961,9 +976,9 @@ window.openAdminPanel = async function() {
 
   statsContainer.innerHTML = `
     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; text-align:center;">
-      <div style="background:#e0e7ff; padding:10px; border-radius:8px;"><b style="color:#4f46e5; font-size:1.1rem; display:block;">${totalListings || 0}</b> Active Ads</div>
-      <div style="background:#d1fae5; padding:10px; border-radius:8px;"><b style="color:#10b981; font-size:1.1rem; display:block;">${totalUsers || 0}</b> Users</div>
-      <div style="background:#fef3c7; padding:10px; border-radius:8px;"><b style="color:#d97706; font-size:1.1rem; display:block;">${totalChats || 0}</b> Messages</div>
+      <div style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#818cf8; font-size:1.2rem; font-weight:900; display:block;">${totalListings || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Active Ads</span></div>
+      <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#34d399; font-size:1.2rem; font-weight:900; display:block;">${totalUsers || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Users</span></div>
+      <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#fbbf24; font-size:1.2rem; font-weight:900; display:block;">${totalChats || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Messages</span></div>
     </div>
   `;
 
@@ -1111,7 +1126,7 @@ window.markAsSoldOut = async function(id) {
       }
     }
     // If we get here, something failed
-    await showNeonPopup('Update Failed', 'Could not mark as sold. The database may need a policy update. Please contact support.', '⚠️');
+    await showNeonPopup('Update Failed', 'Could not mark as sold. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_FIX.sql).', '⚠️');
     console.error('[SOLD] All methods failed for ad:', id);
   }
 }
