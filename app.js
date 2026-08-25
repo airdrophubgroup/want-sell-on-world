@@ -187,7 +187,7 @@ window.showNeonPopup = function(title, text, icon = '🔔', type = 'alert') {
     if (type === 'confirm') {
       confirmBtns.style.display = 'flex';
       popupBox.style.borderColor = '#ef4444';
-      popupBox.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.4)';
+      popupBox.style.boxShadow = '0 0 40px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.5)';
       document.getElementById('neonPopupTitle').style.color = '#ef4444';
     } else if (type === 'prompt') {
       inputContainer.style.display = 'block';
@@ -195,14 +195,14 @@ window.showNeonPopup = function(title, text, icon = '🔔', type = 'alert') {
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'Submit';
       popupBox.style.borderColor = '#10b981';
-      popupBox.style.boxShadow = '0 0 30px rgba(16, 185, 129, 0.4)';
+      popupBox.style.boxShadow = '0 0 40px rgba(16,185,129,0.15), 0 20px 60px rgba(0,0,0,0.5)';
       document.getElementById('neonPopupTitle').style.color = '#10b981';
     } else {
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'OK';
-      popupBox.style.borderColor = '#38bdf8';
-      popupBox.style.boxShadow = '0 0 30px rgba(56, 189, 248, 0.4)';
-      document.getElementById('neonPopupTitle').style.color = '#38bdf8';
+      popupBox.style.borderColor = '#6366f1';
+      popupBox.style.boxShadow = '0 0 40px rgba(99,102,241,0.2), 0 20px 60px rgba(0,0,0,0.5)';
+      document.getElementById('neonPopupTitle').style.color = '#818cf8';
     }
 
     document.getElementById('neonPopup').style.display = 'flex';
