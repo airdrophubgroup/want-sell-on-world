@@ -115,7 +115,7 @@ window.switchTab = function(screenId) {
 function showSkeleton(count) {
   let html = '';
   for (let i = 0; i < count; i++) {
-    html += '<div class="skeleton skeleton-card" style="display:flex; gap:12px; padding:12px; align-items:center;"><div class="skeleton skeleton-thumb"></div><div style="flex:1;"><div class="skeleton skeleton-text" style="width:70%;"></div><div class="skeleton skeleton-text" style="width:50%;"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
+    html += '<div class="skeleton skeleton-card" style="display:flex; gap:12px; padding:12px; align-items:center;"><div class="skeleton skeleton-thumb"></div><div class="card-info"><div class="skeleton skeleton-text" style="width:70%;"></div><div class="skeleton skeleton-text" style="width:50%;"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
   }
   return html;
 }
@@ -359,7 +359,7 @@ function setupUI() {
   // OFFLINE INDICATOR — technical requirement: handle disconnections
   const offlineBanner = document.createElement('div');
   offlineBanner.id = 'offlineBanner';
-  offlineBanner.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; z-index:10000; background:#ef4444; color:#fff; text-align:center; padding:6px; font-size:0.75rem; font-weight:600;';
+  offlineBanner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:var(--danger);color:#fff;text-align:center;padding:6px;font-size:0.78rem;font-weight:600;font-family:inherit;';
   offlineBanner.textContent = '\u26a0\ufe0f You are offline. Some features may be unavailable.';
   document.body.appendChild(offlineBanner);
   window.addEventListener('online', () => {
@@ -784,24 +784,24 @@ async function fetchListings() {
     const pBadge = getPriceTypeBadge(item.price_type);
     const posted = timeAgo(item.created_at);
     return `
-      <div class="listing-card" onclick="window.openAdDetails('${iId}')" style="cursor:pointer; background:#fff; padding:12px; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:10px;">
-        <div style="display:flex; gap:12px; align-items:center;">
-          <img src="${thumbImg}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 10px;" alt="listing">
-          <div style="flex:1;">
-            <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-              <span style="background:${cBadge.bg}; color:${cBadge.color}; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600;">${cBadge.text}</span>
-              <span style="background:${pBadge.bg}; color:${pBadge.color}; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600;">${pBadge.text}</span>
+      <div class="listing-card" onclick="window.openAdDetails('${iId}')">
+        <div class="card-inner">
+          <img src="${thumbImg}" class="card-thumb" alt="listing">
+          <div class="card-info">
+            <div class="card-badges">
+              <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
+              <span class="badge badge-${pBadge.cls}">${pBadge.text}</span>
             </div>
-            <h3 style="font-size:1.05rem; margin:4px 0; color:#1e293b;">${iTitle}</h3>
-            <p style="font-size:1.05rem; font-weight:800; color:#10b981; margin:0;">${iPrice} WLD</p>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-              <span style="font-size:0.75rem; color:#64748b;">👤 ${dName} · 🌍 ${iCountry}</span>
-              <span style="font-size:0.7rem; color:#94a3b8;">${posted}</span>
+            <h3 class="card-title">${iTitle}</h3>
+            <p class="card-price">${iPrice} WLD</p>
+            <div class="card-meta">
+              <span class="card-seller">👤 ${dName} · 🌍 ${iCountry}</span>
+              <span class="card-time">${posted}</span>
             </div>
           </div>
         </div>
-        <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid #f1f5f9; padding-top:8px;">
-          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" style="background:#4f46e5; color:#fff; flex:1; padding:8px; font-size:12px; border-radius:8px; border:none; cursor:pointer; font-weight:bold;">💬 Chat Seller</button>
+        <div class="card-actions">
+          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller">💬 Chat Seller</button>
         </div>
       </div>
     `;
@@ -814,7 +814,7 @@ window.openAdDetails = async function(id) {
   if (error || !data) { await showNeonPopup('Not Found', 'Ad not found or removed.', '🔍'); return; }
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
-  const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" style="width:100%; height:240px; object-fit:contain; background:#0f172a; border-radius:10px; margin-bottom:8px; border:1px solid #e2e8f0; cursor:zoom-in;" alt="product">`).join('');
+  const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
   const dName = escapeHtml(data.seller_name || 'User');
   const sAddr = data.seller_address;
   const cBadge = getConditionBadge(data.condition);
@@ -822,44 +822,43 @@ window.openAdDetails = async function(id) {
   const posted = timeAgo(data.created_at);
   const dist = data.calculatedDistance ? ` (~${escapeHtml(data.calculatedDistance)} km)` : '';
   document.getElementById('adDetailsBody').innerHTML = `
-    <div style="text-align:left;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="background:#e0e7ff; color:#4f46e5; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold;">📂 ${escapeHtml(data.category)}</span>
-        <span style="font-size:11px; color:#94a3b8;">${posted}</span>
+    <div>
+      <div class="detail-meta">
+        <span class="badge badge-category">${escapeHtml(data.category)}</span>
+        <span class="card-time">${posted}</span>
       </div>
-      <h2 style="font-size:1.4rem; margin:6px 0; color:#1e293b;">${escapeHtml(data.title)}</h2>
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
-        <span style="background:${cBadge.bg}; color:${cBadge.color}; padding:4px 10px; border-radius:14px; font-size:11px; font-weight:600;">${cBadge.text}</span>
-        <span style="background:${pBadge.bg}; color:${pBadge.color}; padding:4px 10px; border-radius:14px; font-size:11px; font-weight:600;">${pBadge.text}</span>
+      <h2 class="detail-title">${escapeHtml(data.title)}</h2>
+      <div class="detail-meta">
+        <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
+        <span class="badge badge-${pBadge.cls}">${pBadge.text}</span>
       </div>
-      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:14px;">
-        <h3 style="font-size:1.6rem; color:#10b981; margin:0;">${escapeHtml(data.price)} WLD</h3>
-        <span style="font-size:0.8rem; color:#64748b;">🌍 ${escapeHtml(data.country)}${dist}</span>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;">
+        <h3 class="detail-price">${escapeHtml(data.price)} WLD</h3>
+        <span class="card-seller">${escapeHtml(data.country)}${dist}</span>
       </div>
-      <div style="background:#f1f5f9; padding:10px 12px; border-radius:8px; font-size:12px; color:#475569; margin-bottom:10px;">📍 <b>Location:</b> ${escapeHtml(data.address || 'Not specified')}</div>
-      <div style="background:linear-gradient(135deg,#0f172a,#1e293b); padding:12px; border-radius:12px; margin-bottom:14px; color:#fff;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <span style="font-size:11px; color:#94a3b8;">Seller</span>
-            <h4 style="margin:2px 0; color:#38bdf8;">${dName}</h4>
-          </div>
-          <button onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')" style="background:#f59e0b; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">⭐ Reviews</button>
+      <div class="detail-section">📍 <b>Location:</b> ${escapeHtml(data.address || 'Not specified')}</div>
+      <div class="detail-seller-bar">
+        <div>
+          <span class="detail-seller-label">Seller</span>
+          <h4 class="detail-seller-name">${dName}</h4>
         </div>
-        <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
-          <span style="font-size:10px; color:#94a3b8;">Username</span>
-          <p style="margin:2px 0 0 0; font-family:monospace; color:#cbd5e1; font-size:11px;">${escapeHtml(data.seller_name || 'User')}</p>
-        </div>
+        <button class="btn-mark-sold" style="background:#f59e0b;color:#fff;border:none;" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">Reviews</button>
       </div>
-      <hr style="border:0; border-top:1px solid #e2e8f0; margin-bottom:14px;">
-      <h4 style="font-size:0.95rem; color:#475569; margin-bottom:6px;">📸 Photos (${allImages.length}) - Tap to Zoom</h4>
-      <div style="max-height:280px; overflow-y:auto; margin-bottom:14px; padding-right:4px;">${imagesHtml}</div>
-      <h4 style="font-size:0.95rem; color:#475569; margin-bottom:6px;">📝 Description</h4>
-      <p style="font-size:0.95rem; color:#334155; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:16px; white-space:pre-wrap; line-height:1.4;">${escapeHtml(data.description)}</p>
-      <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button onclick="document.getElementById('adDetailsModal').style.display='none';" style="background: #e2e8f0; color: #475569; flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer;">⬅️ Back</button>
-        <button onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';" style="background: linear-gradient(135deg,#4f46e5,#7c3aed); color: #fff; flex: 1.5; padding: 12px; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(79,70,229,0.3);">💬 Chat with Seller</button>
+      <div class="detail-seller-bar" style="color:var(--text);">
+        <span class="detail-seller-label">Username</span>
+        <p style="margin:2px 0 0;">${escapeHtml(data.seller_name || 'User')}</p>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:14px 0;">
+      <h4 class="detail-section-title">Photos (${allImages.length}) - Tap to Zoom</h4>
+      <div style="max-height:280px;overflow-y:auto;margin-bottom:14px;">${imagesHtml}</div>
+      <h4 class="detail-section-title">Description</h4>
+      <p class="detail-section" style="white-space:pre-wrap;line-height:1.5;margin-bottom:16px;">${escapeHtml(data.description)}</p>
+      <div class="detail-action-bar">
+        <button class="btn-chat-seller" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="document.getElementById('adDetailsModal').style.display='none';">Back</button>
+        <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">Chat with Seller</button>
       </div>
     </div>`;
+  
   document.getElementById('adDetailsModal').style.display = 'flex';
   document.querySelector('#adDetailsModal .modal-content').style.animation = 'slideInUp 0.35s ease';
 }
@@ -878,15 +877,15 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   document.querySelector('#chatModal .modal-content').style.animation = 'slideInUp 0.35s ease';
   const { data, error } = await supabase.from('chats').select('*').order('created_at', { ascending: true });
   if (!data) return;
-  let chatHtml = `<div style="background:#e2e8f0; padding:8px 12px; border-radius:8px; font-size:12px; align-self:flex-start; color:#334155; margin-bottom:4px;">Hello! I am interested in: ${escapeHtml(adTitle)}</div>`;
+  let chatHtml = `<div class="chat-msg system">Hello! I am interested in: ${escapeHtml(adTitle)}</div>`;
   if (data && data.length > 0) {
     data.filter(m => m.ad_title === adTitle && ((m.sender === userWallet && m.receiver === sellerWallet) || (m.sender === sellerWallet && m.receiver === userWallet)))
       .forEach(msg => {
         const safe = escapeHtml(msg.message);
         if (msg.sender === userWallet) {
-          chatHtml += `<div style="background:#4f46e5; color:#fff; padding:8px 12px; border-radius:8px; font-size:12px; align-self:flex-end; max-width:80%; margin-bottom:4px;">${safe}</div>`;
+          chatHtml += `<div class="chat-msg sent">${safe}</div>`;
         } else {
-          chatHtml += `<div style="background:#e2e8f0; padding:8px 12px; border-radius:8px; font-size:12px; align-self:flex-start; color:#334155; max-width:80%; margin-bottom:4px;">${safe}</div>`;
+          chatHtml += `<div class="chat-msg received">${safe}</div>`;
         }
       });
   }
@@ -903,7 +902,7 @@ window.sendMessage = async function() {
   if (!currentChatSeller || !window.currentChatAdTitle) return;
   const msg = msgV.clean;
   const chatBox = document.getElementById('chatMessages');
-  chatBox.innerHTML += `<div style="background:#4f46e5; color:#fff; padding:8px 12px; border-radius:8px; font-size:12px; align-self:flex-end; max-width:80%; margin-bottom:4px;">${escapeHtml(msg)}</div>`;
+  chatBox.innerHTML += `<div class="chat-msg sent">${escapeHtml(msg)}</div>`;
   input.value = '';
   chatBox.scrollTop = chatBox.scrollHeight;
   const { error } = await supabase.from('chats').insert([{ sender: userWallet, receiver: currentChatSeller, ad_title: window.currentChatAdTitle, message: msg }]);
@@ -921,17 +920,17 @@ window.openReviews = async function(sellerAddress, sellerName) {
   const container = document.getElementById('reviewsListContainer');
   container.innerHTML = `<p class="loading-placeholder">Loading reviews...</p>`;
   const { data: reviews, error } = await supabase.from('reviews').select('*').eq('seller_address', sellerAddress).order('created_at', { ascending: false });
-  if (error || !reviews || reviews.length === 0) { container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:0.9rem;">No reviews yet. Be the first!</p>`; return; }
+  if (error || !reviews || reviews.length === 0) { container.innerHTML = `<p class="loading-placeholder">No reviews yet.</p>`; return; }
   container.innerHTML = reviews.map(r => {
     const bName = escapeHtml(r.buyer_name);
     const comment = escapeHtml(r.comment || 'No comment provided.');
     const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
-    return `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:8px 10px; border-radius:8px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <span style="font-weight:bold; font-size:0.85rem; color:#1e293b;">${bName}</span>
+    return `<div class="review-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span class="detail-seller-name">${bName}</span>
         <span style="color:#f59e0b; font-size:0.85rem;">${'⭐'.repeat(rating)}</span>
       </div>
-      <p style="margin:0; font-size:0.85rem; color:#475569;">${comment}</p>
+      <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">${comment}</p>
     </div>`;
   }).join('');
 };
@@ -975,25 +974,25 @@ window.openAdminPanel = async function() {
   const { count: totalChats } = await supabase.from('chats').select('*', { count: 'exact', head: true });
 
   statsContainer.innerHTML = `
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; text-align:center;">
-      <div style="background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#818cf8; font-size:1.2rem; font-weight:900; display:block;">${totalListings || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Active Ads</span></div>
-      <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#34d399; font-size:1.2rem; font-weight:900; display:block;">${totalUsers || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Users</span></div>
-      <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.2); padding:12px 8px; border-radius:10px;"><b style="color:#fbbf24; font-size:1.2rem; font-weight:900; display:block;">${totalChats || 0}</b><span style="color:#94a3b8; font-size:0.7rem; font-weight:600;">Messages</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--accent-indigo);">${totalListings || 0}</b><span class="sow-stats-label">Active Ads</span></div>
+      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--success);">${totalUsers || 0}</b><span class="sow-stats-label">Users</span></div>
+      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--warning);">${totalChats || 0}</b><span class="sow-stats-label">Messages</span></div>
     </div>
   `;
 
   const { data: listings } = await supabase.from('listings').select('*').order('created_at', { ascending: false });
 
   if (!listings || listings.length === 0) {
-    listingsContainer.innerHTML = `<p style="text-align:center; color:#64748b;">No listings found.</p>`;
+    listingsContainer.innerHTML = `<p class="loading-placeholder">No listings found.</p>`;
     return;
   }
 
   listingsContainer.innerHTML = listings.map(item => {
     const sT = escapeHtml(item.title), sN = escapeHtml(item.seller_name), sP = escapeHtml(item.price), sI = escapeAttr(item.id);
-    return `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:8px 10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-      <div><h4 style="margin:0; font-size:0.9rem; color:#1e293b;">${sT}</h4><p style="margin:2px 0 0 0; font-size:0.75rem; color:#64748b;">By: ${sN} | ${sP} WLD</p></div>
-      <button onclick="window.adminDeleteAd('${sI}')" style="background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">Force Delete</button>
+    return `<div class="my-ad-item">
+      <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price" style="margin:2px 0 0;">By: ${sN} | ${sP} WLD</p></div>
+      <button onclick="window.adminDeleteAd('${sI}')" class="btn-mark-sold" style="background:#ef4444; color:#fff;">Force Delete</button>
     </div>`;
   }).join('');
 }
@@ -1021,7 +1020,7 @@ window.adminDeleteAd = async function(id) {
 
 window.openMyAdsScreen = async function() {
   if (!userWallet) {
-    document.getElementById('myAdsContainer').innerHTML = '<p style="text-align:center; color:#64748b; padding:30px;">Please connect wallet first.</p>';
+    document.getElementById('myAdsContainer').innerHTML = '<p class="loading-placeholder">Please connect wallet first.</p>';
     document.getElementById('myAdsBalanceCard').innerHTML = '';
     return;
   }
@@ -1032,38 +1031,24 @@ window.openMyAdsScreen = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
 
-  const balanceHtml = `<div style="background:linear-gradient(135deg,#0f172a,#1e293b); padding:14px 16px; border-radius:14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(245,158,11,0.2);"><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:1.6rem;">🪙</span><div><p style="font-size:0.7rem; color:#94a3b8; margin:0; text-transform:uppercase; letter-spacing:0.5px;">SOW Balance</p><p style="font-size:1.2rem; font-weight:800; color:#f59e0b; margin:2px 0 0 0;">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; padding:6px 12px; border-radius:8px; font-size:0.7rem; font-weight:700; cursor:pointer;">🏆 Ranks</button></div>`;
-
-  const { data: allMyAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).order('created_at', { ascending: false });
-
-  const activeAds = (allMyAds || []).filter(a => a.status === 'active');
-  const soldAds = (allMyAds || []).filter(a => a.status === 'sold');
-
-  document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
-
-  if (activeAds.length === 0 && soldAds.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px;">You have no ads yet. Post one!</p>`;
-    return;
-  }
-
-  let html = '';
+  const balanceHtml = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">🪙</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
   if (activeAds.length > 0) {
-    html += `<p style="font-size:0.75rem; color:#64748b; margin:8px 0 4px; font-weight:600; text-transform:uppercase;">Active (${activeAds.length})</p>`;
+    html += `<p class="my-ads-section-title">Active (${activeAds.length})</p>`;
     html += activeAds.map(item => {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
-      return `<div onclick="window.openAdDetails('${sI}')" style="background:rgba(0,0,0,0.03); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-        <div><h4 style="font-size:0.9rem; color:#1e293b;">${sT}</h4><p style="font-size:0.8rem; color:#10b981;">${sP} WLD (${sC})</p></div>
-        <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" style="background:#f59e0b; color:#fff; padding:6px 10px; font-size:11px; border-radius:6px; font-weight:bold; cursor:pointer;">Mark Sold</button>
+      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item">
+        <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price">${sP} WLD (${sC})</p></div>
+        <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" class="btn-mark-sold">Mark Sold</button>
       </div>`;
     }).join('');
   }
   if (soldAds.length > 0) {
-    html += `<p style="font-size:0.75rem; color:#64748b; margin:12px 0 4px; font-weight:600; text-transform:uppercase;">Sold (${soldAds.length})</p>`;
+    html += `<p class="my-ads-section-title">Sold (${soldAds.length})</p>`;
     html += soldAds.map(item => {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
-      return `<div onclick="window.openAdDetails('${sI}')" style="background:rgba(0,0,0,0.03); padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; opacity:0.6;">
-        <div><h4 style="font-size:0.9rem; color:#1e293b; text-decoration:line-through;">${sT}</h4><p style="font-size:0.8rem; color:#64748b;">${sP} WLD (${sC})</p></div>
-        <span style="background:#10b981; color:#fff; padding:6px 10px; font-size:11px; border-radius:6px; font-weight:bold;">✅ Sold</span>
+      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold">
+        <div><h4 class="my-ad-title" style="text-decoration:line-through;">${sT}</h4><p class="my-ad-price" style="color:var(--text-muted);">${sP} WLD (${sC})</p></div>
+        <span class="btn-sold-done">✅ Sold</span>
       </div>`;
     }).join('');
   }
@@ -1139,7 +1124,7 @@ window.openLeaderboard = async function() {
 
   const { data: balances, error: balError } = await supabase.from('sow_balances').select('*').order('balance', { ascending: false }).limit(50);
   if (balError || !balances || balances.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px;">No data yet. Be the first to earn SOW! 🚀</p>`;
+    container.innerHTML = `<p class="loading-placeholder">No data yet. Be the first to earn SOW! 🚀</p>`;
     return;
   }
 
@@ -1149,36 +1134,26 @@ window.openLeaderboard = async function() {
   if (usersData) { usersData.forEach(u => { userMap[u.wallet_address] = u.username; }); }
 
   container.innerHTML = balances.map((item, index) => {
-    let rankMedal = `#${index + 1}`;
-    if(index === 0) rankMedal = '🥇 1st';
-    if(index === 1) rankMedal = '🥈 2nd';
-    if(index === 2) rankMedal = '🥉 3rd';
-    
+    const isTop3 = index < 3;
+    const rankLabels = ['1st', '2nd', '3rd'];
     const username = escapeHtml(userMap[item.wallet_address] || 'Unknown User');
-    const shortWallet = '';
     const bal = escapeHtml(item.balance);
+    const rankText = isTop3 ? rankLabels[index] : '#' + (index + 1);
 
-    let specialStyle = index < 3 
-      ? 'border: 2px solid #38bdf8; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);' 
-      : 'background: rgba(0,0,0,0.03); border: 1px solid #e2e8f0;';
-    let nameStyle = index < 3 ? 'color: #38bdf8;' : 'color: #1e293b;';
-    let rankStyle = index < 3 ? 'color: #f59e0b; font-size: 1.1rem;' : 'color: #64748b; font-size: 0.95rem;';
-
-    return `
-      <div style="padding:10px 14px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; ${specialStyle}">
-        <div style="display:flex; align-items:center; gap: 12px;">
-          <span style="font-weight: 800; min-width: 45px; ${rankStyle}">${rankMedal}</span>
-          <div>
-            <h4 style="margin: 0; font-size: 0.95rem; ${nameStyle}">${username}</h4>
-            <p style="margin: 2px 0 0 0; font-size: 0.7rem; color: #94a3b8;">${escapeHtml(userMap[item.wallet_address] || '')}</p>
-          </div>
-        </div>
-        <div style="font-weight: bold; font-size: 1rem; color: #10b981; text-align:right;">
-          ${bal} <br><span style="font-size:0.7rem; color:#94a3b8;">SOW</span>
+    return `<div class="${isTop3 ? 'lb-item top-3' : 'lb-item'}">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="lb-rank">${rankText}</span>
+        <div>
+          <h4 class="lb-name">${username}</h4>
+          <p class="lb-username">${escapeHtml(userMap[item.wallet_address] || '')}</p>
         </div>
       </div>
-    `;
-  }).join('');
+      <div style="text-align:right;">
+        <div class="lb-balance">${bal}</div>
+        <div class="lb-balance-label">SOW</div>
+      </div>
+    </div>`;
+  }).join('');;
 }
 
 // ==========================================
@@ -1200,11 +1175,30 @@ async function updateSowBadge() {
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b;"><p style="font-size:1.5rem; margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
+    container.innerHTML = '<div class="text-center py-20 color-muted"><p style="font-size:1.5rem;margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
-  container.innerHTML = '<div class="balance-card" style="text-align:left; padding:20px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><p style="font-size:0.7rem; color:#94a3b8; margin:0; text-transform:uppercase; letter-spacing:0.5px;">Profile</p><h3 style="color:#38bdf8; margin:4px 0 0 0; font-size:1.1rem;">' + escapeHtml(currentUsername) + '</h3></div><span style="font-size:2rem;">🪙</span></div><div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1);"><p style="font-size:0.7rem; color:#94a3b8; margin:0;">SOW Balance</p><p style="font-size:1.8rem; font-weight:800; color:#f59e0b; margin:2px 0 0 0; font-family:monospace;">' + earnedSow + '</p></div></div><div style="display:flex; flex-direction:column; gap:10px;"><button onclick="window.openLeaderboard()" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; padding:14px; border:none; border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer; box-shadow:0 4px 15px rgba(245,158,11,0.3);">🏆 View Leaderboard</button><a href="mailto:airdrophubgroup@gmail.com" style="text-align:center; color:#64748b; font-size:0.8rem; padding:10px; text-decoration:none; border:1px solid #e2e8f0; border-radius:10px;">📧 Support</a>' + (isAdmin ? '<button onclick="window.openAdminPanel()" style="background:rgba(239,68,68,0.08); color:#ef4444; padding:14px; border:1px solid rgba(239,68,68,0.3); border-radius:12px; font-weight:700; font-size:0.9rem; cursor:pointer;">🛡️ Admin Panel</button>' : '') + '</div>';
+  container.innerHTML = `
+    <div class="profile-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <p class="profile-label">Profile</p>
+          <h3 class="profile-name">${escapeHtml(currentUsername)}</h3>
+        </div>
+        <span style="font-size:2rem;">🪙</span>
+      </div>
+      <div class="profile-balance-section">
+        <p class="profile-label">SOW Balance</p>
+        <p class="sow-stats-value">${earnedSow}</p>
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button onclick="window.openLeaderboard()" class="btn-profile-action btn-leaderboard">View Leaderboard</button>
+      <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">Support</a>
+      ${isAdmin ? '<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">Admin Panel</button>' : ''}
+    </div>
+  `;
 };

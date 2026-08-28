@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="style.css">
   <title>WantSell</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org; script-src 'self' 'unsafe-inline' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co;">
+  <meta name="theme-color" content="#ffffff">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co;">
 </head>
 <body>
 
+  <!-- Splash Screen -->
   <div id="splashScreen" class="splash-screen">
     <div class="splash-content">
       <div class="splash-icon">🛒</div>
@@ -18,14 +22,18 @@
     </div>
   </div>
 
+  <!-- App Shell -->
   <div id="appShell" class="app-shell" style="display:none;">
+    <!-- Header -->
     <div class="app-header">
-      <h1 class="app-logo">🛒 WantSell</h1>
+      <h1 class="app-logo">WantSell</h1>
       <button id="loginBtn" class="login-btn">Connect Wallet</button>
     </div>
 
+    <!-- Home Screen -->
     <div id="screenHome" class="app-screen active">
       <div class="screen-scroll">
+        <!-- Filters -->
         <div class="filter-box">
           <div class="filter-row">
             <select id="countryFilter" class="filter-select">
@@ -57,16 +65,18 @@
             <input type="range" id="distanceRange" class="range-slider" min="5" max="500" value="50" step="5">
           </div>
         </div>
+
+        <!-- Promo Banner -->
         <div class="promo-banner">
-          <div style="position:relative; z-index:2;">
-            <p style="font-size:1.1rem; font-weight:900; margin:0 0 4px; background:linear-gradient(135deg,#fff,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">🛒 WantSell Marketplace</p>
-            <p style="font-size:0.8rem; color:#94a3b8; margin:0 0 12px;">Buy &amp; sell with verified users nearby</p>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <span style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.2); padding:5px 12px; border-radius:10px; font-size:0.7rem; font-weight:600; color:#818cf8;">💳 1 WLD per ad</span>
-              <span style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.2); padding:5px 12px; border-radius:10px; font-size:0.7rem; font-weight:600; color:#f59e0b;">🪙 Earn 1 SOW per ad</span>
-            </div>
+          <p style="font-size:1rem; font-weight:700; color:#1e40af; margin-bottom:2px;">Local Marketplace</p>
+          <p style="font-size:0.78rem; color:#6b7280; margin-bottom:8px;">Buy &amp; sell items near you. 1 WLD per listing.</p>
+          <div style="display:flex; gap:6px;">
+            <span class="badge badge-negotiable">1 WLD per ad</span>
+            <span class="badge badge-new">Earn SOW coins</span>
           </div>
         </div>
+
+        <!-- SOW Stats Card -->
         <div id="sowStatsCard" class="sow-stats-card" style="display:none;">
           <div class="sow-stats-inner">
             <div class="sow-stats-left">
@@ -76,10 +86,11 @@
                 <p class="sow-stats-value"><span id="homeSowCount">0</span></p>
               </div>
             </div>
-            <button class="sow-stats-lead-btn" onclick="window.openLeaderboard()">🏆 Rankings</button>
+            <button class="sow-stats-lead-btn" onclick="window.openLeaderboard()">Rankings</button>
           </div>
         </div>
 
+        <!-- Category Chips -->
         <div class="category-scroll" id="categoryScroll">
           <div class="category-chip active" data-cat="ALL"><span class="category-chip-icon">🌐</span>All</div>
           <div class="category-chip" data-cat="Phones"><span class="category-chip-icon">📱</span>Phones</div>
@@ -94,6 +105,7 @@
           <div class="category-chip" data-cat="Other"><span class="category-chip-icon">📦</span>Other</div>
         </div>
 
+        <!-- Listings Feed -->
         <div class="feed-header"><h2>Explore Listings</h2></div>
         <div id="listingsContainer" class="listings-list">
           <div class="loading-placeholder">Loading listings...</div>
@@ -101,6 +113,7 @@
       </div>
     </div>
 
+    <!-- Post Ad Screen -->
     <div id="screenPost" class="app-screen" style="display:none;">
       <div class="screen-scroll">
         <div class="screen-title-bar"><h2>Post a New Ad</h2></div>
@@ -118,6 +131,7 @@
       </div>
     </div>
 
+    <!-- My Ads Screen -->
     <div id="screenMyAds" class="app-screen" style="display:none;">
       <div class="screen-scroll">
         <div class="screen-title-bar"><h2>My Ads</h2></div>
@@ -126,14 +140,18 @@
       </div>
     </div>
 
+    <!-- Profile Screen -->
     <div id="screenProfile" class="app-screen" style="display:none;">
       <div class="screen-scroll">
         <div class="screen-title-bar"><h2>Profile</h2></div>
-        <div id="profileContainer" class="profile-content"></div>
+        <div id="profileContainer"></div>
       </div>
     </div>
 
+    <!-- FAB -->
     <button class="fab" id="fabPost" style="display:none;">+</button>
+
+    <!-- Tab Bar -->
     <nav class="tab-bar">
       <button class="tab-item active" data-screen="screenHome" id="tabHome"><span class="tab-icon">🏠</span><span class="tab-label">Home</span></button>
       <button class="tab-item" data-screen="screenPost" id="tabPost"><span class="tab-icon">➕</span><span class="tab-label">Post Ad</span></button>
@@ -142,22 +160,105 @@
     </nav>
   </div>
 
-  <div id="adDetailsModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adDetailsModal').style.display='none'">&#8592; Back</button></div><div id="adDetailsBody" class="modal-body"></div></div></div>
-  <div id="chatModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('chatModal').style.display='none'">&#8592; Back</button><span id="chatTitle" class="modal-header-title">Chat</span></div><div id="chatMessages" class="chat-messages"></div><div class="chat-input-bar"><input type="text" id="chatInput" placeholder="Type a message..." maxlength="300"><button onclick="window.sendMessage()" class="chat-send-btn">Send</button></div></div></div>
-  <div id="reviewsModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('reviewsModal').style.display='none'">&#8592; Back</button><span id="reviewsModalTitle" class="modal-header-title">Reviews</span></div><div id="reviewsListContainer" class="reviews-list"></div><div class="review-form-section"><h4>Leave a Review</h4><div class="review-form-row"><select id="reviewRating"><option value="5">5 Stars</option><option value="4">4 Stars</option><option value="3">3 Stars</option><option value="2">2 Stars</option><option value="1">1 Star</option></select><input type="text" id="reviewComment" placeholder="Write feedback..." maxlength="200"></div><button onclick="window.submitReview()" class="btn-submit-review">Post Review</button></div></div></div>
-  <div id="leaderboardModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">&#8592; Back</button><span class="modal-header-title">Top Sellers</span></div><div id="leaderboardContainer" class="leaderboard-list"></div></div></div>
-  <div id="adminModal" class="modal" style="display:none;"><div class="modal-content modal-full"><div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adminModal').style.display='none'">&#8592; Back</button><span class="modal-header-title">Admin Dashboard</span></div><div id="adminStatsContainer" class="admin-stats"></div><div id="adminListingsContainer" class="admin-listings"></div></div></div>
-  <div id="imageViewerModal" class="image-viewer" style="display:none;"><button class="image-viewer-close" onclick="document.getElementById('imageViewerModal').style.display='none'">&#8592; Back</button><div class="image-viewer-container"><button class="slider-btn" onclick="window.prevImage()">&#10094;</button><img id="viewerImage" src="" class="viewer-img"><button class="slider-btn" onclick="window.nextImage()">&#10095;</button></div><div id="imageCounter" class="image-counter">1 / 1</div></div>
+  <!-- Modals -->
+  <div id="adDetailsModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adDetailsModal').style.display='none'">&#8592; Back</button></div>
+      <div id="adDetailsBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="chatModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header">
+        <button class="modal-back-btn" onclick="document.getElementById('chatModal').style.display='none'">&#8592; Back</button>
+        <span id="chatTitle" class="modal-header-title">Chat</span>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="Type a message..." maxlength="300">
+        <button onclick="window.sendMessage()" class="chat-send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reviewsModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header">
+        <button class="modal-back-btn" onclick="document.getElementById('reviewsModal').style.display='none'">&#8592; Back</button>
+        <span id="reviewsModalTitle" class="modal-header-title">Reviews</span>
+      </div>
+      <div id="reviewsListContainer" class="reviews-list"></div>
+      <div class="review-form-section">
+        <h4>Leave a Review</h4>
+        <div class="review-form-row">
+          <select id="reviewRating"><option value="5">5 Stars</option><option value="4">4 Stars</option><option value="3">3 Stars</option><option value="2">2 Stars</option><option value="1">1 Star</option></select>
+          <input type="text" id="reviewComment" placeholder="Write feedback..." maxlength="200">
+        </div>
+        <button onclick="window.submitReview()" class="btn-submit-review">Post Review</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="leaderboardModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header">
+        <button class="modal-back-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">&#8592; Back</button>
+        <span class="modal-header-title">Top Sellers</span>
+      </div>
+      <div id="leaderboardContainer" class="leaderboard-list"></div>
+    </div>
+  </div>
+
+  <div id="adminModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header">
+        <button class="modal-back-btn" onclick="document.getElementById('adminModal').style.display='none'">&#8592; Back</button>
+        <span class="modal-header-title">Admin Dashboard</span>
+      </div>
+      <div id="adminStatsContainer" class="admin-stats"></div>
+      <div id="adminListingsContainer" class="admin-listings"></div>
+    </div>
+  </div>
+
+  <div id="imageViewerModal" class="image-viewer" style="display:none;">
+    <button class="image-viewer-close" onclick="document.getElementById('imageViewerModal').style.display='none'">&#8592; Back</button>
+    <div class="image-viewer-container">
+      <button class="slider-btn" onclick="window.prevImage()">&#10094;</button>
+      <img id="viewerImage" src="" class="viewer-img">
+      <button class="slider-btn" onclick="window.nextImage()">&#10095;</button>
+    </div>
+    <div id="imageCounter" class="image-counter">1 / 1</div>
+  </div>
+
+  <!-- World App Blocker -->
   <div id="worldAppBlocker" class="world-app-blocker" style="display:none;">
     <div class="blocker-content">
       <div class="blocker-icon">🌍</div>
       <h1 class="blocker-title">World App Required</h1>
       <p class="blocker-text">This app can only be used inside the <b>World App</b>. Please open it from World App to continue.</p>
-      <div class="blocker-badge">🚫 Access Denied Outside World App</div>
+      <div class="blocker-badge">Access Denied Outside World App</div>
     </div>
   </div>
 
-  <div id="neonPopup" class="neon-popup-overlay" style="display:none;"><div id="neonPopupBox" class="neon-popup-box"><div id="neonPopupIcon" class="neon-popup-icon"></div><h2 id="neonPopupTitle" class="neon-popup-title">Notice</h2><p id="neonPopupText" class="neon-popup-text"></p><div id="neonPopupInputContainer" style="display:none;" class="neon-popup-input-wrap"><input type="text" id="neonPopupInput" placeholder="Type your username..." maxlength="20"></div><div id="neonPopupAlertBtnContainer"><button id="neonPopupAlertBtn" class="neon-btn primary">OK</button></div><div id="neonPopupConfirmBtnContainer" style="display:none;" class="neon-confirm-row"><button id="neonPopupConfirmNoBtn" class="neon-btn secondary">Cancel</button><button id="neonPopupConfirmYesBtn" class="neon-btn danger">Confirm</button></div></div></div>
+  <!-- Popup System -->
+  <div id="neonPopup" class="neon-popup-overlay" style="display:none;">
+    <div id="neonPopupBox" class="neon-popup-box">
+      <div id="neonPopupIcon" class="neon-popup-icon"></div>
+      <h2 id="neonPopupTitle" class="neon-popup-title">Notice</h2>
+      <p id="neonPopupText" class="neon-popup-text"></p>
+      <div id="neonPopupInputContainer" class="neon-popup-input-wrap" style="display:none;">
+        <input type="text" id="neonPopupInput" placeholder="Type your username..." maxlength="20">
+      </div>
+      <div id="neonPopupAlertBtnContainer">
+        <button id="neonPopupAlertBtn" class="neon-btn primary">OK</button>
+      </div>
+      <div id="neonPopupConfirmBtnContainer" style="display:none;" class="neon-confirm-row">
+        <button id="neonPopupConfirmNoBtn" class="neon-btn secondary">Cancel</button>
+        <button id="neonPopupConfirmYesBtn" class="neon-btn danger">Confirm</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>
