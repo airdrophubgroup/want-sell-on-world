@@ -17,7 +17,7 @@ function checkWorldAppEnvironment() {
   let miniOk = false;
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
-    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#050000;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:sans-serif;text-align:center;padding:20px;"><div style="background:rgba(255,0,0,0.08);border:2px solid #ff3333;padding:30px;border-radius:20px;max-width:400px;"><h1 style="color:#ff3333;font-size:24px;margin-bottom:15px;">ACCESS DENIED</h1><p style="color:#fff;font-size:16px;margin-bottom:20px;">This app can only be used inside <b>World App</b>.</p></div></div>';
+    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:Inter,sans-serif;text-align:center;padding:20px;"><div style="background:#fef2f2;border:1px solid #fecaca;padding:30px;border-radius:16px;max-width:380px;"><h1 style="color:var(--danger);font-size:22px;margin-bottom:12px;font-weight:700;">Access Denied</h1><p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:20px;">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div style="background:var(--danger);color:#fff;font-weight:600;padding:12px 20px;border-radius:10px;font-size:14px;">Open in World App</div></div></div>';
     document.getElementById('splashScreen').style.display = 'flex';
     return false;
   }
@@ -169,7 +169,7 @@ function initApp() {
 // UNIVERSAL NEON POPUP SYSTEM
 // ==========================================
 let popupResolve = null;
-window.showNeonPopup = function(title, text, icon = '🔔', type = 'alert') {
+window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
   return new Promise((resolve) => {
     document.getElementById('neonPopupIcon').innerText = icon;
     document.getElementById('neonPopupTitle').innerText = title;
@@ -186,23 +186,23 @@ window.showNeonPopup = function(title, text, icon = '🔔', type = 'alert') {
 
     if (type === 'confirm') {
       confirmBtns.style.display = 'flex';
-      popupBox.style.borderColor = '#ef4444';
-      popupBox.style.boxShadow = '0 0 40px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.5)';
-      document.getElementById('neonPopupTitle').style.color = '#ef4444';
+      popupBox.style.borderColor = 'var(--danger)';
+      popupBox.style.boxShadow = 'var(--shadow-lg)';
+      document.getElementById('neonPopupTitle').style.color = 'var(--danger)';
     } else if (type === 'prompt') {
       inputContainer.style.display = 'block';
       document.getElementById('neonPopupInput').value = '';
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'Submit';
-      popupBox.style.borderColor = '#10b981';
-      popupBox.style.boxShadow = '0 0 40px rgba(16,185,129,0.15), 0 20px 60px rgba(0,0,0,0.5)';
-      document.getElementById('neonPopupTitle').style.color = '#10b981';
+      popupBox.style.borderColor = 'var(--success)';
+      popupBox.style.boxShadow = 'var(--shadow-lg)';
+      document.getElementById('neonPopupTitle').style.color = 'var(--success)';
     } else {
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'OK';
-      popupBox.style.borderColor = '#6366f1';
-      popupBox.style.boxShadow = '0 0 40px rgba(99,102,241,0.2), 0 20px 60px rgba(0,0,0,0.5)';
-      document.getElementById('neonPopupTitle').style.color = '#818cf8';
+      popupBox.style.borderColor = 'var(--primary)';
+      popupBox.style.boxShadow = 'var(--shadow-lg)';
+      document.getElementById('neonPopupTitle').style.color = 'var(--primary)';
     }
 
     document.getElementById('neonPopup').style.display = 'flex';
@@ -234,7 +234,7 @@ window.closeNeonPopup = function(result) {
 window.copyAddress = async function(address) {
   try {
     await navigator.clipboard.writeText(address);
-    await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', '📋');
+    await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', 'OK');
   } catch (err) {
     const textArea = document.createElement("textarea");
     textArea.value = address;
@@ -242,7 +242,7 @@ window.copyAddress = async function(address) {
     textArea.select();
     try {
       document.execCommand('copy');
-      await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', '📋');
+      await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', 'OK');
     } catch (ex) {}
     document.body.removeChild(textArea);
   }
@@ -373,8 +373,8 @@ function setupUI() {
 
 async function handleLogin() {
   if (!checkWorldAppEnvironment()) return;
-  if (!supabase) { showNeonPopup('Offline', 'Database not available.', '📡'); return; }
-  if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', 'Please wait a few seconds.', '⏳'); return; }
+  if (!supabase) { showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
+  if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', 'Please wait a few seconds.', 'OK'); return; }
   try {
     const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
       nonce: randomAlphaNumeric(24),
@@ -384,20 +384,20 @@ async function handleLogin() {
       statement: 'Sign in to WantSell',
     });
     if (finalPayload?.status === 'success' && finalPayload?.address) {
-      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', 'Invalid wallet address.', '❌'); return; }
+      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', 'Invalid wallet address.', 'OK'); return; }
       userWallet = finalPayload.address;
       const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
       if (userData && userData.username) {
         currentUsername = userData.username;
       } else {
-        let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', '👤', 'prompt');
+        let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
         let attempts = 0;
         while (attempts < 3) {
           const v = validateUsername(usernameInput);
           if (v.valid) { currentUsername = v.clean; break; }
           attempts++;
           if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); break; }
-          usernameInput = await showNeonPopup('Invalid', v.error, '⚠️', 'prompt');
+          usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
         }
         const { data: exUser } = await supabase.from('users').select('wallet_address').eq('wallet_address', userWallet).single();
         if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
@@ -409,11 +409,11 @@ async function handleLogin() {
       detectUserCurrentPosition();
       fetchListings();
     } else {
-      showNeonPopup('Connection Failed', 'Wallet connect failed.', '🔌');
+      showNeonPopup('Connection Failed', 'Wallet connect failed.', 'OK');
     }
   } catch (err) {
     console.error('[LOGIN ERROR]', err.message || err);
-    showNeonPopup('Error', 'Wallet connect error. Try again.', '❌');
+    showNeonPopup('Error', 'Wallet connect error. Try again.', 'OK');
   }
 }
 
@@ -431,7 +431,7 @@ function detectUserCurrentPosition() {
 window.detectLocation = async function() {
   if (!requireWallet()) return;
   // PRIVACY: Ask consent before requesting location
-  const consent = await showNeonPopup('Location Access', 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.', '📍', 'confirm');
+  const consent = await showNeonPopup('Location Access', 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.', 'OK', 'confirm');
   if (!consent) return;
   const addressField = document.getElementById('adAddress');
   addressField.value = "Detecting precise location...";
@@ -461,16 +461,16 @@ window.detectLocation = async function() {
           addressField.value = `${locData.city}, ${locData.region}, ${locData.country_name}`;
         } else {
           addressField.value = "";
-          await showNeonPopup('Notice', 'Could not auto-detect. Please type manually.', '📍');
+          await showNeonPopup('Notice', 'Could not auto-detect. Please type manually.', 'OK');
         }
       } catch (err) {
         addressField.value = "";
-        await showNeonPopup('Error', 'Location permissions denied and fallback failed. Please type manually.', '🌍');
+        await showNeonPopup('Error', 'Location permissions denied and fallback failed. Please type manually.', 'OK');
       }
     }, { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
   } else {
     addressField.value = "";
-    await showNeonPopup('Error', 'Geolocation not supported. Please type manually.', '🚫');
+    await showNeonPopup('Error', 'Geolocation not supported. Please type manually.', 'OK');
   }
 }
 
@@ -515,18 +515,18 @@ function timeAgo(dateStr) {
 
 function getConditionBadge(cond) {
   const map = {
-    'new': { text: '✨ Brand New', bg: '#dcfce7', color: '#166534' },
-    'like_new': { text: '🌟 Like New', bg: '#dbeafe', color: '#1e40af' },
-    'good': { text: '👍 Good', bg: '#fef3c7', color: '#92400e' },
-    'fair': { text: '👌 Fair', bg: '#f3e8ff', color: '#6b21a8' },
-    'used': { text: '📦 Used', bg: '#f1f5f9', color: '#475569' }
+    'new': { text: 'Brand New', cls: 'new' },
+    'like_new': { text: 'Like New', cls: 'like-new' },
+    'good': { text: 'Good', cls: 'good' },
+    'fair': { text: 'Fair', cls: 'fair' },
+    'used': { text: 'Used', cls: 'used' }
   };
   return map[cond] || map['used'];
 }
 
 function getPriceTypeBadge(pt) {
-  if (pt === 'negotiable') return { text: '💬 Negotiable', bg: '#e0e7ff', color: '#4338ca' };
-  return { text: '🔒 Fixed Price', bg: '#fce7f3', color: '#be185d' };
+  if (pt === 'negotiable') return { text: 'Negotiable', cls: 'negotiable' };
+  return { text: 'Fixed', cls: 'fixed' };
 }
 
 // ==========================================
@@ -615,34 +615,34 @@ function compressImage(file, maxWidth = 1000, quality = 0.7) {
 async function handlePostAd(e) {
   e.preventDefault();
   if (!requireWallet()) return;
-  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', 'Please wait before posting another ad.', '⏳'); return; }
-  if (!supabase) { await showNeonPopup('Offline', 'Database not available.', '📡'); return; }
+  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', 'Please wait before posting another ad.', 'OK'); return; }
+  if (!supabase) { await showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
-  if (!titleV.valid) { await showNeonPopup('Invalid Title', titleV.error, '📝'); return; }
+  if (!titleV.valid) { await showNeonPopup('Invalid Title', titleV.error, 'OK'); return; }
   const descV = validateDescription(document.getElementById('description').value);
-  if (!descV.valid) { await showNeonPopup('Invalid Description', descV.error, '📝'); return; }
+  if (!descV.valid) { await showNeonPopup('Invalid Description', descV.error, 'OK'); return; }
   const addrV = validateAddress(document.getElementById('adAddress').value);
-  if (!addrV.valid) { await showNeonPopup('Location Required', 'Please click 📍 Detect GPS to capture your location!', '📍'); return; }
+  if (!addrV.valid) { await showNeonPopup('Location Required', 'Please click 📍 Detect GPS to capture your location!', 'OK'); return; }
   const priceV = validatePrice(document.getElementById('price').value);
-  if (!priceV.valid) { await showNeonPopup('Invalid Price', priceV.error, '💰'); return; }
+  if (!priceV.valid) { await showNeonPopup('Invalid Price', priceV.error, 'OK'); return; }
 
   if (containsPhoneNumber(titleV.clean) || containsPhoneNumber(descV.clean) || containsPhoneNumber(addrV.clean)) {
-    await showNeonPopup('Rule Violation', 'Phone numbers or contact details are not allowed to prevent scams!', '🚫'); return;
+    await showNeonPopup('Rule Violation', 'Phone numbers or contact details are not allowed to prevent scams!', 'OK'); return;
   }
   const restrictedWord = validateListingContent(titleV.clean, descV.clean);
   if (restrictedWord) {
-    await showNeonPopup('Prohibited Item', `Contains restricted keyword ("${escapeHtml(restrictedWord)}").`, '🛡️'); return;
+    await showNeonPopup('Prohibited Item', `Contains restricted keyword ("${escapeHtml(restrictedWord)}").`, 'OK'); return;
   }
   if (/https?:\/\//i.test(descV.clean) || /www\./i.test(descV.clean)) {
-    await showNeonPopup('Rule Violation', 'External links in descriptions are not allowed to prevent phishing!', '🚫'); return;
+    await showNeonPopup('Rule Violation', 'External links in descriptions are not allowed to prevent phishing!', 'OK'); return;
   }
 
   const fileInput = document.getElementById('imageInput');
   const files = fileInput.files;
-  if (files.length === 0) { await showNeonPopup('Image Missing', 'Please select at least one product image!', '🖼️'); return; }
-  if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', '📸'); return; }
-  for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', '📸'); return; } }
+  if (files.length === 0) { await showNeonPopup('Image Missing', 'Please select at least one product image!', 'OK'); return; }
+  if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', 'OK'); return; }
+  for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', 'OK'); return; } }
 
   if (!checkWorldAppEnvironment()) { return; }
   let paymentSuccessful = false;
@@ -664,7 +664,7 @@ async function handlePostAd(e) {
     if (paymentSuccessful) console.log(`[PAYMENT OK] ref=${paymentRef} wallet=${userWallet}`);
   } catch (err) { console.error('[PAYMENT FAILED]', err); }
 
-  if (!paymentSuccessful) { await showNeonPopup('Payment Cancelled', 'Payment failed or was cancelled.', '💸'); return; }
+  if (!paymentSuccessful) { await showNeonPopup('Payment Cancelled', 'Payment failed or was cancelled.', 'OK'); return; }
 
   let imageUrls = ['', '', '', ''];
   for (let i = 0; i < files.length; i++) {
@@ -672,10 +672,10 @@ async function handlePostAd(e) {
       const cf = await compressImage(files[i]);
       const fn = `${Date.now()}_${randomAlphaNumeric(8)}.jpg`;
       const { error: ue } = await supabase.storage.from('listing').upload(fn, cf);
-      if (ue) { await showNeonPopup('Upload Error', 'Image upload failed. Try again.', '❌'); return; }
+      if (ue) { await showNeonPopup('Upload Error', 'Image upload failed. Try again.', 'OK'); return; }
       const { data: pd } = supabase.storage.from('listing').getPublicUrl(fn);
       imageUrls[i] = pd.publicUrl;
-    } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', '❌'); return; }
+    } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', 'OK'); return; }
   }
 
   // Build insert payload
@@ -712,15 +712,15 @@ async function handlePostAd(e) {
       let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
       await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
       updateSowBadge();
-      await showNeonPopup('Awesome! 🎉', `Ad posted successfully!<br><span style="color: #10b981; font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, '🪙');
+      await showNeonPopup('Success', `Ad posted successfully!<br><span style="color: var(--success); font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, 'OK');
     } else {
       // Duplicate detected — no extra SOW
       console.log('[SOW] Duplicate ad detected, no extra SOW credited');
-      await showNeonPopup('Ad Posted! 🎉', 'Your ad is now live.', '✅');
+      await showNeonPopup('Ad Posted', 'Your ad is now live.', 'OK');
     }
     document.getElementById('adForm').reset();
     window.switchTab('screenHome');
-  } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', '⚠️'); }
+  } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', 'OK'); }
 }
 
 async function fetchListings() {
@@ -795,13 +795,13 @@ async function fetchListings() {
             <h3 class="card-title">${iTitle}</h3>
             <p class="card-price">${iPrice} WLD</p>
             <div class="card-meta">
-              <span class="card-seller">👤 ${dName} · 🌍 ${iCountry}</span>
+              <span class="card-seller">${dName} - ${iCountry}</span>
               <span class="card-time">${posted}</span>
             </div>
           </div>
         </div>
         <div class="card-actions">
-          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller">💬 Chat Seller</button>
+          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller">Chat Seller</button>
         </div>
       </div>
     `;
@@ -811,7 +811,7 @@ async function fetchListings() {
 window.openAdDetails = async function(id) {
   const cleanId = String(id).replace(/[^a-zA-Z0-9\-]/g, '');
   const { data, error } = await supabase.from('listings').select('*').eq('id', cleanId).single();
-  if (error || !data) { await showNeonPopup('Not Found', 'Ad not found or removed.', '🔍'); return; }
+  if (error || !data) { await showNeonPopup('Not Found', 'Ad not found or removed.', 'OK'); return; }
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
@@ -868,7 +868,7 @@ window.openAdDetails = async function(id) {
 // ==========================================
 window.openChat = async function(sellerWallet, adTitle, sellerName) {
   if (!requireWallet()) return;
-  if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'ℹ️'); return; }
+  if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'OK'); return; }
   currentChatSeller = sellerWallet;
   window.currentChatAdTitle = adTitle;    document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
   const chatBox = document.getElementById('chatMessages');
@@ -897,8 +897,8 @@ window.sendMessage = async function() {
   const input = document.getElementById('chatInput');
   const rawMsg = input.value;
   const msgV = validateChatMsg(rawMsg);
-  if (!msgV.valid) { await showNeonPopup('Invalid', msgV.error, '⚠️'); return; }
-  if (!checkRateLimit('chat', 1000)) { await showNeonPopup('Slow Down', 'Sending too fast.', '⏳'); return; }
+  if (!msgV.valid) { await showNeonPopup('Invalid', msgV.error, 'OK'); return; }
+  if (!checkRateLimit('chat', 1000)) { await showNeonPopup('Slow Down', 'Sending too fast.', 'OK'); return; }
   if (!currentChatSeller || !window.currentChatAdTitle) return;
   const msg = msgV.clean;
   const chatBox = document.getElementById('chatMessages');
@@ -928,7 +928,7 @@ window.openReviews = async function(sellerAddress, sellerName) {
     return `<div class="review-item">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <span class="detail-seller-name">${bName}</span>
-        <span style="color:#f59e0b; font-size:0.85rem;">${'⭐'.repeat(rating)}</span>
+        <span style="color:var(--warning); font-size:0.85rem; font-weight:700;">${rating}/5</span>
       </div>
       <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">${comment}</p>
     </div>`;
@@ -937,19 +937,19 @@ window.openReviews = async function(sellerAddress, sellerName) {
 
 window.submitReview = async function() {
   if (!requireWallet()) return;
-  if (!checkRateLimit('review', 5000)) { await showNeonPopup('Slow Down', 'Please wait before another review.', '⏳'); return; }
-  if (userWallet === window.targetSellerAddress) { await showNeonPopup('Not Allowed', 'You cannot review yourself! 🚫', '❌'); return; }
+  if (!checkRateLimit('review', 5000)) { await showNeonPopup('Slow Down', 'Please wait before another review.', 'OK'); return; }
+  if (userWallet === window.targetSellerAddress) { await showNeonPopup('Not Allowed', 'You cannot review yourself! ', 'OK'); return; }
   const rating = parseInt(document.getElementById('reviewRating').value);
-  if (rating < 1 || rating > 5) { await showNeonPopup('Invalid Rating', 'Rating must be 1-5.', '⚠️'); return; }
+  if (rating < 1 || rating > 5) { await showNeonPopup('Invalid Rating', 'Rating must be 1-5.', 'OK'); return; }
   const commentRaw = document.getElementById('reviewComment').value.trim();
-  if (commentRaw.length > MAX_REVIEW_LEN) { await showNeonPopup('Too Long', `Review max ${MAX_REVIEW_LEN} chars.`, '⚠️'); return; }
-  if (containsPhoneNumber(commentRaw) || /https?:\/\//i.test(commentRaw)) { await showNeonPopup('Rule Violation', 'No phone numbers or links in reviews!', '🚫'); return; }
+  if (commentRaw.length > MAX_REVIEW_LEN) { await showNeonPopup('Too Long', `Review max ${MAX_REVIEW_LEN} chars.`, 'OK'); return; }
+  if (containsPhoneNumber(commentRaw) || /https?:\/\//i.test(commentRaw)) { await showNeonPopup('Rule Violation', 'No phone numbers or links in reviews!', 'OK'); return; }
   const comment = commentRaw || '';
   const { data: ex } = await supabase.from('reviews').select('id').eq('seller_address', window.targetSellerAddress).eq('buyer_address', userWallet).single();
-  if (ex) { await showNeonPopup('Already Reviewed', 'One review per buyer per seller.', 'ℹ️'); return; }
+  if (ex) { await showNeonPopup('Already Reviewed', 'One review per buyer per seller.', 'OK'); return; }
   const { error } = await supabase.from('reviews').insert([{ seller_address: window.targetSellerAddress, buyer_address: userWallet, buyer_name: currentUsername, rating, comment }]);
-  if (!error) { document.getElementById('reviewComment').value = ''; await showNeonPopup('Success', 'Review submitted!', '🎉'); window.openReviews(window.targetSellerAddress, 'Seller'); }
-  else { console.error('[REVIEW ERROR]', error); await showNeonPopup('Error', 'Could not submit review.', '⚠️'); }
+  if (!error) { document.getElementById('reviewComment').value = ''; await showNeonPopup('Success', 'Review submitted!', 'OK'); window.openReviews(window.targetSellerAddress, 'Seller'); }
+  else { console.error('[REVIEW ERROR]', error); await showNeonPopup('Error', 'Could not submit review.', 'OK'); }
 };
 
 // ==========================================
@@ -957,7 +957,7 @@ window.submitReview = async function() {
 // ==========================================
 window.openAdminPanel = async function() {
   if (!userWallet || userWallet.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-    await showNeonPopup('Unauthorized', 'Access denied. Admin only.', '🚫');
+    await showNeonPopup('Unauthorized', 'Access denied. Admin only.', 'OK');
     return;
   }
 
@@ -998,7 +998,7 @@ window.openAdminPanel = async function() {
 }
 
 window.adminDeleteAd = async function(id) {
-  const confirmDel = await window.showNeonPopup('Admin Action', 'Are you sure you want to force delete this ad?', '🛡️', 'confirm');
+  const confirmDel = await window.showNeonPopup('Admin Action', 'Are you sure you want to force delete this ad?', 'OK', 'confirm');
   if (confirmDel) {
     const { data: adData } = await supabase.from('listings').select('title, image1, image2, image3, image4').eq('id', id).single();
     if (adData) {
@@ -1012,7 +1012,7 @@ window.adminDeleteAd = async function(id) {
       await supabase.from('chats').delete().eq('ad_title', adData.title);
     }
     await supabase.from('listings').delete().match({ id });
-    await showNeonPopup('Success', 'Ad force deleted by admin.', '✅');
+    await showNeonPopup('Success', 'Ad force deleted by admin.', 'OK');
     window.openAdminPanel();
     fetchListings();
   }
@@ -1024,14 +1024,26 @@ window.openMyAdsScreen = async function() {
     document.getElementById('myAdsBalanceCard').innerHTML = '';
     return;
   }
-  
   const container = document.getElementById('myAdsContainer');
   container.innerHTML = showSkeleton(3);
 
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
 
-  const balanceHtml = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">🪙</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
+  // Balance card (compact, no emoji per Worldcoin guidelines)
+  const balanceHtml = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
+  document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
+
+  // Fetch all ads for this user
+  const { data: allMyAds } = await supabase.from('listings')
+    .select('*')
+    .eq('seller_address', userWallet)
+    .order('created_at', { ascending: false });
+
+  const activeAds = (allMyAds || []).filter(a => a.status !== 'sold');
+  const soldAds = (allMyAds || []).filter(a => a.status === 'sold');
+
+  let html = '';
   if (activeAds.length > 0) {
     html += `<p class="my-ads-section-title">Active (${activeAds.length})</p>`;
     html += activeAds.map(item => {
@@ -1048,31 +1060,32 @@ window.openMyAdsScreen = async function() {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
       return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold">
         <div><h4 class="my-ad-title" style="text-decoration:line-through;">${sT}</h4><p class="my-ad-price" style="color:var(--text-muted);">${sP} WLD (${sC})</p></div>
-        <span class="btn-sold-done">✅ Sold</span>
+        <span class="btn-sold-done">Sold</span>
       </div>`;
     }).join('');
   }
+  if (!html) html = '<p class="loading-placeholder">No ads yet. Post your first ad!</p>';
   container.innerHTML = html;
 }
 
 window.markAsSoldOut = async function(id) {
-  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', '🔐'); return; }
-  if (!checkRateLimit('soldOut', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', '⏳'); return; }
-  const isConfirmed = await showNeonPopup('Mark as Sold?', 'This ad will be marked as sold. Your SOW coins will stay! 🪙', '🏷️', 'confirm');
+  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', 'OK'); return; }
+  if (!checkRateLimit('soldOut', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', 'OK'); return; }
+  const isConfirmed = await showNeonPopup('Mark as Sold?', 'This ad will be marked as sold. Your SOW coins will stay!', 'OK', 'confirm');
   if (isConfirmed) {
     // SECURITY: Verify ownership — only the ad's seller can mark it sold
     const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
     if (fetchErr || !adData) {
       console.error('[SOLD] Ad fetch failed:', fetchErr);
-      await showNeonPopup('Error', 'Ad not found. Please refresh.', '⚠️');
+      await showNeonPopup('Error', 'Ad not found. Please refresh.', 'OK');
       return;
     }
     if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
-      await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', '🚫');
+      await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', 'OK');
       return;
     }
     if (adData.status === 'sold') {
-      await showNeonPopup('Already Sold', 'This ad is already marked as sold.', 'ℹ️');
+      await showNeonPopup('Already Sold', 'This ad is already marked as sold.', 'OK');
       window.openMyAdsScreen();
       return;
     }
@@ -1104,14 +1117,14 @@ window.markAsSoldOut = async function(id) {
     if (soldOk) {
       const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
       if (verifyData && verifyData.status === 'sold') {
-        await showNeonPopup('Sold! 🎉', 'Ad marked as sold. Your SOW coins are safe! 🪙', '✅');
+        await showNeonPopup('Sold', 'Ad marked as sold. Your SOW coins are safe!', 'OK');
         window.openMyAdsScreen();
         fetchListings();
         return;
       }
     }
     // If we get here, something failed
-    await showNeonPopup('Update Failed', 'Could not mark as sold. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_FIX.sql).', '⚠️');
+    await showNeonPopup('Update Failed', 'Could not mark as sold. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_FIX.sql).', 'OK');
     console.error('[SOLD] All methods failed for ad:', id);
   }
 }
@@ -1188,7 +1201,7 @@ window.renderProfile = async function() {
           <p class="profile-label">Profile</p>
           <h3 class="profile-name">${escapeHtml(currentUsername)}</h3>
         </div>
-        <span style="font-size:2rem;">🪙</span>
+        <span class="sow-stats-icon">SOW</span>
       </div>
       <div class="profile-balance-section">
         <p class="profile-label">SOW Balance</p>
