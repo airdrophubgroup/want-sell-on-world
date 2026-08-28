@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="style.css">
   <title>WantSell</title>
   <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co;">
 </head>
 <body>
@@ -15,9 +17,9 @@
   <!-- Splash Screen -->
   <div id="splashScreen" class="splash-screen">
     <div class="splash-content">
-      <div class="splash-icon">🛒</div>
+      <div class="splash-icon">WantSell</div>
       <h1 class="splash-title">WantSell</h1>
-      <p class="splash-subtitle">Buy &amp; Sell Locally</p>
+      <p class="splash-subtitle">Buy and sell items near you</p>
       <div class="splash-loader"><div class="splash-loader-bar"></div></div>
     </div>
   </div>
@@ -68,9 +70,9 @@
 
         <!-- Promo Banner -->
         <div class="promo-banner">
-          <p style="font-size:1rem; font-weight:700; color:#1e40af; margin-bottom:2px;">Local Marketplace</p>
-          <p style="font-size:0.78rem; color:#6b7280; margin-bottom:8px;">Buy &amp; sell items near you. 1 WLD per listing.</p>
-          <div style="display:flex; gap:6px;">
+          <p style="font-size:0.95rem; font-weight:700; color:#1e40af; margin-bottom:2px;">Local Marketplace</p>
+          <p style="font-size:0.75rem; color:#6b7280; margin-bottom:8px;">Buy and sell items near you. 1 WLD per listing.</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <span class="badge badge-negotiable">1 WLD per ad</span>
             <span class="badge badge-new">Earn SOW coins</span>
           </div>
@@ -80,7 +82,7 @@
         <div id="sowStatsCard" class="sow-stats-card" style="display:none;">
           <div class="sow-stats-inner">
             <div class="sow-stats-left">
-              <span class="sow-stats-icon">🪙</span>
+              <span class="sow-stats-icon">SOW</span>
               <div>
                 <p class="sow-stats-label">Your SOW Balance</p>
                 <p class="sow-stats-value"><span id="homeSowCount">0</span></p>
@@ -92,17 +94,17 @@
 
         <!-- Category Chips -->
         <div class="category-scroll" id="categoryScroll">
-          <div class="category-chip active" data-cat="ALL"><span class="category-chip-icon">🌐</span>All</div>
-          <div class="category-chip" data-cat="Phones"><span class="category-chip-icon">📱</span>Phones</div>
-          <div class="category-chip" data-cat="Electronics"><span class="category-chip-icon">🔌</span>Tech</div>
-          <div class="category-chip" data-cat="Laptops"><span class="category-chip-icon">💻</span>Laptops</div>
-          <div class="category-chip" data-cat="Games"><span class="category-chip-icon">🎮</span>Games</div>
-          <div class="category-chip" data-cat="Clothes"><span class="category-chip-icon">👕</span>Clothes</div>
-          <div class="category-chip" data-cat="Shoes"><span class="category-chip-icon">👟</span>Shoes</div>
-          <div class="category-chip" data-cat="Bags"><span class="category-chip-icon">🎒</span>Bags</div>
-          <div class="category-chip" data-cat="Home Appliances"><span class="category-chip-icon">🏠</span>Home</div>
-          <div class="category-chip" data-cat="Automotive"><span class="category-chip-icon">🚗</span>Auto</div>
-          <div class="category-chip" data-cat="Other"><span class="category-chip-icon">📦</span>Other</div>
+          <div class="category-chip active" data-cat="ALL"><span class="category-chip-icon">*</span>All</div>
+          <div class="category-chip" data-cat="Phones"><span class="category-chip-icon">#</span>Phones</div>
+          <div class="category-chip" data-cat="Electronics"><span class="category-chip-icon">#</span>Tech</div>
+          <div class="category-chip" data-cat="Laptops"><span class="category-chip-icon">#</span>Laptops</div>
+          <div class="category-chip" data-cat="Games"><span class="category-chip-icon">#</span>Games</div>
+          <div class="category-chip" data-cat="Clothes"><span class="category-chip-icon">#</span>Clothes</div>
+          <div class="category-chip" data-cat="Shoes"><span class="category-chip-icon">#</span>Shoes</div>
+          <div class="category-chip" data-cat="Bags"><span class="category-chip-icon">#</span>Bags</div>
+          <div class="category-chip" data-cat="Home Appliances"><span class="category-chip-icon">#</span>Home</div>
+          <div class="category-chip" data-cat="Automotive"><span class="category-chip-icon">#</span>Auto</div>
+          <div class="category-chip" data-cat="Other"><span class="category-chip-icon">#</span>Other</div>
         </div>
 
         <!-- Listings Feed -->
@@ -153,17 +155,17 @@
 
     <!-- Tab Bar -->
     <nav class="tab-bar">
-      <button class="tab-item active" data-screen="screenHome" id="tabHome"><span class="tab-icon">🏠</span><span class="tab-label">Home</span></button>
-      <button class="tab-item" data-screen="screenPost" id="tabPost"><span class="tab-icon">➕</span><span class="tab-label">Post Ad</span></button>
-      <button class="tab-item" data-screen="screenMyAds" id="tabMyAds"><span class="tab-icon">📦</span><span class="tab-label">My Ads</span></button>
-      <button class="tab-item" data-screen="screenProfile" id="tabProfile"><span class="tab-icon">👤</span><span class="tab-label">Profile</span></button>
+      <button class="tab-item active" data-screen="screenHome" id="tabHome"><span class="tab-icon">Home</span><span class="tab-label">Home</span></button>
+      <button class="tab-item" data-screen="screenPost" id="tabPost"><span class="tab-icon">Post</span><span class="tab-label">Post Ad</span></button>
+      <button class="tab-item" data-screen="screenMyAds" id="tabMyAds"><span class="tab-icon">Ads</span><span class="tab-label">My Ads</span></button>
+      <button class="tab-item" data-screen="screenProfile" id="tabProfile"><span class="tab-icon">Me</span><span class="tab-label">Profile</span></button>
     </nav>
   </div>
 
   <!-- Modals -->
   <div id="adDetailsModal" class="modal" style="display:none;">
     <div class="modal-content modal-full">
-      <div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adDetailsModal').style.display='none'">&#8592; Back</button></div>
+      <div class="modal-header"><button class="modal-back-btn" onclick="document.getElementById('adDetailsModal').style.display='none'">Back</button></div>
       <div id="adDetailsBody" class="modal-body"></div>
     </div>
   </div>
@@ -171,7 +173,7 @@
   <div id="chatModal" class="modal" style="display:none;">
     <div class="modal-content modal-full">
       <div class="modal-header">
-        <button class="modal-back-btn" onclick="document.getElementById('chatModal').style.display='none'">&#8592; Back</button>
+        <button class="modal-back-btn" onclick="document.getElementById('chatModal').style.display='none'">Back</button>
         <span id="chatTitle" class="modal-header-title">Chat</span>
       </div>
       <div id="chatMessages" class="chat-messages"></div>
@@ -185,7 +187,7 @@
   <div id="reviewsModal" class="modal" style="display:none;">
     <div class="modal-content modal-full">
       <div class="modal-header">
-        <button class="modal-back-btn" onclick="document.getElementById('reviewsModal').style.display='none'">&#8592; Back</button>
+        <button class="modal-back-btn" onclick="document.getElementById('reviewsModal').style.display='none'">Back</button>
         <span id="reviewsModalTitle" class="modal-header-title">Reviews</span>
       </div>
       <div id="reviewsListContainer" class="reviews-list"></div>
@@ -203,7 +205,7 @@
   <div id="leaderboardModal" class="modal" style="display:none;">
     <div class="modal-content modal-full">
       <div class="modal-header">
-        <button class="modal-back-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">&#8592; Back</button>
+        <button class="modal-back-btn" onclick="document.getElementById('leaderboardModal').style.display='none'">Back</button>
         <span class="modal-header-title">Top Sellers</span>
       </div>
       <div id="leaderboardContainer" class="leaderboard-list"></div>
@@ -213,7 +215,7 @@
   <div id="adminModal" class="modal" style="display:none;">
     <div class="modal-content modal-full">
       <div class="modal-header">
-        <button class="modal-back-btn" onclick="document.getElementById('adminModal').style.display='none'">&#8592; Back</button>
+        <button class="modal-back-btn" onclick="document.getElementById('adminModal').style.display='none'">Back</button>
         <span class="modal-header-title">Admin Dashboard</span>
       </div>
       <div id="adminStatsContainer" class="admin-stats"></div>
@@ -222,11 +224,11 @@
   </div>
 
   <div id="imageViewerModal" class="image-viewer" style="display:none;">
-    <button class="image-viewer-close" onclick="document.getElementById('imageViewerModal').style.display='none'">&#8592; Back</button>
+    <button class="image-viewer-close" onclick="document.getElementById('imageViewerModal').style.display='none'">Back</button>
     <div class="image-viewer-container">
-      <button class="slider-btn" onclick="window.prevImage()">&#10094;</button>
+      <button class="slider-btn" onclick="window.prevImage()">&lt;</button>
       <img id="viewerImage" src="" class="viewer-img">
-      <button class="slider-btn" onclick="window.nextImage()">&#10095;</button>
+      <button class="slider-btn" onclick="window.nextImage()">&gt;</button>
     </div>
     <div id="imageCounter" class="image-counter">1 / 1</div>
   </div>
@@ -234,7 +236,7 @@
   <!-- World App Blocker -->
   <div id="worldAppBlocker" class="world-app-blocker" style="display:none;">
     <div class="blocker-content">
-      <div class="blocker-icon">🌍</div>
+      <div class="blocker-icon">W</div>
       <h1 class="blocker-title">World App Required</h1>
       <p class="blocker-text">This app can only be used inside the <b>World App</b>. Please open it from World App to continue.</p>
       <div class="blocker-badge">Access Denied Outside World App</div>
