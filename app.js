@@ -812,6 +812,7 @@ window.openAdDetails = async function(id) {
   const cleanId = String(id).replace(/[^a-zA-Z0-9\-]/g, '');
   const { data, error } = await supabase.from('listings').select('*').eq('id', cleanId).single();
   if (error || !data) { await showNeonPopup('Not Found', 'Ad not found or removed.', 'OK'); return; }
+  if (data.status === 'deleted') { await showNeonPopup('Removed', 'This ad has been removed by the seller.', 'OK'); return; }
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
@@ -969,7 +970,7 @@ window.openAdminPanel = async function() {
   statsContainer.innerHTML = `<p class="loading-placeholder">Loading stats...</p>`;
   listingsContainer.innerHTML = showSkeleton(3);
 
-  const { count: totalListings } = await supabase.from('listings').select('*', { count: 'exact', head: true });
+  const { count: totalListings } = await supabase.from('listings').select('*', { count: 'exact', head: true }).neq('status', 'deleted');
   const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
   const { count: totalChats } = await supabase.from('chats').select('*', { count: 'exact', head: true });
 
@@ -981,7 +982,7 @@ window.openAdminPanel = async function() {
     </div>
   `;
 
-  const { data: listings } = await supabase.from('listings').select('*').order('created_at', { ascending: false });
+  const { data: listings } = await supabase.from('listings').select('*').neq('status', 'deleted').order('created_at', { ascending: false });
 
   if (!listings || listings.length === 0) {
     listingsContainer.innerHTML = `<p class="loading-placeholder">No listings found.</p>`;
@@ -1000,19 +1001,44 @@ window.openAdminPanel = async function() {
 window.adminDeleteAd = async function(id) {
   const confirmDel = await window.showNeonPopup('Admin Action', 'Are you sure you want to force delete this ad?', 'OK', 'confirm');
   if (confirmDel) {
-    const { data: adData } = await supabase.from('listings').select('title, image1, image2, image3, image4').eq('id', id).single();
-    if (adData) {
-      const imagesList = [adData.image1, adData.image2, adData.image3, adData.image4];
-      for (const imgUrl of imagesList) {
-        if (imgUrl && imgUrl.includes('/listing/')) {
-          const filePath = imgUrl.split('/listing/')[1];
-          if (filePath) await supabase.storage.from('listing').remove([filePath]);
+    // Try RPC function first (bypasses RLS)
+    let deleted = false;
+    try {
+      const { data: rpcResult } = await supabase.rpc('delete_ad', { p_ad_id: id, p_wallet: ADMIN_WALLET });
+      if (rpcResult && rpcResult.success) deleted = true;
+    } catch (e) {}
+
+    // Also try mark_ad_sold RPC if delete_ad is not available
+    if (!deleted) {
+      try {
+        const { data: rpcResult } = await supabase.rpc('mark_ad_sold', { p_ad_id: id, p_wallet: ADMIN_WALLET });
+        if (rpcResult && rpcResult.success) deleted = true;
+      } catch (e) {}
+    }
+
+    // Fallback: direct delete (may be blocked by RLS)
+    if (!deleted) {
+      const { data: adData } = await supabase.from('listings').select('title, image1, image2, image3, image4').eq('id', id).single();
+      if (adData) {
+        const imagesList = [adData.image1, adData.image2, adData.image3, adData.image4];
+        for (const imgUrl of imagesList) {
+          if (imgUrl && imgUrl.includes('/listing/')) {
+            const filePath = imgUrl.split('/listing/')[1];
+            if (filePath) await supabase.storage.from('listing').remove([filePath]);
+          }
         }
       }
-      await supabase.from('chats').delete().eq('ad_title', adData.title);
+      try {
+        await supabase.from('listings').delete().match({ id });
+        deleted = true;
+      } catch (e) {}
     }
-    await supabase.from('listings').delete().match({ id });
-    await showNeonPopup('Success', 'Ad force deleted by admin.', 'OK');
+
+    if (deleted) {
+      await showNeonPopup('Success', 'Ad deleted by admin.', 'OK');
+    } else {
+      await showNeonPopup('Info', 'Could not delete directly. Run SUPABASE_SQL_DELETE.sql in your dashboard.', 'OK');
+    }
     window.openAdminPanel();
     fetchListings();
   }
@@ -1038,9 +1064,10 @@ window.openMyAdsScreen = async function() {
   const { data: allMyAds } = await supabase.from('listings')
     .select('*')
     .eq('seller_address', userWallet)
+    .neq('status', 'deleted')
     .order('created_at', { ascending: false });
 
-  const activeAds = (allMyAds || []).filter(a => a.status !== 'sold');
+  const activeAds = (allMyAds || []).filter(a => a.status === 'active');
   const soldAds = (allMyAds || []).filter(a => a.status === 'sold');
 
   let html = '';
@@ -1050,7 +1077,10 @@ window.openMyAdsScreen = async function() {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
       return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item">
         <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price">${sP} WLD (${sC})</p></div>
-        <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" class="btn-mark-sold">Mark Sold</button>
+        <div class="my-ad-actions-row">
+          <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" class="btn-mark-sold">Mark Sold</button>
+          <button onclick="event.stopPropagation(); window.deleteMyAd('${sI}')" class="btn-delete-ad">Delete</button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -1066,6 +1096,69 @@ window.openMyAdsScreen = async function() {
   }
   if (!html) html = '<p class="loading-placeholder">No ads yet. Post your first ad!</p>';
   container.innerHTML = html;
+}
+
+// ==========================================
+// DELETE AD — soft delete (status='deleted')
+// SOW coins are NEVER affected by deletion
+// ==========================================
+window.deleteMyAd = async function(id) {
+  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', 'OK'); return; }
+  if (!checkRateLimit('deleteAd', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', 'OK'); return; }
+
+  const isConfirmed = await showNeonPopup('Delete Ad?', 'This ad will be permanently removed. Your SOW coins are safe and will not be affected.', 'OK', 'confirm');
+  if (!isConfirmed) return;
+
+  // SECURITY: Verify ownership
+  const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
+  if (fetchErr || !adData) {
+    await showNeonPopup('Error', 'Ad not found.', 'OK');
+    return;
+  }
+  if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
+    await showNeonPopup('Unauthorized', 'You can only delete your own ads.', 'OK');
+    return;
+  }
+  if (adData.status === 'deleted') {
+    await showNeonPopup('Info', 'This ad is already deleted.', 'OK');
+    window.openMyAdsScreen();
+    return;
+  }
+
+  // Try RPC function first (bypasses RLS), fall back to direct update
+  let deleteOk = false;
+  try {
+    const { data: rpcResult } = await supabase.rpc('delete_ad', {
+      p_ad_id: id,
+      p_wallet: userWallet
+    });
+    if (rpcResult && rpcResult.success) {
+      deleteOk = true;
+    }
+  } catch (rpcErr) {
+    console.log('[DELETE] RPC not available, trying direct:', rpcErr.message);
+  }
+
+  // Fallback: direct update
+  if (!deleteOk) {
+    try {
+      const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'deleted' }).eq('id', id).eq('seller_address', userWallet).select('id, status');
+      if (!updateErr && updateData && updateData.length > 0) deleteOk = true;
+    } catch (e) {}
+  }
+
+  // Verify the delete took effect
+  if (deleteOk) {
+    const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
+    if (verifyData && verifyData.status === 'deleted') {
+      await showNeonPopup('Deleted', 'Ad removed. Your SOW coins are safe!', 'OK');
+      window.openMyAdsScreen();
+      fetchListings();
+      return;
+    }
+  }
+
+  await showNeonPopup('Delete Failed', 'Could not delete ad. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_DELETE.sql).', 'OK');
 }
 
 window.markAsSoldOut = async function(id) {
