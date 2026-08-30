@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com https://nominatim.openstreetmap.org https://ipapi.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob: https:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co; font-src 'self' https://fonts.gstatic.com;">
 </head>
 <body>
 
@@ -152,6 +152,9 @@
 
     <!-- FAB -->
     <button class="fab" id="fabPost" style="display:none;">+</button>
+
+    <!-- Language Toggle -->
+    <button class="lang-toggle" id="langToggle" onclick="cycleLang()">EN</button>
 
     <!-- Tab Bar -->
     <nav class="tab-bar">

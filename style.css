@@ -1200,6 +1200,211 @@ body {
 }
 
 /* ============================================
+   SECTION SPACING (Worldcoin spec: 32px between sections)
+   ============================================ */
+.section-gap { margin-bottom: var(--spacing-xl); }
+
+/* ============================================
+   DETAIL VIEW HELPERS
+   ============================================ */
+.detail-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.detail-divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 14px 0;}
+.detail-images-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 14px;}
+.detail-description {
+  white-space: pre-wrap;
+  line-height: 1.5;
+  margin-bottom: 16px;}
+.btn-back {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);}
+.btn-reviews {
+  background: var(--warning);
+  color: #fff;
+  border: none;}
+.btn-force-delete {
+  background: var(--danger);
+  color: #fff;}
+
+/* ============================================
+   REVIEW ITEM HELPERS
+   ============================================ */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;}
+.review-rating {
+  color: var(--warning);
+  font-size: 0.85rem;
+  font-weight: 700;}
+.review-comment {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);}
+
+/* ============================================
+   ADMIN STATS GRID
+   ============================================ */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;}
+.admin-stat-number {
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: block;}
+.admin-stat-indigo { color: var(--accent-indigo); }
+.admin-stat-success { color: var(--success); }
+.admin-stat-warning { color: var(--warning); }
+.admin-ad-subtitle { margin: 2px 0 0; }
+
+/* ============================================
+   SOW EARNED POPUP
+   ============================================ */
+.sow-earned-text {
+  color: var(--success);
+  font-weight: 800;
+  font-size: 1.2rem;
+  display: block;
+  margin-top: 8px;
+}
+
+/* ============================================
+   MY ADS HELPERS
+   ============================================ */
+.my-ad-sold-title { text-decoration: line-through; }
+.my-ad-sold-price { color: var(--text-muted); }
+
+/* ============================================
+   PROFILE HELPERS
+   ============================================ */
+.profile-title {
+  font-size: 1rem;
+  margin-bottom: 6px;
+  font-weight: 700;}
+.profile-subtitle {
+  font-size: 0.85rem;
+}
+.profile-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* ============================================
+   LEADERBOARD HELPERS
+   ============================================ */
+.lb-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lb-right { text-align: right; }
+
+/* ============================================
+   SKELETON CARD FLEX
+   ============================================ */
+.skeleton-card-inner {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  align-items: center;}
+.skeleton-text-70 { width: 70%; }
+.skeleton-text-50 { width: 50%; }
+
+/* ============================================
+   WORLD APP BLOCKER (dynamic inner HTML)
+   ============================================ */
+.blocker-dynamic {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+.blocker-dynamic-box {
+  background: var(--danger-light);
+  border: 1px solid #fecaca;
+  padding: 30px;
+  border-radius: 16px;
+  max-width: 380px;
+}
+.blocker-dynamic-title {
+  color: var(--danger);
+  font-size: 22px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+.blocker-dynamic-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.blocker-dynamic-badge {
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* ============================================
+   LOCALIZATION TOGGLE
+   ============================================ */
+.lang-toggle {
+  position: fixed;
+  bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 0px) + 16px);
+  left: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  font-family: inherit;}
+
+/* ============================================
+   OFFLINE BANNER
+   ============================================ */
+.offline-banner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10000;
+  background: var(--danger);
+  color: #fff;
+  text-align: center;
+  padding: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+/* ============================================
    MISC
    ============================================ */
 .text-center { text-align: center; }

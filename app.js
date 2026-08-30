@@ -7,6 +7,113 @@ const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ==========================================
+// LOCALIZATION (Worldcoin guideline: support EN, ES, TH, JA, KO, PT)
+// ==========================================
+const LOCALES = {
+  en: {
+    appName: 'WantSell', subtitle: 'Buy and sell items near you', connectWallet: 'Connect Wallet', postAd: 'Post Ad', myAds: 'My Ads', profile: 'Profile',
+    exploreListings: 'Explore Listings', searchAds: 'Search ads...', radius: 'Radius', allCountries: 'All Countries', allCategories: 'All Categories',
+    localMarketplace: 'Local Marketplace', marketplaceDesc: 'Buy and sell items near you. 1 WLD per listing.', perAd: '1 WLD per ad', earnSow: 'Earn SOW coins',
+    postNewAd: 'Post a New Ad', productTitle: 'Product Title', titlePlaceholder: 'e.g. iPhone 15 Pro Max', category: 'Category', selectCategory: 'Select Category',
+    countryRegion: 'Country / Region', selectCountry: 'Select Country', location: 'Location', tapDetect: 'Tap Detect GPS or type location', detectGps: 'Detect GPS',
+    condition: 'Condition', brandNew: 'Brand New', likeNew: 'Like New', good: 'Good', fair: 'Fair', used: 'Used',
+    priceType: 'Price Type', selectPriceType: 'Price Type', negotiable: 'Negotiable', fixedPrice: 'Fixed Price',
+    description: 'Description', describeItem: 'Describe your item...', priceWld: 'Price (WLD)', photosMax: 'Photos (max 4)',
+    postAdBtn: 'Post Ad (1 WLD)', back: 'Back', loading: 'Loading...', noListings: 'No active listings found.', networkError: 'Network error. Please check your connection and try again.',
+    noListingsNearby: 'No listings found within {km} km of your location.', yourSowBalance: 'Your SOW Balance', rankings: 'Rankings',
+    loadChat: 'Loading chat...', chatWith: 'Chat with {name}', chatSeller: 'Chat Seller', typeMessage: 'Type a message...', send: 'Send',
+    loadingReviews: 'Loading reviews...', noReviews: 'No reviews yet.', leaveReview: 'Leave a Review', postReview: 'Post Review',
+    topSellers: 'Top Sellers', noSowData: 'No data yet. Be the first to earn SOW!', walletNotConnected: 'Wallet Not Connected', connectToAccess: 'Connect your wallet to access your profile',
+    viewLeaderboard: 'View Leaderboard', support: 'Support', adminPanel: 'Admin Panel',
+    loadingStats: 'Loading stats...', noListingsFound: 'No listings found.',
+    activeAds: 'Active Ads', users: 'Users', messages: 'Messages',
+    markSold: 'Mark Sold', delete: 'Delete', sold: 'Sold',
+    connectYourWallet: 'Connect Your Wallet', walletRequired: 'You need to connect your wallet to use this feature.',
+    youOffline: 'You are offline. Some features may be unavailable.',
+    postAdRate: 'Please wait before posting another ad.', loginRate: 'Please wait a few seconds.', chatRate: 'Sending too fast.',
+    reviewRate: 'Please wait before another review.', deleteRate: 'Please wait a moment.',
+    notFound: 'Ad not found or removed.', removedAd: 'This ad has been removed by the seller.',
+    active: 'Active',
+    locationAccess: 'Location Access', locationConsent: 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.',
+  },
+  es: {
+    appName: 'WantSell', subtitle: 'Compra y vende articulos cerca de ti', connectWallet: 'Conectar Billetera', postAd: 'Publicar', myAds: 'Mis Anuncios', profile: 'Perfil',
+    exploreListings: 'Explorar Anuncios', searchAds: 'Buscar anuncios...', radius: 'Radio', allCountries: 'Todos los Paises', allCategories: 'Todas las Categorias',
+    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compra y vende cerca de ti. 1 WLD por anuncio.', perAd: '1 WLD por anuncio', earnSow: 'Gana monedas SOW',
+    postNewAd: 'Nuevo Anuncio', productTitle: 'Titulo del Producto', titlePlaceholder: 'ej. iPhone 15 Pro Max', category: 'Categoria', selectCategory: 'Seleccionar',
+    countryRegion: 'Pais / Region', selectCountry: 'Seleccionar Pais', location: 'Ubicacion', tapDetect: 'Toca Detectar GPS o escribe', detectGps: 'Detectar GPS',
+    condition: 'Condicion', brandNew: 'Nuevo', likeNew: 'Como Nuevo', good: 'Bueno', fair: 'Regular', used: 'Usado',
+    priceType: 'Tipo de Precio', selectPriceType: 'Tipo', negotiable: 'Negociable', fixedPrice: 'Precio Fijo',
+    description: 'Descripcion', describeItem: 'Describe tu articulo...', priceWld: 'Precio (WLD)', photosMax: 'Fotos (max 4)',
+    postAdBtn: 'Publicar (1 WLD)', back: 'Volver', loading: 'Cargando...', noListings: 'No hay anuncios activos.', networkError: 'Error de red. Verifica tu conexion.',
+    noListingsNearby: 'No se encontraron anuncios en {km} km.', yourSowBalance: 'Tu Balance SOW', rankings: 'Rankings',
+    loadChat: 'Cargando chat...', chatWith: 'Chatear con {name}', chatSeller: 'Chatear', typeMessage: 'Escribe un mensaje...', send: 'Enviar',
+    loadingReviews: 'Cargando...', noReviews: 'Sin reviews.', leaveReview: 'Dejar Review', postReview: 'Publicar',
+    topSellers: 'Mejores Vendedores', noSowData: 'Sin datos. Se el primero!', walletNotConnected: 'Sin Billetera', connectToAccess: 'Conecta tu billetera para ver tu perfil',
+    viewLeaderboard: 'Ver Rankings', support: 'Soporte', adminPanel: 'Admin',
+    loadingStats: 'Cargando...', noListingsFound: 'Sin anuncios.',
+    activeAds: 'Activos', users: 'Usuarios', messages: 'Mensajes',
+    markSold: 'Vendido', delete: 'Eliminar', sold: 'Vendido',
+    connectYourWallet: 'Conecta tu Billetera', walletRequired: 'Necesitas conectar tu billetera para usar esta funcion.',
+    youOffline: 'Sin conexion. Algunas funciones pueden no estar disponibles.',
+    postAdRate: 'Espera antes de publicar otro anuncio.', loginRate: 'Espera unos segundos.', chatRate: 'Demasiado rapido.',
+    reviewRate: 'Espera antes de otra review.', deleteRate: 'Espera un momento.',
+    notFound: 'Anuncio no encontrado.', removedAd: 'Este anuncio fue eliminado.',
+    active: 'Activo',
+    locationAccess: 'Acceso a Ubicacion', locationConsent: 'WantSell necesita tu ubicacion para mostrar anuncios cercanos.',
+  },
+  pt: {
+    appName: 'WantSell', subtitle: 'Compre e venda perto de voce', connectWallet: 'Conectar Carteira', postAd: 'Publicar', myAds: 'Meus Anuncios', profile: 'Perfil',
+    exploreListings: 'Explorar', searchAds: 'Buscar anuncios...', radius: 'Raio', allCountries: 'Todos os Paises', allCategories: 'Todas Categorias',
+    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compre e venda perto de voce. 1 WLD por anuncio.', perAd: '1 WLD por anuncio', earnSow: 'Ganhe SOW',
+    postNewAd: 'Novo Anuncio', productTitle: 'Titulo do Produto', titlePlaceholder: 'ex. iPhone 15 Pro Max', category: 'Categoria', selectCategory: 'Selecionar',
+    countryRegion: 'Pais / Regiao', selectCountry: 'Selecionar Pais', location: 'Localizacao', tapDetect: 'Toque Detectar GPS ou digite', detectGps: 'Detectar GPS',
+    condition: 'Condicao', brandNew: 'Novo', likeNew: 'Quase Novo', good: 'Bom', fair: 'Razoavel', used: 'Usado',
+    priceType: 'Tipo de Preco', selectPriceType: 'Tipo', negotiable: 'Negociavel', fixedPrice: 'Preco Fixo',
+    description: 'Descricao', describeItem: 'Descreva seu item...', priceWld: 'Preco (WLD)', photosMax: 'Fotos (max 4)',
+    postAdBtn: 'Publicar (1 WLD)', back: 'Voltar', loading: 'Carregando...', noListings: 'Nenhum anuncio ativo.', networkError: 'Erro de rede. Verifique sua conexao.',
+    noListingsNearby: 'Nenhum anuncio em {km} km.', yourSowBalance: 'Saldo SOW', rankings: 'Rankings',
+    loadChat: 'Carregando...', chatWith: 'Conversar com {name}', chatSeller: 'Conversar', typeMessage: 'Digite uma mensagem...', send: 'Enviar',
+    loadingReviews: 'Carregando...', noReviews: 'Sem reviews.', leaveReview: 'Deixar Review', postReview: 'Publicar',
+    topSellers: 'Melhores Vendedores', noSowData: 'Sem dados. Seja o primeiro!', walletNotConnected: 'Sem Carteira', connectToAccess: 'Conecte sua carteira para ver seu perfil',
+    viewLeaderboard: 'Ver Rankings', support: 'Suporte', adminPanel: 'Admin',
+    loadingStats: 'Carregando...', noListingsFound: 'Sem anuncios.',
+    activeAds: 'Ativos', users: 'Usuarios', messages: 'Mensagens',
+    markSold: 'Vendido', delete: 'Excluir', sold: 'Vendido',
+    connectYourWallet: 'Conecte sua Carteira', walletRequired: 'Voce precisa conectar sua carteira para usar esta funcao.',
+    youOffline: 'Sem conexao. Algumas funcionalidades podem nao funcionar.',
+    postAdRate: 'Espere antes de publicar outro anuncio.', loginRate: 'Espere alguns segundos.', chatRate: 'Muito rapido.',
+    reviewRate: 'Espere antes de outra review.', deleteRate: 'Espere um momento.',
+    notFound: 'Anuncio nao encontrado.', removedAd: 'Este anuncio foi removido.',
+    active: 'Ativo',
+    locationAccess: 'Acesso a Localizacao', locationConsent: 'WantSell precisa da sua localizacao para mostrar anuncios proximos.',
+  }
+};
+let currentLang = localStorage.getItem('lang') || (navigator.language || 'en').substring(0, 2);
+if (!LOCALES[currentLang]) currentLang = 'en';
+function t(key, replacements) {
+  const val = LOCALES[currentLang] && LOCALES[currentLang][key] ? LOCALES[currentLang][key] : LOCALES.en[key] || key;
+  if (!replacements) return val;
+  return Object.entries(replacements).reduce((s, [k, v]) => s.replace('{' + k + '}', v), val);
+}
+function switchLang(lang) {
+  if (!LOCALES[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.querySelector('.app-logo').textContent = t('appName');
+  document.getElementById('loginBtn').innerText = userWallet ? currentUsername : t('connectWallet');
+  document.querySelector('.splash-subtitle').textContent = t('subtitle');
+  document.getElementById('langToggle').textContent = currentLang.toUpperCase();
+}
+const LANG_ORDER = ['en', 'es', 'pt'];
+window.cycleLang = function() {
+  const idx = LANG_ORDER.indexOf(currentLang);
+  const next = LANG_ORDER[(idx + 1) % LANG_ORDER.length];
+  switchLang(next);
+};
+
 let userWallet = null;
 let currentUsername = null;
 let currentChatSeller = null;
@@ -17,7 +124,7 @@ function checkWorldAppEnvironment() {
   let miniOk = false;
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
-    document.getElementById('splashScreen').innerHTML = '<div style="position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:999999;font-family:Inter,sans-serif;text-align:center;padding:20px;"><div style="background:#fef2f2;border:1px solid #fecaca;padding:30px;border-radius:16px;max-width:380px;"><h1 style="color:var(--danger);font-size:22px;margin-bottom:12px;font-weight:700;">Access Denied</h1><p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:20px;">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div style="background:var(--danger);color:#fff;font-weight:600;padding:12px 20px;border-radius:10px;font-size:14px;">Open in World App</div></div></div>';
+    document.getElementById('splashScreen').innerHTML = '<div class="blocker-dynamic"><div class="blocker-dynamic-box"><h1 class="blocker-dynamic-title">Access Denied</h1><p class="blocker-dynamic-text">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div class="blocker-dynamic-badge">Open in World App</div></div></div>';
     document.getElementById('splashScreen').style.display = 'flex';
     return false;
   }
@@ -115,7 +222,7 @@ window.switchTab = function(screenId) {
 function showSkeleton(count) {
   let html = '';
   for (let i = 0; i < count; i++) {
-    html += '<div class="skeleton skeleton-card" style="display:flex; gap:12px; padding:12px; align-items:center;"><div class="skeleton skeleton-thumb"></div><div class="card-info"><div class="skeleton skeleton-text" style="width:70%;"></div><div class="skeleton skeleton-text" style="width:50%;"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
+    html += '<div class="skeleton skeleton-card skeleton-card-inner"><div class="skeleton skeleton-thumb"></div><div class="card-info"><div class="skeleton skeleton-text skeleton-text-70"></div><div class="skeleton skeleton-text skeleton-text-50"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
   }
   return html;
 }
@@ -359,7 +466,7 @@ function setupUI() {
   // OFFLINE INDICATOR — technical requirement: handle disconnections
   const offlineBanner = document.createElement('div');
   offlineBanner.id = 'offlineBanner';
-  offlineBanner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:var(--danger);color:#fff;text-align:center;padding:6px;font-size:0.78rem;font-weight:600;font-family:inherit;';
+  offlineBanner.className = 'offline-banner';
   offlineBanner.textContent = 'You are offline. Some features may be unavailable.';
   document.body.appendChild(offlineBanner);
   window.addEventListener('online', () => {
@@ -714,7 +821,7 @@ async function handlePostAd(e) {
       let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
       await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
       updateSowBadge();
-      await showNeonPopup('Success', `Ad posted successfully!<br><span style="color: var(--success); font-weight: 800; font-size: 1.2rem; display: block; margin-top: 8px;">+1 SOW Coin Earned!</span>`, 'OK');
+      await showNeonPopup('Success', `Ad posted successfully!<br><span class="sow-earned-text">+1 SOW Coin Earned!</span>`, 'OK');
     } else {
       // Duplicate detected — no extra SOW
       console.log('[SOW] Duplicate ad detected, no extra SOW credited');
@@ -835,7 +942,7 @@ window.openAdDetails = async function(id) {
         <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
         <span class="badge badge-${pBadge.cls}">${pBadge.text}</span>
       </div>
-      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;">
+      <div class="detail-price-row">
         <h3 class="detail-price">${escapeHtml(data.price)} WLD</h3>
         <span class="card-seller">${escapeHtml(data.country)}${dist}</span>
       </div>
@@ -845,19 +952,19 @@ window.openAdDetails = async function(id) {
           <span class="detail-seller-label">Seller</span>
           <h4 class="detail-seller-name">${dName}</h4>
         </div>
-        <button class="btn-mark-sold" style="background:#f59e0b;color:#fff;border:none;" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">Reviews</button>
+        <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">Reviews</button>
       </div>
-      <div class="detail-seller-bar" style="color:var(--text);">
+      <div class="detail-seller-bar">
         <span class="detail-seller-label">Username</span>
-        <p style="margin:2px 0 0;">${escapeHtml(data.seller_name || 'User')}</p>
+        <p class="admin-ad-subtitle">${escapeHtml(data.seller_name || 'User')}</p>
       </div>
-      <hr style="border:0;border-top:1px solid var(--border);margin:14px 0;">
+      <hr class="detail-divider">
       <h4 class="detail-section-title">Photos (${allImages.length}) - Tap to Zoom</h4>
-      <div style="max-height:280px;overflow-y:auto;margin-bottom:14px;">${imagesHtml}</div>
+      <div class="detail-images-scroll">${imagesHtml}</div>
       <h4 class="detail-section-title">Description</h4>
-      <p class="detail-section" style="white-space:pre-wrap;line-height:1.5;margin-bottom:16px;">${escapeHtml(data.description)}</p>
+      <p class="detail-section detail-description">${escapeHtml(data.description)}</p>
       <div class="detail-action-bar">
-        <button class="btn-chat-seller" style="background:var(--surface);color:var(--text);border:1px solid var(--border);" onclick="document.getElementById('adDetailsModal').style.display='none';">Back</button>
+        <button class="btn-chat-seller btn-back" onclick="document.getElementById('adDetailsModal').style.display='none';">Back</button>
         <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">Chat with Seller</button>
       </div>
     </div>`;
@@ -929,11 +1036,11 @@ window.openReviews = async function(sellerAddress, sellerName) {
     const comment = escapeHtml(r.comment || 'No comment provided.');
     const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
     return `<div class="review-item">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <div class="review-header">
         <span class="detail-seller-name">${bName}</span>
-        <span style="color:var(--warning); font-size:0.85rem; font-weight:700;">${rating}/5</span>
+        <span class="review-rating">${rating}/5</span>
       </div>
-      <p style="margin:0;font-size:0.85rem;color:var(--text-secondary);">${comment}</p>
+      <p class="review-comment">${comment}</p>
     </div>`;
   }).join('');
 };
@@ -977,10 +1084,10 @@ window.openAdminPanel = async function() {
   const { count: totalChats } = await supabase.from('chats').select('*', { count: 'exact', head: true });
 
   statsContainer.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--accent-indigo);">${totalListings || 0}</b><span class="sow-stats-label">Active Ads</span></div>
-      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--success);">${totalUsers || 0}</b><span class="sow-stats-label">Users</span></div>
-      <div class="detail-section"><b style="font-size:1.2rem;font-weight:800;display:block;color:var(--warning);">${totalChats || 0}</b><span class="sow-stats-label">Messages</span></div>
+    <div class="admin-stats-grid">
+      <div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="sow-stats-label">Active Ads</span></div>
+      <div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="sow-stats-label">Users</span></div>
+      <div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="sow-stats-label">Messages</span></div>
     </div>
   `;
 
@@ -994,8 +1101,8 @@ window.openAdminPanel = async function() {
   listingsContainer.innerHTML = listings.map(item => {
     const sT = escapeHtml(item.title), sN = escapeHtml(item.seller_name), sP = escapeHtml(item.price), sI = escapeAttr(item.id);
     return `<div class="my-ad-item">
-      <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price" style="margin:2px 0 0;">By: ${sN} | ${sP} WLD</p></div>
-      <button onclick="window.adminDeleteAd('${sI}')" class="btn-mark-sold" style="background:#ef4444; color:#fff;">Force Delete</button>
+      <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price admin-ad-subtitle">By: ${sN} | ${sP} WLD</p></div>
+      <button onclick="window.adminDeleteAd('${sI}')" class="btn-mark-sold btn-force-delete">Force Delete</button>
     </div>`;
   }).join('');
 }
@@ -1091,7 +1198,7 @@ window.openMyAdsScreen = async function() {
     html += soldAds.map(item => {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
       return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold">
-        <div><h4 class="my-ad-title" style="text-decoration:line-through;">${sT}</h4><p class="my-ad-price" style="color:var(--text-muted);">${sP} WLD (${sC})</p></div>
+        <div><h4 class="my-ad-title my-ad-sold-title">${sT}</h4><p class="my-ad-price my-ad-sold-price">${sP} WLD (${sC})</p></div>
         <span class="btn-sold-done">Sold</span>
       </div>`;
     }).join('');
@@ -1249,13 +1356,13 @@ window.openLeaderboard = async function() {
     const rankText = isTop3 ? rankLabels[index] : '#' + (index + 1);
 
     return `<div class="${isTop3 ? 'lb-item top-3' : 'lb-item'}">
-      <div style="display:flex;align-items:center;gap:12px;">
+      <div class="lb-info-row">
         <span class="lb-rank">${rankText}</span>
         <div>
           <h4 class="lb-name">${username}</h4>
         </div>
       </div>
-      <div style="text-align:right;">
+      <div class="lb-right">
         <div class="lb-balance">${bal}</div>
         <div class="lb-balance-label">SOW</div>
       </div>
@@ -1282,7 +1389,7 @@ async function updateSowBadge() {
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
+    container.innerHTML = '<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p class="profile-title">Wallet Not Connected</p><p class="profile-subtitle">Connect your wallet to access your profile</p></div>';
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
@@ -1290,7 +1397,7 @@ window.renderProfile = async function() {
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
   container.innerHTML = `
     <div class="profile-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div class="profile-header-row">
         <div>
           <p class="profile-label">Profile</p>
           <h3 class="profile-name">${escapeHtml(currentUsername)}</h3>
