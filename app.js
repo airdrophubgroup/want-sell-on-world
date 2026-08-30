@@ -270,7 +270,7 @@ function showWalletRequiredOverlay() {
   overlay.className = 'wallet-required-overlay';
   overlay.innerHTML = `
     <div class="wallet-required-box">
-      <div class="wallet-required-icon">🔐</div>
+      <div class="wallet-required-icon">W</div>
       <h2 class="wallet-required-title">Connect Your Wallet</h2>
       <p class="wallet-required-text">You need to connect your wallet to use this feature.</p>
       <button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button>
@@ -360,7 +360,7 @@ function setupUI() {
   const offlineBanner = document.createElement('div');
   offlineBanner.id = 'offlineBanner';
   offlineBanner.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:var(--danger);color:#fff;text-align:center;padding:6px;font-size:0.78rem;font-weight:600;font-family:inherit;';
-  offlineBanner.textContent = '\u26a0\ufe0f You are offline. Some features may be unavailable.';
+  offlineBanner.textContent = 'You are offline. Some features may be unavailable.';
   document.body.appendChild(offlineBanner);
   window.addEventListener('online', () => {
     offlineBanner.style.display = 'none';
@@ -623,7 +623,7 @@ async function handlePostAd(e) {
   const descV = validateDescription(document.getElementById('description').value);
   if (!descV.valid) { await showNeonPopup('Invalid Description', descV.error, 'OK'); return; }
   const addrV = validateAddress(document.getElementById('adAddress').value);
-  if (!addrV.valid) { await showNeonPopup('Location Required', 'Please click 📍 Detect GPS to capture your location!', 'OK'); return; }
+  if (!addrV.valid) { await showNeonPopup('Location Required', 'Please click Detect GPS to capture your location!', 'OK'); return; }
   const priceV = validatePrice(document.getElementById('price').value);
   if (!priceV.valid) { await showNeonPopup('Invalid Price', priceV.error, 'OK'); return; }
 
@@ -685,6 +685,8 @@ async function handlePostAd(e) {
     category: document.getElementById('category').value,
     country: document.getElementById('adCountry').value, address: addrV.clean,
     lat: currentLat, lng: currentLng,
+    condition: document.getElementById('adCondition').value || 'used',
+    price_type: document.getElementById('priceType').value || 'fixed',
     image1: imageUrls[0], image2: imageUrls[1], image3: imageUrls[2], image4: imageUrls[3],
     status: 'active'
   };
@@ -744,7 +746,7 @@ async function fetchListings() {
     data = result.data;
     error = result.error;
   } catch (netErr) {
-    container.innerHTML = `<p class="loading-placeholder">\u26a0\ufe0f Network error. Please check your connection and try again.</p>`;
+    container.innerHTML = `<p class="loading-placeholder">Network error. Please check your connection and try again.</p>`;
     return;
   }
   
@@ -837,7 +839,7 @@ window.openAdDetails = async function(id) {
         <h3 class="detail-price">${escapeHtml(data.price)} WLD</h3>
         <span class="card-seller">${escapeHtml(data.country)}${dist}</span>
       </div>
-      <div class="detail-section">📍 <b>Location:</b> ${escapeHtml(data.address || 'Not specified')}</div>
+      <div class="detail-section"><b>Location:</b> ${escapeHtml(data.address || 'Not specified')}</div>
       <div class="detail-seller-bar">
         <div>
           <span class="detail-seller-label">Seller</span>
@@ -1230,7 +1232,7 @@ window.openLeaderboard = async function() {
 
   const { data: balances, error: balError } = await supabase.from('sow_balances').select('*').order('balance', { ascending: false }).limit(50);
   if (balError || !balances || balances.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">No data yet. Be the first to earn SOW! 🚀</p>`;
+    container.innerHTML = `<p class="loading-placeholder">No data yet. Be the first to earn SOW!</p>`;
     return;
   }
 
@@ -1251,7 +1253,6 @@ window.openLeaderboard = async function() {
         <span class="lb-rank">${rankText}</span>
         <div>
           <h4 class="lb-name">${username}</h4>
-          <p class="lb-username">${escapeHtml(userMap[item.wallet_address] || '')}</p>
         </div>
       </div>
       <div style="text-align:right;">
@@ -1259,7 +1260,7 @@ window.openLeaderboard = async function() {
         <div class="lb-balance-label">SOW</div>
       </div>
     </div>`;
-  }).join('');;
+  }).join('');
 }
 
 // ==========================================
@@ -1281,7 +1282,7 @@ async function updateSowBadge() {
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div class="text-center py-20 color-muted"><p style="font-size:1.5rem;margin-bottom:8px;">🔐</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
+    container.innerHTML = '<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p style="font-size:1rem; margin-bottom:6px; font-weight:700;">Wallet Not Connected</p><p style="font-size:0.85rem;">Connect your wallet to access your profile</p></div>';
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
