@@ -9,123 +9,308 @@ const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==========================================
-// LOCALIZATION (Worldcoin guideline: support EN, ES, TH, JA, KO, PT)
+// LOCALIZATION
 // ==========================================
 const LOCALES = {
   en: {
-    appName: 'WantSell', subtitle: 'Buy and sell items near you', connectWallet: 'Connect Wallet', postAd: 'Post Ad', myAds: 'My Ads', profile: 'Profile',
-    exploreListings: 'Explore Listings', searchAds: 'Search ads...', radius: 'Radius', allCountries: 'All Countries', allCategories: 'All Categories',
-    localMarketplace: 'Local Marketplace', marketplaceDesc: 'Buy and sell items near you. 1 WLD per listing.', perAd: '1 WLD per ad', earnSow: 'Earn SOW coins',
-    postNewAd: 'Post a New Ad', productTitle: 'Product Title', titlePlaceholder: 'e.g. iPhone 15 Pro Max', category: 'Category', selectCategory: 'Select Category',
-    countryRegion: 'Country / Region', selectCountry: 'Select Country', location: 'Location', tapDetect: 'Tap Detect GPS or type location', detectGps: 'Detect GPS',
-    condition: 'Condition', brandNew: 'Brand New', likeNew: 'Like New', good: 'Good', fair: 'Fair', used: 'Used',
-    priceType: 'Price Type', selectPriceType: 'Price Type', negotiable: 'Negotiable', fixedPrice: 'Fixed Price',
-    description: 'Description', describeItem: 'Describe your item...', priceWld: 'Price (WLD)', photosMax: 'Photos (max 4)',
-    postAdBtn: 'Post Ad (1 WLD)', back: 'Back', loading: 'Loading...', noListings: 'No active listings found.', networkError: 'Network error. Please check your connection and try again.',
-    noListingsNearby: 'No listings found within {km} km of your location.', yourSowBalance: 'Your SOW Balance', rankings: 'Rankings',
-    loadChat: 'Loading chat...', chatWith: 'Chat with {name}', chatSeller: 'Chat Seller', typeMessage: 'Type a message...', send: 'Send',
-    loadingReviews: 'Loading reviews...', noReviews: 'No reviews yet.', leaveReview: 'Leave a Review', postReview: 'Post Review',
-    topSellers: 'Top Sellers', noSowData: 'No data yet. Be the first to earn SOW!', walletNotConnected: 'Wallet Not Connected', connectToAccess: 'Connect your wallet to access your profile',
+    appName: 'WantSell', subtitle: 'Buy and sell items near you', connectWallet: 'Connect Wallet',
+    postAd: 'Post Ad', myAds: 'My Ads', profile: 'Profile',
+    exploreListings: 'Explore Listings', searchAds: 'Search ads...', radius: 'Radius',
+    allCountries: 'All Countries', allCategories: 'All Categories',
+    localMarketplace: 'Local Marketplace', marketplaceDesc: 'Buy and sell items near you. 1 WLD per listing.',
+    perAd: '1 WLD per ad', earnSow: 'Earn SOW coins',
+    postNewAd: 'Post a New Ad', productTitle: 'Product Title', titlePlaceholder: 'e.g. iPhone 15 Pro Max',
+    category: 'Category', selectCategory: 'Select Category',
+    countryRegion: 'Country / Region', selectCountry: 'Select Country',
+    location: 'Location', tapDetect: 'Tap Detect GPS or type location', detectGps: 'Detect GPS',
+    condition: 'Condition', brandNew: 'Brand New', likeNew: 'Like New',
+    good: 'Good', fair: 'Fair', used: 'Used',
+    priceType: 'Price Type', selectPriceType: 'Price Type',
+    negotiable: 'Negotiable', fixedPrice: 'Fixed Price',
+    description: 'Description', describeItem: 'Describe your item...',
+    priceWld: 'Price (WLD)', photosMax: 'Photos (max 4)', postAdBtn: 'Post Ad (1 WLD)',
+    back: 'Back', loading: 'Loading...', noListings: 'No active listings found.',
+    networkError: 'Network error. Please check your connection and try again.',
+    noListingsNearby: 'No listings found within {km} km of your location.',
+    yourSowBalance: 'Your SOW Balance', rankings: 'Rankings',
+    loadChat: 'Loading chat...', chatWith: 'Chat with {name}',
+    chatSeller: 'Chat Seller', typeMessage: 'Type a message...', send: 'Send',
+    loadingReviews: 'Loading reviews...', noReviews: 'No reviews yet.',
+    leaveReview: 'Leave a Review', postReview: 'Post Review',
+    topSellers: 'Top Sellers', noSowData: 'No data yet. Be the first to earn SOW!',
+    walletNotConnected: 'Wallet Not Connected',
+    connectToAccess: 'Connect your wallet to access your profile',
     viewLeaderboard: 'View Leaderboard', support: 'Support', adminPanel: 'Admin Panel',
     loadingStats: 'Loading stats...', noListingsFound: 'No listings found.',
     activeAds: 'Active Ads', users: 'Users', messages: 'Messages',
     markSold: 'Mark Sold', delete: 'Delete', sold: 'Sold',
-    connectYourWallet: 'Connect Your Wallet', walletRequired: 'You need to connect your wallet to use this feature.',
+    connectYourWallet: 'Connect Your Wallet',
+    walletRequired: 'You need to connect your wallet to use this feature.',
     youOffline: 'You are offline. Some features may be unavailable.',
-    postAdRate: 'Please wait before posting another ad.', loginRate: 'Please wait a few seconds.', chatRate: 'Sending too fast.',
-    reviewRate: 'Please wait before another review.', deleteRate: 'Please wait a moment.',
+    postAdRate: 'Please wait before posting another ad.',
+    loginRate: 'Please wait a few seconds.',
+    chatRate: 'Sending too fast.',
+    reviewRate: 'Please wait before another review.',
+    deleteRate: 'Please wait a moment.',
     notFound: 'Ad not found or removed.', removedAd: 'This ad has been removed by the seller.',
     active: 'Active',
-    locationAccess: 'Location Access', locationConsent: 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.',
+    locationAccess: 'Location Access',
+    locationConsent: 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.',
+    verifyTitle: 'Verify Your Identity',
+    verifyDesc: 'Verify your World ID to prove you are a real person. This helps keep the marketplace safe.',
+    verified: 'Verified',
   },
   es: {
-    appName: 'WantSell', subtitle: 'Compra y vende articulos cerca de ti', connectWallet: 'Conectar Billetera', postAd: 'Publicar', myAds: 'Mis Anuncios', profile: 'Perfil',
-    exploreListings: 'Explorar Anuncios', searchAds: 'Buscar anuncios...', radius: 'Radio', allCountries: 'Todos los Paises', allCategories: 'Todas las Categorias',
-    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compra y vende cerca de ti. 1 WLD por anuncio.', perAd: '1 WLD por anuncio', earnSow: 'Gana monedas SOW',
-    postNewAd: 'Nuevo Anuncio', productTitle: 'Titulo del Producto', titlePlaceholder: 'ej. iPhone 15 Pro Max', category: 'Categoria', selectCategory: 'Seleccionar',
-    countryRegion: 'Pais / Region', selectCountry: 'Seleccionar Pais', location: 'Ubicacion', tapDetect: 'Toca Detectar GPS o escribe', detectGps: 'Detectar GPS',
-    condition: 'Condicion', brandNew: 'Nuevo', likeNew: 'Como Nuevo', good: 'Bueno', fair: 'Regular', used: 'Usado',
-    priceType: 'Tipo de Precio', selectPriceType: 'Tipo', negotiable: 'Negociable', fixedPrice: 'Precio Fijo',
-    description: 'Descripcion', describeItem: 'Describe tu articulo...', priceWld: 'Precio (WLD)', photosMax: 'Fotos (max 4)',
-    postAdBtn: 'Publicar (1 WLD)', back: 'Volver', loading: 'Cargando...', noListings: 'No hay anuncios activos.', networkError: 'Error de red. Verifica tu conexion.',
-    noListingsNearby: 'No se encontraron anuncios en {km} km.', yourSowBalance: 'Tu Balance SOW', rankings: 'Rankings',
-    loadChat: 'Cargando chat...', chatWith: 'Chatear con {name}', chatSeller: 'Chatear', typeMessage: 'Escribe un mensaje...', send: 'Enviar',
-    loadingReviews: 'Cargando...', noReviews: 'Sin reviews.', leaveReview: 'Dejar Review', postReview: 'Publicar',
-    topSellers: 'Mejores Vendedores', noSowData: 'Sin datos. Se el primero!', walletNotConnected: 'Sin Billetera', connectToAccess: 'Conecta tu billetera para ver tu perfil',
+    appName: 'WantSell', subtitle: 'Compra y vende articulos cerca de ti', connectWallet: 'Conectar Billetera',
+    postAd: 'Publicar', myAds: 'Mis Anuncios', profile: 'Perfil',
+    exploreListings: 'Explorar Anuncios', searchAds: 'Buscar anuncios...', radius: 'Radio',
+    allCountries: 'Todos los Paises', allCategories: 'Todas las Categorias',
+    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compra y vende cerca de ti. 1 WLD por anuncio.',
+    perAd: '1 WLD por anuncio', earnSow: 'Gana monedas SOW',
+    postNewAd: 'Nuevo Anuncio', productTitle: 'Titulo del Producto', titlePlaceholder: 'ej. iPhone 15 Pro Max',
+    category: 'Categoria', selectCategory: 'Seleccionar',
+    countryRegion: 'Pais / Region', selectCountry: 'Seleccionar Pais',
+    location: 'Ubicacion', tapDetect: 'Toca Detectar GPS o escribe', detectGps: 'Detectar GPS',
+    condition: 'Condicion', brandNew: 'Nuevo', likeNew: 'Como Nuevo',
+    good: 'Bueno', fair: 'Regular', used: 'Usado',
+    priceType: 'Tipo de Precio', selectPriceType: 'Tipo',
+    negotiable: 'Negociable', fixedPrice: 'Precio Fijo',
+    description: 'Descripcion', describeItem: 'Describe tu articulo...',
+    priceWld: 'Precio (WLD)', photosMax: 'Fotos (max 4)', postAdBtn: 'Publicar (1 WLD)',
+    back: 'Volver', loading: 'Cargando...', noListings: 'No hay anuncios activos.',
+    networkError: 'Error de red. Verifica tu conexion.',
+    noListingsNearby: 'No se encontraron anuncios en {km} km.',
+    yourSowBalance: 'Tu Balance SOW', rankings: 'Rankings',
+    loadChat: 'Cargando chat...', chatWith: 'Chatear con {name}',
+    chatSeller: 'Chatear', typeMessage: 'Escribe un mensaje...', send: 'Enviar',
+    loadingReviews: 'Cargando...', noReviews: 'Sin reviews.',
+    leaveReview: 'Dejar Review', postReview: 'Publicar',
+    topSellers: 'Mejores Vendedores', noSowData: 'Sin datos. Se el primero!',
+    walletNotConnected: 'Sin Billetera',
+    connectToAccess: 'Conecta tu billetera para ver tu perfil',
     viewLeaderboard: 'Ver Rankings', support: 'Soporte', adminPanel: 'Admin',
     loadingStats: 'Cargando...', noListingsFound: 'Sin anuncios.',
     activeAds: 'Activos', users: 'Usuarios', messages: 'Mensajes',
     markSold: 'Vendido', delete: 'Eliminar', sold: 'Vendido',
-    connectYourWallet: 'Conecta tu Billetera', walletRequired: 'Necesitas conectar tu billetera para usar esta funcion.',
+    connectYourWallet: 'Conecta tu Billetera',
+    walletRequired: 'Necesitas conectar tu billetera para usar esta funcion.',
     youOffline: 'Sin conexion. Algunas funciones pueden no estar disponibles.',
-    postAdRate: 'Espera antes de publicar otro anuncio.', loginRate: 'Espera unos segundos.', chatRate: 'Demasiado rapido.',
-    reviewRate: 'Espera antes de otra review.', deleteRate: 'Espera un momento.',
-    notFound: 'Anuncio no encontrado.', removedAd: 'Este anuncio fue eliminado.',
-    active: 'Activo',
-    locationAccess: 'Acceso a Ubicacion', locationConsent: 'WantSell necesita tu ubicacion para mostrar anuncios cercanos.',
+    postAdRate: 'Espera antes de publicar otro anuncio.', loginRate: 'Espera unos segundos.',
+    chatRate: 'Demasiado rapido.', reviewRate: 'Espera antes de otra review.',
+    deleteRate: 'Espera un momento.', notFound: 'Anuncio no encontrado.',
+    removedAd: 'Este anuncio fue eliminado.', active: 'Activo',
+    locationAccess: 'Acceso a Ubicacion',
+    locationConsent: 'WantSell necesita tu ubicacion para mostrar anuncios cercanos.',
+    verifyTitle: 'Verifica tu Identidad', verifyDesc: 'Verifica tu World ID para demostrar que eres real.',
+    verified: 'Verificado',
   },
   pt: {
-    appName: 'WantSell', subtitle: 'Compre e venda perto de voce', connectWallet: 'Conectar Carteira', postAd: 'Publicar', myAds: 'Meus Anuncios', profile: 'Perfil',
-    exploreListings: 'Explorar', searchAds: 'Buscar anuncios...', radius: 'Raio', allCountries: 'Todos os Paises', allCategories: 'Todas Categorias',
-    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compre e venda perto de voce. 1 WLD por anuncio.', perAd: '1 WLD por anuncio', earnSow: 'Ganhe SOW',
-    postNewAd: 'Novo Anuncio', productTitle: 'Titulo do Produto', titlePlaceholder: 'ex. iPhone 15 Pro Max', category: 'Categoria', selectCategory: 'Selecionar',
-    countryRegion: 'Pais / Regiao', selectCountry: 'Selecionar Pais', location: 'Localizacao', tapDetect: 'Toque Detectar GPS ou digite', detectGps: 'Detectar GPS',
-    condition: 'Condicao', brandNew: 'Novo', likeNew: 'Quase Novo', good: 'Bom', fair: 'Razoavel', used: 'Usado',
-    priceType: 'Tipo de Preco', selectPriceType: 'Tipo', negotiable: 'Negociavel', fixedPrice: 'Preco Fixo',
-    description: 'Descricao', describeItem: 'Descreva seu item...', priceWld: 'Preco (WLD)', photosMax: 'Fotos (max 4)',
-    postAdBtn: 'Publicar (1 WLD)', back: 'Voltar', loading: 'Carregando...', noListings: 'Nenhum anuncio ativo.', networkError: 'Erro de rede. Verifique sua conexao.',
-    noListingsNearby: 'Nenhum anuncio em {km} km.', yourSowBalance: 'Saldo SOW', rankings: 'Rankings',
-    loadChat: 'Carregando...', chatWith: 'Conversar com {name}', chatSeller: 'Conversar', typeMessage: 'Digite uma mensagem...', send: 'Enviar',
-    loadingReviews: 'Carregando...', noReviews: 'Sem reviews.', leaveReview: 'Deixar Review', postReview: 'Publicar',
-    topSellers: 'Melhores Vendedores', noSowData: 'Sem dados. Seja o primeiro!', walletNotConnected: 'Sem Carteira', connectToAccess: 'Conecte sua carteira para ver seu perfil',
+    appName: 'WantSell', subtitle: 'Compre e venda perto de voce', connectWallet: 'Conectar Carteira',
+    postAd: 'Publicar', myAds: 'Meus Anuncios', profile: 'Perfil',
+    exploreListings: 'Explorar', searchAds: 'Buscar anuncios...', radius: 'Raio',
+    allCountries: 'Todos os Paises', allCategories: 'Todas Categorias',
+    localMarketplace: 'Mercado Local', marketplaceDesc: 'Compre e venda perto de voce. 1 WLD por anuncio.',
+    perAd: '1 WLD por anuncio', earnSow: 'Ganhe SOW',
+    postNewAd: 'Novo Anuncio', productTitle: 'Titulo do Produto', titlePlaceholder: 'ex. iPhone 15 Pro Max',
+    category: 'Categoria', selectCategory: 'Selecionar',
+    countryRegion: 'Pais / Regiao', selectCountry: 'Selecionar Pais',
+    location: 'Localizacao', tapDetect: 'Toque Detectar GPS ou digite', detectGps: 'Detectar GPS',
+    condition: 'Condicao', brandNew: 'Novo', likeNew: 'Quase Novo',
+    good: 'Bom', fair: 'Razoavel', used: 'Usado',
+    priceType: 'Tipo de Preco', selectPriceType: 'Tipo',
+    negotiable: 'Negociavel', fixedPrice: 'Preco Fixo',
+    description: 'Descricao', describeItem: 'Descreva seu item...',
+    priceWld: 'Preco (WLD)', photosMax: 'Fotos (max 4)', postAdBtn: 'Publicar (1 WLD)',
+    back: 'Voltar', loading: 'Carregando...', noListings: 'Nenhum anuncio ativo.',
+    networkError: 'Erro de rede. Verifique sua conexao.',
+    noListingsNearby: 'Nenhum anuncio em {km} km.',
+    yourSowBalance: 'Saldo SOW', rankings: 'Rankings',
+    loadChat: 'Carregando...', chatWith: 'Conversar com {name}',
+    chatSeller: 'Conversar', typeMessage: 'Digite uma mensagem...', send: 'Enviar',
+    loadingReviews: 'Carregando...', noReviews: 'Sem reviews.',
+    leaveReview: 'Deixar Review', postReview: 'Publicar',
+    topSellers: 'Melhores Vendedores', noSowData: 'Sem dados. Seja o primeiro!',
+    walletNotConnected: 'Sem Carteira',
+    connectToAccess: 'Conecte sua carteira para ver seu perfil',
     viewLeaderboard: 'Ver Rankings', support: 'Suporte', adminPanel: 'Admin',
     loadingStats: 'Carregando...', noListingsFound: 'Sem anuncios.',
     activeAds: 'Ativos', users: 'Usuarios', messages: 'Mensagens',
     markSold: 'Vendido', delete: 'Excluir', sold: 'Vendido',
-    connectYourWallet: 'Conecte sua Carteira', walletRequired: 'Voce precisa conectar sua carteira para usar esta funcao.',
+    connectYourWallet: 'Conecte sua Carteira',
+    walletRequired: 'Voce precisa conectar sua carteira para usar esta funcao.',
     youOffline: 'Sem conexao. Algumas funcionalidades podem nao funcionar.',
-    postAdRate: 'Espere antes de publicar outro anuncio.', loginRate: 'Espere alguns segundos.', chatRate: 'Muito rapido.',
-    reviewRate: 'Espere antes de outra review.', deleteRate: 'Espere um momento.',
-    notFound: 'Anuncio nao encontrado.', removedAd: 'Este anuncio foi removido.',
-    active: 'Ativo',
-    locationAccess: 'Acesso a Localizacao', locationConsent: 'WantSell precisa da sua localizacao para mostrar anuncios proximos.',
+    postAdRate: 'Espere antes de publicar outro anuncio.', loginRate: 'Espere alguns segundos.',
+    chatRate: 'Muito rapido.', reviewRate: 'Espere antes de outra review.',
+    deleteRate: 'Espere um momento.', notFound: 'Anuncio nao encontrado.',
+    removedAd: 'Este anuncio foi removido.', active: 'Ativo',
+    locationAccess: 'Acesso a Localizacao',
+    locationConsent: 'WantSell precisa da sua localizacao para mostrar anuncios proximos.',
+    verifyTitle: 'Verifique sua Identidade', verifyDesc: 'Verifique seu World ID para provar que voce e real.',
+    verified: 'Verificado',
+  },
+  th: {
+    appName: 'WantSell', subtitle: 'ซื้อขายของใกล้คุณ', connectWallet: 'เชื่อมต่อกระเป๋าเงิน',
+    postAd: 'ลงประกาศ', myAds: 'ประกาศของฉัน', profile: 'โปรไฟล์',
+    exploreListings: 'สำรวจประกาศ', searchAds: 'ค้นหา...', radius: 'รัศมี',
+    allCountries: 'ทุกประเทศ', allCategories: 'ทุกหมวด',
+    localMarketplace: 'ตลาดท้องถิ่น', marketplaceDesc: 'ซื้อขายของใกล้คุณ 1 WLD ต่อประกาศ',
+    perAd: '1 WLD ต่อประกาศ', earnSow: 'รับเหรียญ SOW',
+    postNewAd: 'ลงประกาศใหม่', productTitle: 'ชื่อสินค้า', titlePlaceholder: 'เช่น iPhone 15 Pro Max',
+    category: 'หมวดหมู่', selectCategory: 'เลือกหมวด',
+    countryRegion: 'ประเทศ / ภูมิภาค', selectCountry: 'เลือกประเทศ',
+    location: 'สถานที่', tapDetect: 'แตะ GPS หรือพิมพ์', detectGps: 'GPS',
+    condition: 'สภาพ', brandNew: 'ใหม่เอี่ยม', likeNew: 'แทบใหม่',
+    good: 'ดี', fair: 'พอใช้', used: 'มือสอง',
+    priceType: 'ประเภทราคา', selectPriceType: 'ประเภท',
+    negotiable: 'ต่อรองได้', fixedPrice: 'ราคาตาย',
+    description: 'รายละเอียด', describeItem: 'อธิบายสินค้า...',
+    priceWld: 'ราคา (WLD)', photosMax: 'รูปภาพ (สูงสุด 4)', postAdBtn: 'ลงประกาศ (1 WLD)',
+    back: 'กลับ', loading: 'กำลังโหลด...', noListings: 'ไม่มีประกาศ',
+    networkError: 'เกิดข้อผิดพลาดเครือข่าย', noListingsNearby: 'ไม่พบประกาศในรัศมี {km} กม.',
+    yourSowBalance: 'ยอดคงเหลือ SOW', rankings: 'อันดับ',
+    loadChat: 'กำลังโหลด...', chatWith: 'แชทกับ {name}',
+    chatSeller: 'แชท', typeMessage: 'พิมพ์ข้อความ...', send: 'ส่ง',
+    loadingReviews: 'กำลังโหลด...', noReviews: 'ยังไม่มีรีวิว',
+    leaveReview: 'เขียนรีวิว', postReview: 'โพสต์',
+    topSellers: 'ผู้ขายดีที่สุด', noSowData: 'ยังไม่มีข้อมูล',
+    walletNotConnected: 'ยังไม่เชื่อมต่อกระเป๋า', connectToAccess: 'เชื่อมต่อกระเป๋าเพื่อดูโปรไฟล์',
+    viewLeaderboard: 'ดูอันดับ', support: 'ติดต่อเรา', adminPanel: 'แอดมิน',
+    loadingStats: 'กำลังโหลด...', noListingsFound: 'ไม่มีประกาศ',
+    activeAds: 'ประกาศใช้งาน', users: 'ผู้ใช้', messages: 'ข้อความ',
+    markSold: 'ขายแล้ว', delete: 'ลบ', sold: 'ขายแล้ว',
+    connectYourWallet: 'เชื่อมต่อกระเป๋า', walletRequired: 'ต้องเชื่อมต่อกระเป๋าเพื่อใช้ฟีเจอร์นี้',
+    youOffline: 'ออฟไลน์ บางฟีเจอร์อาจใช้งานไม่ได้',
+    postAdRate: 'รอสักครู่ก่อนลงประกาศใหม่', loginRate: 'รอสักครู่',
+    chatRate: 'ส่งเร็วเกินไป', reviewRate: 'รอสักครู่', deleteRate: 'รอสักครู่',
+    notFound: 'ไม่พบประกาศ', removedAd: 'ประกาศถูกลบแล้ว', active: 'ใช้งาน',
+    locationAccess: 'ขอสิทธิ์ตำแหน่ง', locationConsent: 'WantSell ต้องการตำแหน่งของคุณเพื่อแสดงประกาศใกล้เคียง',
+    verifyTitle: 'ยืนยันตัวตน', verifyDesc: 'ยืนยัน World ID เพื่อพิสูจน์ว่าคุณเป็นคนจริง', verified: 'ยืนยันแล้ว',
+  },
+  ja: {
+    appName: 'WantSell', subtitle: '近くの品物を売り買い', connectWallet: 'ウォレット接続',
+    postAd: '投稿', myAds: '投稿一覧', profile: 'プロフィール',
+    exploreListings: '一覧を見る', searchAds: '検索...', radius: '範囲',
+    allCountries: 'すべての国', allCategories: 'すべてのカテゴリ',
+    localMarketplace: 'ローカルマーケット', marketplaceDesc: '近くの品物を売り買い。1 WLD で掲載可能。',
+    perAd: '1 WLD / 投稿', earnSow: 'SOW コインを獲得',
+    postNewAd: '新規投稿', productTitle: '商品名', titlePlaceholder: '例: iPhone 15 Pro Max',
+    category: 'カテゴリ', selectCategory: 'カテゴリを選択',
+    countryRegion: '国 / 地域', selectCountry: '国を選択',
+    location: '場所', tapDetect: 'GPS検索または入力', detectGps: 'GPS',
+    condition: '状態', brandNew: '新品', likeNew: '几乎新品',
+    good: '良好', fair: '普通', used: '中古',
+    priceType: '価格タイプ', selectPriceType: 'タイプ',
+    negotiable: '値段交渉可', fixedPrice: '定価',
+    description: '説明', describeItem: '商品の説明...',
+    priceWld: '価格 (WLD)', photosMax: '写真 (最大4枚)', postAdBtn: '投稿する (1 WLD)',
+    back: '戻る', loading: '読み込み中...', noListings: '掲載なし',
+    networkError: 'ネットワークエラー', noListingsNearby: '{km} km以内に掲載なし',
+    yourSowBalance: 'SOW残高', rankings: 'ランキング',
+    loadChat: '読み込み中...', chatWith: '{name}とチャット',
+    chatSeller: 'チャット', typeMessage: 'メッセージ...', send: '送信',
+    loadingReviews: '読み込み中...', noReviews: 'レビューなし',
+    leaveReview: 'レビューを書く', postReview: '投稿',
+    topSellers: 'トップセラー', noSowData: 'データなし',
+    walletNotConnected: 'ウォレット未接続', connectToAccess: 'プロフィールを見るには接続が必要',
+    viewLeaderboard: 'ランキングを見る', support: 'サポート', adminPanel: '管理',
+    loadingStats: '読み込み中...', noListingsFound: '掲載なし',
+    activeAds: '有効', users: 'ユーザー', messages: 'メッセージ',
+    markSold: '売却済', delete: '削除', sold: '売却済',
+    connectYourWallet: 'ウォレット接続', walletRequired: 'この機能にはウォレット接続が必要です',
+    youOffline: 'オフラインです', postAdRate: 'しばらくお待ちください', loginRate: 'しばらくお待ちください',
+    chatRate: '送信が速すぎます', reviewRate: 'しばらくお待ちください', deleteRate: 'しばらくお待ちください',
+    notFound: '掲載が見つかりません', removedAd: 'この掲載は削除されました', active: '有効',
+    locationAccess: '位置情報', locationConsent: 'WantSellは近くの掲載を表示するために位置情報を使用します',
+    verifyTitle: '本人確認', verifyDesc: 'World ID で本人確認を行ってください', verified: '確認済み',
+  },
+  ko: {
+    appName: 'WantSell', subtitle: '주변 물건을 사고 팔기', connectWallet: '지갑 연결',
+    postAd: '게시', myAds: '내 게시물', profile: '프로필',
+    exploreListings: '둘러보기', searchAds: '검색...', radius: '반경',
+    allCountries: '모든 국가', allCategories: '모든 카테고리',
+    localMarketplace: '로컬 마켓', marketplaceDesc: '주변에서 사고 팔기. 1 WLD로 게시 가능.',
+    perAd: '1 WLD / 게시', earnSow: 'SOW 코인 획득',
+    postNewAd: '새 게시물', productTitle: '상품명', titlePlaceholder: '예: iPhone 15 Pro Max',
+    category: '카테고리', selectCategory: '카테고리 선택',
+    countryRegion: '국가 / 지역', selectCountry: '국가 선택',
+    location: '위치', tapDetect: 'GPS 검색 또는 입력', detectGps: 'GPS',
+    condition: '상태', brandNew: '새제품', likeNew: '거의 새것',
+    good: '양호', fair: '보통', used: '중고',
+    priceType: '가격 유형', selectPriceType: '유형',
+    negotiable: '가격 협의', fixedPrice: '정가',
+    description: '설명', describeItem: '상품 설명...',
+    priceWld: '가격 (WLD)', photosMax: '사진 (최대 4장)', postAdBtn: '게시하기 (1 WLD)',
+    back: '뒤로', loading: '로딩 중...', noListings: '게시물 없음',
+    networkError: '네트워크 오류', noListingsNearby: '{km} km 이내에 게시물 없음',
+    yourSowBalance: 'SOW 잔액', rankings: '랭킹',
+    loadChat: '로딩 중...', chatWith: '{name}와 채팅',
+    chatSeller: '채팅', typeMessage: '메시지 입력...', send: '보내기',
+    loadingReviews: '로딩 중...', noReviews: '리뷰 없음',
+    leaveReview: '리뷰 작성', postReview: '게시',
+    topSellers: '탑 셀러', noSowData: '데이터 없음',
+    walletNotConnected: '지갑 미연결', connectToAccess: '프로필 보려면 연결 필요',
+    viewLeaderboard: '랭킹 보기', support: '지원', adminPanel: '관리자',
+    loadingStats: '로딩 중...', noListingsFound: '게시물 없음',
+    activeAds: '활성', users: '사용자', messages: '메시지',
+    markSold: '판매완료', delete: '삭제', sold: '판매완료',
+    connectYourWallet: '지갑 연결', walletRequired: '이 기능을 사용하려면 지갑 연결이 필요합니다',
+    youOffline: '오프라인 상태입니다', postAdRate: '잠시만 기다려주세요', loginRate: '잠시만 기다려주세요',
+    chatRate: '전송이 너무 빠릅니다', reviewRate: '잠시만 기다려주세요', deleteRate: '잠시만 기다려주세요',
+    notFound: '게시물을 찾을 수 없습니다', removedAd: '이 게시물은 삭제되었습니다', active: '활성',
+    locationAccess: '위치 접근', locationConsent: 'WantSell은 주변 게시물을 표시하기 위해 위치 정보를 사용합니다',
+    verifyTitle: '본인 확인', verifyDesc: 'World ID로 본인 확인을 해주세요', verified: '확인됨',
   }
 };
+
 let currentLang = localStorage.getItem('lang') || (navigator.language || 'en').substring(0, 2);
 if (!LOCALES[currentLang]) currentLang = 'en';
+
 function t(key, replacements) {
   const val = LOCALES[currentLang] && LOCALES[currentLang][key] ? LOCALES[currentLang][key] : LOCALES.en[key] || key;
   if (!replacements) return val;
   return Object.entries(replacements).reduce((s, [k, v]) => s.replace('{' + k + '}', v), val);
 }
+
 function switchLang(lang) {
   if (!LOCALES[lang]) return;
   currentLang = lang;
   localStorage.setItem('lang', lang);
-  document.querySelector('.app-logo').textContent = t('appName');
-  document.getElementById('loginBtn').innerText = userWallet ? currentUsername : t('connectWallet');
-  document.querySelector('.splash-subtitle').textContent = t('subtitle');
-  document.getElementById('langToggle').textContent = currentLang.toUpperCase();
+  const logo = document.querySelector('.app-logo');
+  if (logo) logo.textContent = t('appName');
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) loginBtn.innerText = userWallet ? currentUsername : t('connectWallet');
+  const sub = document.querySelector('.splash-subtitle');
+  if (sub) sub.textContent = t('subtitle');
+  const langBtn = document.getElementById('langToggle');
+  if (langBtn) langBtn.textContent = currentLang.toUpperCase();
 }
-const LANG_ORDER = ['en', 'es', 'pt'];
+
+const LANG_ORDER = ['en', 'es', 'pt', 'th', 'ja', 'ko'];
 window.cycleLang = function() {
   const idx = LANG_ORDER.indexOf(currentLang);
   const next = LANG_ORDER[(idx + 1) % LANG_ORDER.length];
   switchLang(next);
 };
 
+// ==========================================
+// STATE
+// ==========================================
 let userWallet = null;
 let currentUsername = null;
 let currentChatSeller = null;
 let currentLat = 28.6139;
 let currentLng = 77.2090;
+let isVerified = false;
 
+// ==========================================
+// WORLD APP ENVIRONMENT CHECK
+// ==========================================
 function checkWorldAppEnvironment() {
   let miniOk = false;
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
-    document.getElementById('splashScreen').innerHTML = '<div class="blocker-dynamic"><div class="blocker-dynamic-box"><h1 class="blocker-dynamic-title">Access Denied</h1><p class="blocker-dynamic-text">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div class="blocker-dynamic-badge">Open in World App</div></div></div>';
     document.getElementById('splashScreen').style.display = 'flex';
+    document.getElementById('splashScreen').innerHTML = '<div class="blocker-content"><div class="blocker-icon">W</div><h1 class="blocker-title">World App Required</h1><p class="blocker-text">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div class="blocker-badge">Open in World App</div></div>';
     return false;
   }
   return true;
@@ -144,7 +329,8 @@ function waitForMiniKitReady(timeoutMs = 5000) {
   });
 }
 
-// SECURITY: HTML SANITIZER (XSS PREVENTION)
+// ==========================================
+// SECURITY: HTML SANITIZER
 // ==========================================
 function escapeHtml(str) {
   if (str == null) return '';
@@ -156,20 +342,22 @@ function escapeAttr(str) {
 }
 
 // ==========================================
-// SECURITY: INPUT VALIDATION & LIMITS
+// SECURITY: INPUT VALIDATION
 // ==========================================
 const MAX_TITLE_LEN = 80, MAX_DESC_LEN = 500, MAX_USERNAME_LEN = 20, MIN_USERNAME_LEN = 2;
 const MAX_REVIEW_LEN = 200, MAX_PRICE_VAL = 1000000, MIN_PRICE_VAL = 0.01, MAX_CHAT_LEN = 300;
 
-function sanitizeUsername(n){ if(!n||typeof n!=='string')return ''; return n.replace(/[^a-zA-Z0-9 _\-]/g,'').trim(); }
-function validateUsername(n){ const c=sanitizeUsername(n); if(c.length<MIN_USERNAME_LEN||c.length>MAX_USERNAME_LEN)return{valid:false,error:`Username must be ${MIN_USERNAME_LEN}-${MAX_USERNAME_LEN} chars.`}; return{valid:true,clean:c}; }
-function validatePrice(p){ const n=parseFloat(p); if(isNaN(n)||n<MIN_PRICE_VAL||n>MAX_PRICE_VAL)return{valid:false,error:`Price must be ${MIN_PRICE_VAL}-${MAX_PRICE_VAL} WLD.`}; return{valid:true,clean:n.toFixed(2)}; }
-function validateTitle(t){ const c=(t||'').trim(); if(c.length<3||c.length>MAX_TITLE_LEN)return{valid:false,error:`Title must be 3-${MAX_TITLE_LEN} chars.`}; return{valid:true,clean:c}; }
-function validateDescription(d){ const c=(d||'').trim(); if(c.length<10||c.length>MAX_DESC_LEN)return{valid:false,error:`Description must be 10-${MAX_DESC_LEN} chars.`}; return{valid:true,clean:c}; }
-function validateAddress(a){ const c=(a||'').trim(); if(c.length<3||c.length>200)return{valid:false,error:'Address must be 3-200 chars.'}; return{valid:true,clean:c}; }
-function validateChatMsg(m){ const c=(m||'').trim(); if(!c)return{valid:false,error:'Empty message.'}; if(c.length>MAX_CHAT_LEN)return{valid:false,error:`Max ${MAX_CHAT_LEN} chars.`}; return{valid:true,clean:c}; }
+function sanitizeUsername(n) { if (!n || typeof n !== 'string') return ''; return n.replace(/[^a-zA-Z0-9 _\-]/g, '').trim(); }
+function validateUsername(n) { const c = sanitizeUsername(n); if (c.length < MIN_USERNAME_LEN || c.length > MAX_USERNAME_LEN) return { valid: false, error: `Username must be ${MIN_USERNAME_LEN}-${MAX_USERNAME_LEN} chars.` }; return { valid: true, clean: c }; }
+function validatePrice(p) { const n = parseFloat(p); if (isNaN(n) || n < MIN_PRICE_VAL || n > MAX_PRICE_VAL) return { valid: false, error: `Price must be ${MIN_PRICE_VAL}-${MAX_PRICE_VAL} WLD.` }; return { valid: true, clean: n.toFixed(2) }; }
+function validateTitle(t) { const c = (t || '').trim(); if (c.length < 3 || c.length > MAX_TITLE_LEN) return { valid: false, error: `Title must be 3-${MAX_TITLE_LEN} chars.` }; return { valid: true, clean: c }; }
+function validateDescription(d) { const c = (d || '').trim(); if (c.length < 10 || c.length > MAX_DESC_LEN) return { valid: false, error: `Description must be 10-${MAX_DESC_LEN} chars.` }; return { valid: true, clean: c }; }
+function validateAddress(a) { const c = (a || '').trim(); if (c.length < 3 || c.length > 200) return { valid: false, error: 'Address must be 3-200 chars.' }; return { valid: true, clean: c }; }
+function validateChatMsg(m) { const c = (m || '').trim(); if (!c) return { valid: false, error: 'Empty message.' }; if (c.length > MAX_CHAT_LEN) return { valid: false, error: `Max ${MAX_CHAT_LEN} chars.` }; return { valid: true, clean: c }; }
 
+// ==========================================
 // SECURITY: RATE LIMITING
+// ==========================================
 const rateLimits = {};
 function checkRateLimit(action, cooldownMs) {
   const now = Date.now();
@@ -179,16 +367,15 @@ function checkRateLimit(action, cooldownMs) {
 }
 
 // ==========================================
-// ADDRESS BOOK - Maps wallet to username
+// ADDRESS UTILS
 // ==========================================
 function getDisplayName(addr) { return addr ? addr.substring(0, 10) + '...' : 'Unknown'; }
 function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
 
 // ==========================================
 // TAB NAVIGATION
-// =========================================
+// ==========================================
 window.switchTab = function(screenId) {
-  // Tabs that require wallet: Post Ad, My Ads, Profile
   if (['screenPost', 'screenMyAds', 'screenProfile'].includes(screenId)) {
     if (!requireWallet()) return;
   }
@@ -196,17 +383,11 @@ window.switchTab = function(screenId) {
     t.classList.remove('active');
     if (t.getAttribute('data-screen') === screenId) t.classList.add('active');
   });
-  ['screenHome','screenPost','screenMyAds','screenProfile'].forEach(s => {
+  ['screenHome', 'screenPost', 'screenMyAds', 'screenProfile'].forEach(s => {
     const el = document.getElementById(s);
     if (el) {
-      if (s === screenId) {
-        el.style.display = 'flex';
-        el.classList.add('active');
-        el.style.animation = 'fadeIn 0.25s ease';
-      } else {
-        el.style.display = 'none';
-        el.classList.remove('active');
-      }
+      if (s === screenId) { el.style.display = 'flex'; el.classList.add('active'); el.style.animation = 'fadeIn 0.25s ease'; }
+      else { el.style.display = 'none'; el.classList.remove('active'); }
     }
   });
   const fab = document.getElementById('fabPost');
@@ -218,7 +399,7 @@ window.switchTab = function(screenId) {
 
 // ==========================================
 // SPLASH + APP INIT
-// =========================================
+// ==========================================
 function showSkeleton(count) {
   let html = '';
   for (let i = 0; i < count; i++) {
@@ -236,19 +417,16 @@ function initApp() {
     });
   });
 
-  // Category chip click handling
   const categoryChips = document.querySelectorAll('.category-chip');
   categoryChips.forEach(chip => {
     chip.addEventListener('click', () => {
       categoryChips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
-      const cat = chip.getAttribute('data-cat');
-      document.getElementById('categoryFilter').value = cat;
+      document.getElementById('categoryFilter').value = chip.getAttribute('data-cat');
       fetchListings();
     });
   });
 
-  // FAB button
   const fabBtn = document.getElementById('fabPost');
   if (fabBtn) {
     fabBtn.addEventListener('click', () => {
@@ -260,7 +438,6 @@ function initApp() {
   const detBtn = document.getElementById('detectLocationBtn');
   if (detBtn) detBtn.addEventListener('click', () => window.detectLocation());
 
-  // Dismiss splash and show app - ALWAYS runs regardless of CDN
   setTimeout(() => {
     const splash = document.getElementById('splashScreen');
     const shell = document.getElementById('appShell');
@@ -268,12 +445,11 @@ function initApp() {
     if (splash) { splash.style.opacity = '0'; splash.style.transition = 'opacity 0.5s'; setTimeout(() => splash.style.display = 'none', 500); }
     if (shell) shell.style.display = 'flex';
     if (fab) fab.style.display = 'flex';
-    console.log('[APP] Splash dismissed, app shell visible');
   }, 1500);
 }
 
 // ==========================================
-// UNIVERSAL NEON POPUP SYSTEM
+// POPUP SYSTEM
 // ==========================================
 let popupResolve = null;
 window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
@@ -281,50 +457,37 @@ window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
     document.getElementById('neonPopupIcon').innerText = icon;
     document.getElementById('neonPopupTitle').innerText = title;
     document.getElementById('neonPopupText').innerHTML = text;
-
     const inputContainer = document.getElementById('neonPopupInputContainer');
     const alertBtns = document.getElementById('neonPopupAlertBtnContainer');
     const confirmBtns = document.getElementById('neonPopupConfirmBtnContainer');
     const popupBox = document.getElementById('neonPopupBox');
-    
     inputContainer.style.display = 'none';
     alertBtns.style.display = 'none';
     confirmBtns.style.display = 'none';
-
     if (type === 'confirm') {
       confirmBtns.style.display = 'flex';
       popupBox.style.borderColor = 'var(--danger)';
-      popupBox.style.boxShadow = 'var(--shadow-lg)';
-      document.getElementById('neonPopupTitle').style.color = 'var(--danger)';
     } else if (type === 'prompt') {
       inputContainer.style.display = 'block';
       document.getElementById('neonPopupInput').value = '';
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'Submit';
       popupBox.style.borderColor = 'var(--success)';
-      popupBox.style.boxShadow = 'var(--shadow-lg)';
-      document.getElementById('neonPopupTitle').style.color = 'var(--success)';
     } else {
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'OK';
       popupBox.style.borderColor = 'var(--primary)';
-      popupBox.style.boxShadow = 'var(--shadow-lg)';
-      document.getElementById('neonPopupTitle').style.color = 'var(--primary)';
     }
-
+    popupBox.style.boxShadow = 'var(--shadow-lg)';
     document.getElementById('neonPopup').style.display = 'flex';
     popupResolve = resolve;
-
     document.getElementById('neonPopupAlertBtn').onclick = function() {
       if (type === 'prompt') {
         const val = document.getElementById('neonPopupInput').value.trim();
-        if(!val) closeNeonPopup("User_" + Math.floor(Math.random()*10000));
+        if (!val) closeNeonPopup("User_" + Math.floor(Math.random() * 10000));
         else closeNeonPopup(val);
-      } else {
-        closeNeonPopup(true);
-      }
+      } else { closeNeonPopup(true); }
     };
-    
     document.getElementById('neonPopupConfirmYesBtn').onclick = () => closeNeonPopup(true);
     document.getElementById('neonPopupConfirmNoBtn').onclick = () => closeNeonPopup(false);
   });
@@ -332,36 +495,12 @@ window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
 
 window.closeNeonPopup = function(result) {
   document.getElementById('neonPopup').style.display = 'none';
-  if (popupResolve) {
-    popupResolve(result);
-    popupResolve = null;
-  }
+  if (popupResolve) { popupResolve(result); popupResolve = null; }
 };
 
-window.copyAddress = async function(address) {
-  try {
-    await navigator.clipboard.writeText(address);
-    await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', 'OK');
-  } catch (err) {
-    const textArea = document.createElement("textarea");
-    textArea.value = address;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      await showNeonPopup('Copied!', 'Wallet Address copied to clipboard.', 'OK');
-    } catch (ex) {}
-    document.body.removeChild(textArea);
-  }
-}
-
-
-
-
-
-
-
-// WALLET REQUIRED CHECK — blocks action if not logged in
+// ==========================================
+// WALLET REQUIRED CHECK
+// ==========================================
 function requireWallet() {
   if (userWallet && currentUsername) return true;
   showWalletRequiredOverlay();
@@ -369,20 +508,12 @@ function requireWallet() {
 }
 
 function showWalletRequiredOverlay() {
-  // Remove existing overlay if any
   const existing = document.getElementById('walletRequiredOverlay');
   if (existing) existing.remove();
   const overlay = document.createElement('div');
   overlay.id = 'walletRequiredOverlay';
   overlay.className = 'wallet-required-overlay';
-  overlay.innerHTML = `
-    <div class="wallet-required-box">
-      <div class="wallet-required-icon">W</div>
-      <h2 class="wallet-required-title">Connect Your Wallet</h2>
-      <p class="wallet-required-text">You need to connect your wallet to use this feature.</p>
-      <button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button>
-    </div>
-  `;
+  overlay.innerHTML = `<div class="wallet-required-box"><div class="wallet-required-icon">W</div><h2 class="wallet-required-title">Connect Your Wallet</h2><p class="wallet-required-text">You need to connect your wallet to use this feature.</p><button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button></div>`;
   document.body.appendChild(overlay);
 }
 
@@ -395,8 +526,73 @@ function randomAlphaNumeric(len) {
   return out;
 }
 
+// ==========================================
+// MINIKIT COMMANDS: VERIFY (World ID)
+// ==========================================
+async function verifyWorldID() {
+  if (isVerified) return true;
+  try {
+    const mk = MiniKit;
+    if (!mk || !mk.commandsAsync || !mk.commandsAsync.verify) {
+      console.log('[VERIFY] MiniKit verify not available');
+      return false;
+    }
+    const { finalPayload } = await mk.commandsAsync.verify({
+      action: 'post_ad',
+      signal_description: 'Verify your World ID to post an ad on WantSell',
+    });
+    if (finalPayload && finalPayload.status === 'success') {
+      isVerified = true;
+      localStorage.setItem('worldIdVerified', 'true');
+      console.log('[VERIFY] World ID verified successfully');
+      return true;
+    }
+    console.log('[VERIFY] Verification failed or cancelled:', finalPayload?.status);
+    return false;
+  } catch (err) {
+    console.log('[VERIFY] Error:', err.message);
+    return false;
+  }
+}
+
+// ==========================================
+// MINIKIT COMMANDS: NOTIFICATION PERMISSIONS
+// ==========================================
+async function requestNotificationPermissions() {
+  try {
+    const mk = MiniKit;
+    if (mk && mk.commandsAsync && mk.commandsAsync.requestNotificationPermissions) {
+      await mk.commandsAsync.requestNotificationPermissions();
+      console.log('[NOTIF] Notification permissions requested');
+    }
+  } catch (err) {
+    console.log('[NOTIF] Could not request notifications:', err.message);
+  }
+}
+
+// ==========================================
+// MINIKIT COMMANDS: SHARE (when sharing ad)
+// ==========================================
+async function shareAd(title, price) {
+  try {
+    const mk = MiniKit;
+    if (mk && mk.commandsAsync && mk.commandsAsync.share) {
+      await mk.commandsAsync.share({
+        title: `WantSell: ${title}`,
+        text: `Check out "${title}" for ${price} WLD on WantSell!`,
+      });
+      console.log('[SHARE] Ad shared via MiniKit');
+    }
+  } catch (err) {
+    console.log('[SHARE] Share failed:', err.message);
+  }
+}
+
+// ==========================================
+// DOMContentLoaded — APP BOOT
+// ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-  try { MiniKit.install(APP_ID); } catch(e) {}
+  try { MiniKit.install(APP_ID); } catch (e) {}
 
   // Restore saved wallet immediately
   const savedAddress = localStorage.getItem('userWallet');
@@ -405,15 +601,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     userWallet = savedAddress;
     currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
     document.getElementById('loginBtn').innerText = currentUsername;
-      updateSowBadge();
+    updateSowBadge();
     detectUserCurrentPosition();
     fetchListings();
+  }
+
+  // Check saved verification
+  if (localStorage.getItem('worldIdVerified') === 'true') {
+    isVerified = true;
   }
 
   const ready = await waitForMiniKitReady();
   if (!ready) { checkWorldAppEnvironment(); return; }
 
-  // Silent wallet auth (like Dice Duel)
+  // Silent wallet auth
   if (typeof MiniKit !== 'undefined') {
     try {
       const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
@@ -430,15 +631,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('userWallet', userWallet);
         localStorage.setItem('currentUsername', currentUsername);
         document.getElementById('loginBtn').innerText = currentUsername;
-      updateSowBadge();
+        updateSowBadge();
         detectUserCurrentPosition();
       }
-    } catch(err) {}
+    } catch (err) {}
   }
 
   setupUI();
   initApp();
   fetchListings();
+
+  // Request notification permissions (MiniKit command)
+  setTimeout(() => requestNotificationPermissions(), 3000);
+
   if (!userWallet) detectUserCurrentPosition();
 });
 
@@ -463,25 +668,23 @@ function setupUI() {
     });
   }
 
-  // OFFLINE INDICATOR — technical requirement: handle disconnections
+  // Offline banner
   const offlineBanner = document.createElement('div');
   offlineBanner.id = 'offlineBanner';
   offlineBanner.className = 'offline-banner';
-  offlineBanner.textContent = 'You are offline. Some features may be unavailable.';
+  offlineBanner.textContent = t('youOffline');
   document.body.appendChild(offlineBanner);
-  window.addEventListener('online', () => {
-    offlineBanner.style.display = 'none';
-    if (supabase) fetchListings();
-  });
-  window.addEventListener('offline', () => {
-    offlineBanner.style.display = 'block';
-  });
+  window.addEventListener('online', () => { offlineBanner.style.display = 'none'; if (supabase) fetchListings(); });
+  window.addEventListener('offline', () => { offlineBanner.style.display = 'block'; });
 }
 
+// ==========================================
+// WALLET AUTH (MiniKit command)
+// ==========================================
 async function handleLogin() {
   if (!checkWorldAppEnvironment()) return;
   if (!supabase) { showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
-  if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', 'Please wait a few seconds.', 'OK'); return; }
+  if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', t('loginRate'), 'OK'); return; }
   try {
     const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
       nonce: randomAlphaNumeric(24),
@@ -524,25 +727,24 @@ async function handleLogin() {
   }
 }
 
+// ==========================================
+// LOCATION DETECTION
+// ==========================================
 function detectUserCurrentPosition() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
       currentLat = position.coords.latitude;
       currentLng = position.coords.longitude;
-    }, (err) => {
-      console.log("GPS position default used");
-    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
   }
 }
 
 window.detectLocation = async function() {
   if (!requireWallet()) return;
-  // PRIVACY: Ask consent before requesting location
-  const consent = await showNeonPopup('Location Access', 'WantSell needs your location to show nearby listings and set your ad location. Your location is only used for this purpose.', 'OK', 'confirm');
+  const consent = await showNeonPopup(t('locationAccess'), t('locationConsent'), 'OK', 'confirm');
   if (!consent) return;
   const addressField = document.getElementById('adAddress');
   addressField.value = "Detecting precise location...";
-
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(async (position) => {
       try {
@@ -550,63 +752,46 @@ window.detectLocation = async function() {
         currentLng = position.coords.longitude;
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`);
         const data = await response.json();
-        if (data && data.display_name) {
-          addressField.value = data.display_name;
-        } else {
-          addressField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
-        }
+        if (data && data.display_name) { addressField.value = data.display_name; }
+        else { addressField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`; }
       } catch (e) {
         addressField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
       }
-    }, async (error) => {
+    }, async () => {
       try {
         const res = await fetch('https://ipapi.co/json/');
         const locData = await res.json();
         if (locData && locData.city) {
-          currentLat = locData.latitude;
-          currentLng = locData.longitude;
+          currentLat = locData.latitude; currentLng = locData.longitude;
           addressField.value = `${locData.city}, ${locData.region}, ${locData.country_name}`;
-        } else {
-          addressField.value = "";
-          await showNeonPopup('Notice', 'Could not auto-detect. Please type manually.', 'OK');
-        }
-      } catch (err) {
-        addressField.value = "";
-        await showNeonPopup('Error', 'Location permissions denied and fallback failed. Please type manually.', 'OK');
-      }
+        } else { addressField.value = ""; await showNeonPopup('Notice', 'Could not auto-detect. Please type manually.', 'OK'); }
+      } catch (err) { addressField.value = ""; await showNeonPopup('Error', 'Location permissions denied. Please type manually.', 'OK'); }
     }, { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
-  } else {
-    addressField.value = "";
-    await showNeonPopup('Error', 'Geolocation not supported. Please type manually.', 'OK');
-  }
+  } else { addressField.value = ""; await showNeonPopup('Error', 'Geolocation not supported.', 'OK'); }
 }
 
+// ==========================================
+// DISTANCE CALC
+// ==========================================
 function calculateDistance(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
-  const R = 6371; 
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return Math.round(R * c); 
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
 function containsPhoneNumber(text) {
-  const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\b\d{10}\b/;
-  return phoneRegex.test(text);
+  return /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\b\d{10}\b/.test(text);
 }
 
 // ==========================================
-// OLX-STYLE: TIME AGO HELPER
+// TIME AGO
 // ==========================================
 function timeAgo(dateStr) {
   if (!dateStr) return '';
-  const now = new Date();
-  const past = new Date(dateStr);
-  const seconds = Math.floor((now - past) / 1000);
+  const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000);
   if (seconds < 60) return 'Just now';
   const mins = Math.floor(seconds / 60);
   if (mins < 60) return `${mins}m ago`;
@@ -616,43 +801,33 @@ function timeAgo(dateStr) {
   if (days < 7) return `${days}d ago`;
   const weeks = Math.floor(days / 7);
   if (weeks < 4) return `${weeks}w ago`;
-  const months = Math.floor(days / 30);
-  return `${months}mo ago`;
+  return `${Math.floor(days / 30)}mo ago`;
 }
 
+// ==========================================
+// BADGES
+// ==========================================
 function getConditionBadge(cond) {
-  const map = {
-    'new': { text: 'Brand New', cls: 'new' },
-    'like_new': { text: 'Like New', cls: 'like-new' },
-    'good': { text: 'Good', cls: 'good' },
-    'fair': { text: 'Fair', cls: 'fair' },
-    'used': { text: 'Used', cls: 'used' }
-  };
+  const map = { 'new': { text: 'Brand New', cls: 'new' }, 'like_new': { text: 'Like New', cls: 'like-new' }, 'good': { text: 'Good', cls: 'good' }, 'fair': { text: 'Fair', cls: 'fair' }, 'used': { text: 'Used', cls: 'used' } };
   return map[cond] || map['used'];
 }
-
 function getPriceTypeBadge(pt) {
   if (pt === 'negotiable') return { text: 'Negotiable', cls: 'negotiable' };
   return { text: 'Fixed', cls: 'fixed' };
 }
 
 // ==========================================
-// PROHIBITED / ILLEGAL WORDS CHECKER
+// CONTENT FILTER
 // ==========================================
 const forbiddenWords = ['weapon', 'drug', 'gun', 'hack', 'counterfeit', 'illegal', 'adult', 'bomb', 'firearm', 'steal', 'scam', 'phishing', 'crack', 'exploit', 'cheat', 'fraud', 'narcotics', 'meth', 'cocaine', 'terrorist', 'kill', 'murder', 'porn', 'nsfw', 'sex', 'prostitution'];
-
 function validateListingContent(title, description) {
   const content = (title + " " + description).toLowerCase();
-  for (let word of forbiddenWords) {
-    if (content.includes(word)) {
-      return word;
-    }
-  }
+  for (let word of forbiddenWords) { if (content.includes(word)) return word; }
   return null;
 }
 
 // ==========================================
-// FULL-SCREEN IMAGE SLIDER SYSTEM
+// IMAGE SYSTEM
 // ==========================================
 let viewerImages = [];
 let currentImageIndex = 0;
@@ -662,30 +837,14 @@ window.openImageViewer = function(imagesStr, index) {
   currentImageIndex = parseInt(index);
   updateViewer();
   document.getElementById('imageViewerModal').style.display = 'flex';
-}
-
-window.prevImage = function() {
-  if (currentImageIndex > 0) {
-    currentImageIndex--;
-    updateViewer();
-  }
-}
-
-window.nextImage = function() {
-  if (currentImageIndex < viewerImages.length - 1) {
-    currentImageIndex++;
-    updateViewer();
-  }
-}
-
+};
+window.prevImage = function() { if (currentImageIndex > 0) { currentImageIndex--; updateViewer(); } };
+window.nextImage = function() { if (currentImageIndex < viewerImages.length - 1) { currentImageIndex++; updateViewer(); } };
 function updateViewer() {
   document.getElementById('viewerImage').src = viewerImages[currentImageIndex];
   document.getElementById('imageCounter').innerText = `${currentImageIndex + 1} / ${viewerImages.length}`;
 }
 
-// ==========================================
-// AUTOMATIC IMAGE COMPRESSION HELPER
-// ==========================================
 function compressImage(file, maxWidth = 1000, quality = 0.7) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -695,34 +854,25 @@ function compressImage(file, maxWidth = 1000, quality = 0.7) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
+        let width = img.width, height = img.height;
+        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
         canvas.toBlob((blob) => {
-          resolve(new File([blob], file.name, {
-            type: 'image/jpeg',
-            lastModified: Date.now()
-          }));
+          resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
         }, 'image/jpeg', quality);
       };
     };
   });
 }
 
+// ==========================================
+// POST AD — with MiniKit verify + pay
+// ==========================================
 async function handlePostAd(e) {
   e.preventDefault();
   if (!requireWallet()) return;
-  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', 'Please wait before posting another ad.', 'OK'); return; }
+  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', t('postAdRate'), 'OK'); return; }
   if (!supabase) { await showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
@@ -735,14 +885,19 @@ async function handlePostAd(e) {
   if (!priceV.valid) { await showNeonPopup('Invalid Price', priceV.error, 'OK'); return; }
 
   if (containsPhoneNumber(titleV.clean) || containsPhoneNumber(descV.clean) || containsPhoneNumber(addrV.clean)) {
-    await showNeonPopup('Rule Violation', 'Phone numbers or contact details are not allowed to prevent scams!', 'OK'); return;
+    await showNeonPopup('Rule Violation', 'Phone numbers are not allowed to prevent scams!', 'OK'); return;
   }
   const restrictedWord = validateListingContent(titleV.clean, descV.clean);
-  if (restrictedWord) {
-    await showNeonPopup('Prohibited Item', `Contains restricted keyword ("${escapeHtml(restrictedWord)}").`, 'OK'); return;
-  }
+  if (restrictedWord) { await showNeonPopup('Prohibited Item', `Contains restricted keyword ("${escapeHtml(restrictedWord)}").`, 'OK'); return; }
   if (/https?:\/\//i.test(descV.clean) || /www\./i.test(descV.clean)) {
-    await showNeonPopup('Rule Violation', 'External links in descriptions are not allowed to prevent phishing!', 'OK'); return;
+    await showNeonPopup('Rule Violation', 'External links are not allowed!', 'OK'); return;
+  }
+
+  // MINIKIT COMMAND: Verify World ID before posting
+  const verified = await verifyWorldID();
+  if (!verified) {
+    await showNeonPopup('Verification Required', 'You must verify your World ID to post an ad. This keeps the marketplace safe for everyone.', 'OK');
+    return;
   }
 
   const fileInput = document.getElementById('imageInput');
@@ -752,12 +907,11 @@ async function handlePostAd(e) {
   for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', 'OK'); return; } }
 
   if (!checkWorldAppEnvironment()) { return; }
+
+  // MINIKIT COMMAND: Pay 1 WLD
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
-    // MiniKit is imported from CDN
-    // Tokens/tokenToDecimals from World App globals or fallback to hardcoded values
-    // 1 WLD = 1e18 wei (1000000000000000000)
     const WLD_SYMBOL = (Tokens && Tokens.WLD) || 'WLD';
     const WLD_TO_DEC = tokenToDecimals;
     const tokenAmount = WLD_TO_DEC ? WLD_TO_DEC(1, WLD_SYMBOL).toString() : '1000000000000000000';
@@ -768,7 +922,7 @@ async function handlePostAd(e) {
       description: 'Listing Fee: 1 WLD',
     });
     paymentSuccessful = (finalPayload?.status === 'success');
-    if (paymentSuccessful) console.log(`[PAYMENT OK] ref=${paymentRef} wallet=${userWallet}`);
+    if (paymentSuccessful) console.log(`[PAYMENT OK] ref=${paymentRef}`);
   } catch (err) { console.error('[PAYMENT FAILED]', err); }
 
   if (!paymentSuccessful) { await showNeonPopup('Payment Cancelled', 'Payment failed or was cancelled.', 'OK'); return; }
@@ -785,7 +939,6 @@ async function handlePostAd(e) {
     } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', 'OK'); return; }
   }
 
-  // Build insert payload
   const listingPayload = {
     seller_address: userWallet, seller_name: currentUsername,
     title: titleV.clean, description: descV.clean, price: priceV.clean,
@@ -797,8 +950,8 @@ async function handlePostAd(e) {
     image1: imageUrls[0], image2: imageUrls[1], image3: imageUrls[2], image4: imageUrls[3],
     status: 'active'
   };
+
   let { error: insertError } = await supabase.from('listings').insert([listingPayload]);
-  // If insert failed (possibly missing condition/price_type columns), retry without them
   if (insertError && insertError.message && (insertError.message.includes('condition') || insertError.message.includes('price_type') || insertError.message.includes('column'))) {
     delete listingPayload.condition;
     delete listingPayload.price_type;
@@ -807,43 +960,39 @@ async function handlePostAd(e) {
   }
 
   if (!insertError) {
-    // SECURITY: Check for duplicate SOW credit — only 1 SOW per unique ad
     const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-    const { data: recentAds } = await supabase.from('listings')
-      .select('id')
-      .eq('seller_address', userWallet)
-      .eq('title', titleV.clean)
-      .gte('created_at', twoMinAgo);
-    const duplicateCount = (recentAds || []).length;
-    if (duplicateCount <= 1) {
-      // First ad with this title — credit SOW
+    const { data: recentAds } = await supabase.from('listings').select('id').eq('seller_address', userWallet).eq('title', titleV.clean).gte('created_at', twoMinAgo);
+    if ((recentAds || []).length <= 1) {
       const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
       let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
       await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
       updateSowBadge();
       await showNeonPopup('Success', `Ad posted successfully!<br><span class="sow-earned-text">+1 SOW Coin Earned!</span>`, 'OK');
     } else {
-      // Duplicate detected — no extra SOW
-      console.log('[SOW] Duplicate ad detected, no extra SOW credited');
       await showNeonPopup('Ad Posted', 'Your ad is now live.', 'OK');
     }
     document.getElementById('adForm').reset();
     window.switchTab('screenHome');
-  } else { console.error('[DB ERROR]', insertError); await showNeonPopup('Error', 'Could not save your ad. Try again.', 'OK'); }
+  } else {
+    console.error('[DB ERROR]', insertError);
+    await showNeonPopup('Error', 'Could not save your ad. Try again.', 'OK');
+  }
 }
 
+// ==========================================
+// FETCH LISTINGS
+// ==========================================
 async function fetchListings() {
   const container = document.getElementById('listingsContainer');
   if (!container) return;
-  if (!supabase) { container.innerHTML = '<p class="loading-placeholder">Database not available. Check your connection.</p>'; return; }
+  if (!supabase) { container.innerHTML = '<p class="loading-placeholder">Database not available.</p>'; return; }
   const selectedCountry = document.getElementById('countryFilter').value;
   const selectedCategory = document.getElementById('categoryFilter').value;
   const maxDistance = parseInt(document.getElementById('distanceRange').value);
   const searchInput = document.getElementById('searchInput');
   const searchText = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  
+
   let query = supabase.from('listings').select('*').eq('status', 'active');
-  
   if (selectedCountry !== 'ALL') query = query.eq('country', selectedCountry);
   if (selectedCategory !== 'ALL') query = query.eq('category', selectedCategory);
 
@@ -853,14 +1002,14 @@ async function fetchListings() {
     data = result.data;
     error = result.error;
   } catch (netErr) {
-    container.innerHTML = `<p class="loading-placeholder">Network error. Please check your connection and try again.</p>`;
+    container.innerHTML = `<p class="loading-placeholder">${t('networkError')}</p>`;
     return;
   }
-  
+
   container.innerHTML = showSkeleton(4);
 
   if (error || !data || data.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">No active listings found.</p>`;
+    container.innerHTML = `<p class="loading-placeholder">${t('noListings')}</p>`;
     return;
   }
 
@@ -868,16 +1017,14 @@ async function fetchListings() {
     const itemLat = item.lat || 28.6139;
     const itemLng = item.lng || 77.2090;
     const realDist = calculateDistance(currentLat, currentLng, itemLat, itemLng);
-
-    item.calculatedDistance = realDist; 
-
+    item.calculatedDistance = realDist;
     if (realDist > maxDistance) return false;
     if (searchText && !item.title.toLowerCase().includes(searchText)) return false;
     return true;
   });
 
   if (filteredData.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">No listings found within ${maxDistance} km of your location.</p>`;
+    container.innerHTML = `<p class="loading-placeholder">${t('noListingsNearby', { km: maxDistance })}</p>`;
     return;
   }
 
@@ -911,17 +1058,21 @@ async function fetchListings() {
         </div>
         <div class="card-actions">
           <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller">Chat Seller</button>
+          <button onclick="event.stopPropagation(); shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="btn-chat-seller btn-share">Share</button>
         </div>
       </div>
     `;
   }).join('');
 }
 
+// ==========================================
+// AD DETAILS
+// ==========================================
 window.openAdDetails = async function(id) {
   const cleanId = String(id).replace(/[^a-zA-Z0-9\-]/g, '');
   const { data, error } = await supabase.from('listings').select('*').eq('id', cleanId).single();
-  if (error || !data) { await showNeonPopup('Not Found', 'Ad not found or removed.', 'OK'); return; }
-  if (data.status === 'deleted') { await showNeonPopup('Removed', 'This ad has been removed by the seller.', 'OK'); return; }
+  if (error || !data) { await showNeonPopup('Not Found', t('notFound'), 'OK'); return; }
+  if (data.status === 'deleted') { await showNeonPopup('Removed', t('removedAd'), 'OK'); return; }
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
@@ -931,11 +1082,13 @@ window.openAdDetails = async function(id) {
   const pBadge = getPriceTypeBadge(data.price_type);
   const posted = timeAgo(data.created_at);
   const dist = data.calculatedDistance ? ` (~${escapeHtml(data.calculatedDistance)} km)` : '';
+  const verifiedBadge = isVerified ? '<span class="verify-badge">Verified</span>' : '';
   document.getElementById('adDetailsBody').innerHTML = `
     <div>
       <div class="detail-meta">
         <span class="badge badge-category">${escapeHtml(data.category)}</span>
         <span class="card-time">${posted}</span>
+        ${verifiedBadge}
       </div>
       <h2 class="detail-title">${escapeHtml(data.title)}</h2>
       <div class="detail-meta">
@@ -954,10 +1107,6 @@ window.openAdDetails = async function(id) {
         </div>
         <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">Reviews</button>
       </div>
-      <div class="detail-seller-bar">
-        <span class="detail-seller-label">Username</span>
-        <p class="admin-ad-subtitle">${escapeHtml(data.seller_name || 'User')}</p>
-      </div>
       <hr class="detail-divider">
       <h4 class="detail-section-title">Photos (${allImages.length}) - Tap to Zoom</h4>
       <div class="detail-images-scroll">${imagesHtml}</div>
@@ -968,21 +1117,21 @@ window.openAdDetails = async function(id) {
         <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">Chat with Seller</button>
       </div>
     </div>`;
-  
   document.getElementById('adDetailsModal').style.display = 'flex';
   document.querySelector('#adDetailsModal .modal-content').style.animation = 'slideInUp 0.35s ease';
-}
+};
 
 // ==========================================
-// CHAT SYSTEM (XSS-Safe + Anti-Self)
+// CHAT SYSTEM
 // ==========================================
 window.openChat = async function(sellerWallet, adTitle, sellerName) {
   if (!requireWallet()) return;
   if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'OK'); return; }
   currentChatSeller = sellerWallet;
-  window.currentChatAdTitle = adTitle;    document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
+  window.currentChatAdTitle = adTitle;
+  document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
   const chatBox = document.getElementById('chatMessages');
-  chatBox.innerHTML = `<p class="loading-placeholder">Loading chat...</p>`;
+  chatBox.innerHTML = `<p class="loading-placeholder">${t('loadChat')}</p>`;
   document.getElementById('chatModal').style.display = 'flex';
   document.querySelector('#chatModal .modal-content').style.animation = 'slideInUp 0.35s ease';
   const { data, error } = await supabase.from('chats').select('*').order('created_at', { ascending: true });
@@ -992,11 +1141,7 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
     data.filter(m => m.ad_title === adTitle && ((m.sender === userWallet && m.receiver === sellerWallet) || (m.sender === sellerWallet && m.receiver === userWallet)))
       .forEach(msg => {
         const safe = escapeHtml(msg.message);
-        if (msg.sender === userWallet) {
-          chatHtml += `<div class="chat-msg sent">${safe}</div>`;
-        } else {
-          chatHtml += `<div class="chat-msg received">${safe}</div>`;
-        }
+        chatHtml += msg.sender === userWallet ? `<div class="chat-msg sent">${safe}</div>` : `<div class="chat-msg received">${safe}</div>`;
       });
   }
   chatBox.innerHTML = chatHtml;
@@ -1008,7 +1153,7 @@ window.sendMessage = async function() {
   const rawMsg = input.value;
   const msgV = validateChatMsg(rawMsg);
   if (!msgV.valid) { await showNeonPopup('Invalid', msgV.error, 'OK'); return; }
-  if (!checkRateLimit('chat', 1000)) { await showNeonPopup('Slow Down', 'Sending too fast.', 'OK'); return; }
+  if (!checkRateLimit('chat', 1000)) { await showNeonPopup('Slow Down', t('chatRate'), 'OK'); return; }
   if (!currentChatSeller || !window.currentChatAdTitle) return;
   const msg = msgV.clean;
   const chatBox = document.getElementById('chatMessages');
@@ -1020,35 +1165,29 @@ window.sendMessage = async function() {
 };
 
 // ==========================================
-// REVIEWS (Anti-Fraud + XSS-Safe)
+// REVIEWS
 // ==========================================
 window.openReviews = async function(sellerAddress, sellerName) {
-  document.getElementById('reviewsModalTitle').innerText = `${sellerName}'s Ratings & Reviews`;
+  document.getElementById('reviewsModalTitle').innerText = `${sellerName}'s Reviews`;
   document.getElementById('reviewsModal').style.display = 'flex';
   document.querySelector('#reviewsModal .modal-content').style.animation = 'slideInUp 0.35s ease';
   window.targetSellerAddress = sellerAddress;
   const container = document.getElementById('reviewsListContainer');
-  container.innerHTML = `<p class="loading-placeholder">Loading reviews...</p>`;
+  container.innerHTML = `<p class="loading-placeholder">${t('loadingReviews')}</p>`;
   const { data: reviews, error } = await supabase.from('reviews').select('*').eq('seller_address', sellerAddress).order('created_at', { ascending: false });
-  if (error || !reviews || reviews.length === 0) { container.innerHTML = `<p class="loading-placeholder">No reviews yet.</p>`; return; }
+  if (error || !reviews || reviews.length === 0) { container.innerHTML = `<p class="loading-placeholder">${t('noReviews')}</p>`; return; }
   container.innerHTML = reviews.map(r => {
     const bName = escapeHtml(r.buyer_name);
     const comment = escapeHtml(r.comment || 'No comment provided.');
     const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
-    return `<div class="review-item">
-      <div class="review-header">
-        <span class="detail-seller-name">${bName}</span>
-        <span class="review-rating">${rating}/5</span>
-      </div>
-      <p class="review-comment">${comment}</p>
-    </div>`;
+    return `<div class="review-item"><div class="review-header-row"><span class="review-buyer-name">${bName}</span><span class="review-rating-badge">${rating}/5</span></div><p class="review-body">${comment}</p></div>`;
   }).join('');
 };
 
 window.submitReview = async function() {
   if (!requireWallet()) return;
-  if (!checkRateLimit('review', 5000)) { await showNeonPopup('Slow Down', 'Please wait before another review.', 'OK'); return; }
-  if (userWallet === window.targetSellerAddress) { await showNeonPopup('Not Allowed', 'You cannot review yourself! ', 'OK'); return; }
+  if (!checkRateLimit('review', 5000)) { await showNeonPopup('Slow Down', t('reviewRate'), 'OK'); return; }
+  if (userWallet === window.targetSellerAddress) { await showNeonPopup('Not Allowed', 'You cannot review yourself!', 'OK'); return; }
   const rating = parseInt(document.getElementById('reviewRating').value);
   if (rating < 1 || rating > 5) { await showNeonPopup('Invalid Rating', 'Rating must be 1-5.', 'OK'); return; }
   const commentRaw = document.getElementById('reviewComment').value.trim();
@@ -1063,99 +1202,64 @@ window.submitReview = async function() {
 };
 
 // ==========================================
-// FEATURE 4: ADMIN PANEL DASHBOARD
+// ADMIN PANEL
 // ==========================================
 window.openAdminPanel = async function() {
   if (!userWallet || userWallet.toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-    await showNeonPopup('Unauthorized', 'Access denied. Admin only.', 'OK');
-    return;
+    await showNeonPopup('Unauthorized', 'Admin only.', 'OK'); return;
   }
-
   document.getElementById('adminModal').style.display = 'flex';
   document.querySelector('#adminModal .modal-content').style.animation = 'slideInUp 0.35s ease';
   const statsContainer = document.getElementById('adminStatsContainer');
   const listingsContainer = document.getElementById('adminListingsContainer');
-
-  statsContainer.innerHTML = `<p class="loading-placeholder">Loading stats...</p>`;
+  statsContainer.innerHTML = `<p class="loading-placeholder">${t('loadingStats')}</p>`;
   listingsContainer.innerHTML = showSkeleton(3);
 
   const { count: totalListings } = await supabase.from('listings').select('*', { count: 'exact', head: true }).neq('status', 'deleted');
   const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
   const { count: totalChats } = await supabase.from('chats').select('*', { count: 'exact', head: true });
 
-  statsContainer.innerHTML = `
-    <div class="admin-stats-grid">
-      <div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="sow-stats-label">Active Ads</span></div>
-      <div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="sow-stats-label">Users</span></div>
-      <div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="sow-stats-label">Messages</span></div>
-    </div>
-  `;
+  statsContainer.innerHTML = `<div class="admin-stats-grid"><div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="sow-stats-label">${t('activeAds')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="sow-stats-label">${t('users')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="sow-stats-label">${t('messages')}</span></div></div>`;
 
   const { data: listings } = await supabase.from('listings').select('*').neq('status', 'deleted').order('created_at', { ascending: false });
-
-  if (!listings || listings.length === 0) {
-    listingsContainer.innerHTML = `<p class="loading-placeholder">No listings found.</p>`;
-    return;
-  }
+  if (!listings || listings.length === 0) { listingsContainer.innerHTML = `<p class="loading-placeholder">${t('noListingsFound')}</p>`; return; }
 
   listingsContainer.innerHTML = listings.map(item => {
     const sT = escapeHtml(item.title), sN = escapeHtml(item.seller_name), sP = escapeHtml(item.price), sI = escapeAttr(item.id);
-    return `<div class="my-ad-item">
-      <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price admin-ad-subtitle">By: ${sN} | ${sP} WLD</p></div>
-      <button onclick="window.adminDeleteAd('${sI}')" class="btn-mark-sold btn-force-delete">Force Delete</button>
-    </div>`;
+    return `<div class="my-ad-item"><div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price admin-ad-subtitle">By: ${sN} | ${sP} WLD</p></div><button onclick="window.adminDeleteAd('${sI}')" class="btn-mark-sold btn-force-delete">Force Delete</button></div>`;
   }).join('');
-}
+};
 
 window.adminDeleteAd = async function(id) {
-  const confirmDel = await window.showNeonPopup('Admin Action', 'Are you sure you want to force delete this ad?', 'OK', 'confirm');
+  const confirmDel = await window.showNeonPopup('Admin Action', 'Force delete this ad?', 'OK', 'confirm');
   if (confirmDel) {
-    // Try RPC function first (bypasses RLS)
     let deleted = false;
-    try {
-      const { data: rpcResult } = await supabase.rpc('delete_ad', { p_ad_id: id, p_wallet: ADMIN_WALLET });
-      if (rpcResult && rpcResult.success) deleted = true;
-    } catch (e) {}
-
-    // Also try mark_ad_sold RPC if delete_ad is not available
-    if (!deleted) {
-      try {
-        const { data: rpcResult } = await supabase.rpc('mark_ad_sold', { p_ad_id: id, p_wallet: ADMIN_WALLET });
-        if (rpcResult && rpcResult.success) deleted = true;
-      } catch (e) {}
-    }
-
-    // Fallback: direct delete (may be blocked by RLS)
+    try { const { data: rpcResult } = await supabase.rpc('delete_ad', { p_ad_id: id, p_wallet: ADMIN_WALLET }); if (rpcResult && rpcResult.success) deleted = true; } catch (e) {}
+    if (!deleted) { try { const { data: rpcResult } = await supabase.rpc('mark_ad_sold', { p_ad_id: id, p_wallet: ADMIN_WALLET }); if (rpcResult && rpcResult.success) deleted = true; } catch (e) {} }
     if (!deleted) {
       const { data: adData } = await supabase.from('listings').select('title, image1, image2, image3, image4').eq('id', id).single();
       if (adData) {
-        const imagesList = [adData.image1, adData.image2, adData.image3, adData.image4];
-        for (const imgUrl of imagesList) {
+        for (const imgUrl of [adData.image1, adData.image2, adData.image3, adData.image4]) {
           if (imgUrl && imgUrl.includes('/listing/')) {
             const filePath = imgUrl.split('/listing/')[1];
             if (filePath) await supabase.storage.from('listing').remove([filePath]);
           }
         }
       }
-      try {
-        await supabase.from('listings').delete().match({ id });
-        deleted = true;
-      } catch (e) {}
+      try { await supabase.from('listings').delete().match({ id }); deleted = true; } catch (e) {}
     }
-
-    if (deleted) {
-      await showNeonPopup('Success', 'Ad deleted by admin.', 'OK');
-    } else {
-      await showNeonPopup('Info', 'Could not delete directly. Run SUPABASE_SQL_DELETE.sql in your dashboard.', 'OK');
-    }
+    await showNeonPopup(deleted ? 'Success' : 'Info', deleted ? 'Ad deleted by admin.' : 'Could not delete. Run SUPABASE_SQL_DELETE.sql.', 'OK');
     window.openAdminPanel();
     fetchListings();
   }
-}
+};
 
+// ==========================================
+// MY ADS
+// ==========================================
 window.openMyAdsScreen = async function() {
   if (!userWallet) {
-    document.getElementById('myAdsContainer').innerHTML = '<p class="loading-placeholder">Please connect wallet first.</p>';
+    document.getElementById('myAdsContainer').innerHTML = `<p class="loading-placeholder">Please connect wallet first.</p>`;
     document.getElementById('myAdsBalanceCard').innerHTML = '';
     return;
   }
@@ -1165,16 +1269,9 @@ window.openMyAdsScreen = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
 
-  // Balance card (compact, no emoji per Worldcoin guidelines)
-  const balanceHtml = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
-  document.getElementById('myAdsBalanceCard').innerHTML = balanceHtml;
+  document.getElementById('myAdsBalanceCard').innerHTML = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
 
-  // Fetch all ads for this user
-  const { data: allMyAds } = await supabase.from('listings')
-    .select('*')
-    .eq('seller_address', userWallet)
-    .neq('status', 'deleted')
-    .order('created_at', { ascending: false });
+  const { data: allMyAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).neq('status', 'deleted').order('created_at', { ascending: false });
 
   const activeAds = (allMyAds || []).filter(a => a.status === 'active');
   const soldAds = (allMyAds || []).filter(a => a.status === 'sold');
@@ -1184,196 +1281,104 @@ window.openMyAdsScreen = async function() {
     html += `<p class="my-ads-section-title">Active (${activeAds.length})</p>`;
     html += activeAds.map(item => {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
-      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item">
-        <div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price">${sP} WLD (${sC})</p></div>
-        <div class="my-ad-actions-row">
-          <button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" class="btn-mark-sold">Mark Sold</button>
-          <button onclick="event.stopPropagation(); window.deleteMyAd('${sI}')" class="btn-delete-ad">Delete</button>
-        </div>
-      </div>`;
+      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item"><div><h4 class="my-ad-title">${sT}</h4><p class="my-ad-price">${sP} WLD (${sC})</p></div><div class="my-ad-actions-row"><button onclick="event.stopPropagation(); window.markAsSoldOut('${sI}')" class="btn-mark-sold">${t('markSold')}</button><button onclick="event.stopPropagation(); window.deleteMyAd('${sI}')" class="btn-delete-ad">${t('delete')}</button></div></div>`;
     }).join('');
   }
   if (soldAds.length > 0) {
     html += `<p class="my-ads-section-title">Sold (${soldAds.length})</p>`;
     html += soldAds.map(item => {
       const sI = escapeAttr(item.id), sT = escapeHtml(item.title), sP = escapeHtml(item.price), sC = escapeHtml(item.country);
-      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold">
-        <div><h4 class="my-ad-title my-ad-sold-title">${sT}</h4><p class="my-ad-price my-ad-sold-price">${sP} WLD (${sC})</p></div>
-        <span class="btn-sold-done">Sold</span>
-      </div>`;
+      return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold"><div><h4 class="my-ad-title my-ad-sold-title">${sT}</h4><p class="my-ad-price my-ad-sold-price">${sP} WLD (${sC})</p></div><span class="btn-sold-done">${t('sold')}</span></div>`;
     }).join('');
   }
   if (!html) html = '<p class="loading-placeholder">No ads yet. Post your first ad!</p>';
   container.innerHTML = html;
-}
+};
 
 // ==========================================
-// DELETE AD — soft delete (status='deleted')
-// SOW coins are NEVER affected by deletion
+// DELETE AD
 // ==========================================
 window.deleteMyAd = async function(id) {
-  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', 'OK'); return; }
-  if (!checkRateLimit('deleteAd', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', 'OK'); return; }
-
-  const isConfirmed = await showNeonPopup('Delete Ad?', 'This ad will be permanently removed. Your SOW coins are safe and will not be affected.', 'OK', 'confirm');
+  if (!userWallet) { await showNeonPopup('Error', 'Connect wallet first.', 'OK'); return; }
+  if (!checkRateLimit('deleteAd', 3000)) { await showNeonPopup('Slow Down', t('deleteRate'), 'OK'); return; }
+  const isConfirmed = await showNeonPopup('Delete Ad?', 'This ad will be permanently removed. Your SOW coins are safe!', 'OK', 'confirm');
   if (!isConfirmed) return;
 
-  // SECURITY: Verify ownership
   const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
-  if (fetchErr || !adData) {
-    await showNeonPopup('Error', 'Ad not found.', 'OK');
-    return;
-  }
-  if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
-    await showNeonPopup('Unauthorized', 'You can only delete your own ads.', 'OK');
-    return;
-  }
-  if (adData.status === 'deleted') {
-    await showNeonPopup('Info', 'This ad is already deleted.', 'OK');
-    window.openMyAdsScreen();
-    return;
-  }
+  if (fetchErr || !adData) { await showNeonPopup('Error', 'Ad not found.', 'OK'); return; }
+  if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) { await showNeonPopup('Unauthorized', 'You can only delete your own ads.', 'OK'); return; }
+  if (adData.status === 'deleted') { await showNeonPopup('Info', 'Already deleted.', 'OK'); window.openMyAdsScreen(); return; }
 
-  // Try RPC function first (bypasses RLS), fall back to direct update
   let deleteOk = false;
-  try {
-    const { data: rpcResult } = await supabase.rpc('delete_ad', {
-      p_ad_id: id,
-      p_wallet: userWallet
-    });
-    if (rpcResult && rpcResult.success) {
-      deleteOk = true;
-    }
-  } catch (rpcErr) {
-    console.log('[DELETE] RPC not available, trying direct:', rpcErr.message);
-  }
+  try { const { data: rpcResult } = await supabase.rpc('delete_ad', { p_ad_id: id, p_wallet: userWallet }); if (rpcResult && rpcResult.success) deleteOk = true; } catch (e) {}
+  if (!deleteOk) { try { const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'deleted' }).eq('id', id).eq('seller_address', userWallet).select('id, status'); if (!updateErr && updateData && updateData.length > 0) deleteOk = true; } catch (e) {} }
 
-  // Fallback: direct update
-  if (!deleteOk) {
-    try {
-      const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'deleted' }).eq('id', id).eq('seller_address', userWallet).select('id, status');
-      if (!updateErr && updateData && updateData.length > 0) deleteOk = true;
-    } catch (e) {}
-  }
-
-  // Verify the delete took effect
   if (deleteOk) {
     const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
     if (verifyData && verifyData.status === 'deleted') {
       await showNeonPopup('Deleted', 'Ad removed. Your SOW coins are safe!', 'OK');
-      window.openMyAdsScreen();
-      fetchListings();
-      return;
+      window.openMyAdsScreen(); fetchListings(); return;
     }
   }
+  await showNeonPopup('Delete Failed', 'Could not delete ad. Run SUPABASE_SQL_DELETE.sql in Supabase.', 'OK');
+};
 
-  await showNeonPopup('Delete Failed', 'Could not delete ad. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_DELETE.sql).', 'OK');
-}
-
+// ==========================================
+// MARK AS SOLD
+// ==========================================
 window.markAsSoldOut = async function(id) {
-  if (!userWallet) { await showNeonPopup('Error', 'Please connect your wallet first.', 'OK'); return; }
-  if (!checkRateLimit('soldOut', 3000)) { await showNeonPopup('Slow Down', 'Please wait a moment.', 'OK'); return; }
-  const isConfirmed = await showNeonPopup('Mark as Sold?', 'This ad will be marked as sold. Your SOW coins will stay!', 'OK', 'confirm');
-  if (isConfirmed) {
-    // SECURITY: Verify ownership — only the ad's seller can mark it sold
-    const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
-    if (fetchErr || !adData) {
-      console.error('[SOLD] Ad fetch failed:', fetchErr);
-      await showNeonPopup('Error', 'Ad not found. Please refresh.', 'OK');
-      return;
-    }
-    if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) {
-      await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', 'OK');
-      return;
-    }
-    if (adData.status === 'sold') {
-      await showNeonPopup('Already Sold', 'This ad is already marked as sold.', 'OK');
-      window.openMyAdsScreen();
-      return;
-    }
-    // Try RPC function first (bypasses RLS), fall back to direct update
-    let soldOk = false;
-    try {
-      const { data: rpcResult } = await supabase.rpc('mark_ad_sold', {
-        p_ad_id: id,
-        p_wallet: userWallet
-      });
-      console.log('[SOLD] RPC result:', rpcResult);
-      if (rpcResult && rpcResult.success) {
-        soldOk = true;
-      }
-    } catch (rpcErr) {
-      console.log('[SOLD] RPC not available, trying direct update:', rpcErr.message);
-    }
+  if (!userWallet) { await showNeonPopup('Error', 'Connect wallet first.', 'OK'); return; }
+  if (!checkRateLimit('soldOut', 3000)) { await showNeonPopup('Slow Down', t('deleteRate'), 'OK'); return; }
+  const isConfirmed = await showNeonPopup('Mark as Sold?', 'Your SOW coins will stay!', 'OK', 'confirm');
+  if (!isConfirmed) return;
 
-    // Fallback: direct update (may be blocked by RLS)
-    if (!soldOk) {
-      const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id).select('id, status');
-      console.log('[SOLD] Direct update result:', { updateData, updateErr });
-      if (!updateErr && updateData && updateData.length > 0) {
-        soldOk = true;
-      }
-    }
+  const { data: adData, error: fetchErr } = await supabase.from('listings').select('seller_address, status').eq('id', id).single();
+  if (fetchErr || !adData) { await showNeonPopup('Error', 'Ad not found.', 'OK'); return; }
+  if (adData.seller_address.toLowerCase() !== userWallet.toLowerCase()) { await showNeonPopup('Unauthorized', 'You can only mark your own ads as sold.', 'OK'); return; }
+  if (adData.status === 'sold') { await showNeonPopup('Already Sold', 'This ad is already sold.', 'OK'); window.openMyAdsScreen(); return; }
 
-    // Verify the update actually took effect
-    if (soldOk) {
-      const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
-      if (verifyData && verifyData.status === 'sold') {
-        await showNeonPopup('Sold', 'Ad marked as sold. Your SOW coins are safe!', 'OK');
-        window.openMyAdsScreen();
-        fetchListings();
-        return;
-      }
+  let soldOk = false;
+  try { const { data: rpcResult } = await supabase.rpc('mark_ad_sold', { p_ad_id: id, p_wallet: userWallet }); if (rpcResult && rpcResult.success) soldOk = true; } catch (rpcErr) {}
+  if (!soldOk) { try { const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id).select('id, status'); if (!updateErr && updateData && updateData.length > 0) soldOk = true; } catch (e) {} }
+
+  if (soldOk) {
+    const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
+    if (verifyData && verifyData.status === 'sold') {
+      await showNeonPopup('Sold', 'Ad marked as sold. Your SOW coins are safe!', 'OK');
+      window.openMyAdsScreen(); fetchListings(); return;
     }
-    // If we get here, something failed
-    await showNeonPopup('Update Failed', 'Could not mark as sold. Please run the SQL fix in your Supabase dashboard (see SUPABASE_SQL_FIX.sql).', 'OK');
-    console.error('[SOLD] All methods failed for ad:', id);
   }
-}
+  await showNeonPopup('Update Failed', 'Could not mark as sold. Run SUPABASE_SQL_FIX.sql.', 'OK');
+};
 
+// ==========================================
+// LEADERBOARD
+// ==========================================
 window.openLeaderboard = async function() {
   document.getElementById('leaderboardModal').style.display = 'flex';
   document.querySelector('#leaderboardModal .modal-content').style.animation = 'slideInUp 0.35s ease';
   const container = document.getElementById('leaderboardContainer');
   container.innerHTML = showSkeleton(3);
-
   const { data: balances, error: balError } = await supabase.from('sow_balances').select('*').order('balance', { ascending: false }).limit(50);
-  if (balError || !balances || balances.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">No data yet. Be the first to earn SOW!</p>`;
-    return;
-  }
-
+  if (balError || !balances || balances.length === 0) { container.innerHTML = `<p class="loading-placeholder">${t('noSowData')}</p>`; return; }
   const wallets = balances.map(b => b.wallet_address);
   const { data: usersData } = await supabase.from('users').select('*').in('wallet_address', wallets);
   const userMap = {};
   if (usersData) { usersData.forEach(u => { userMap[u.wallet_address] = u.username; }); }
 
+  const rankLabels = ['1st', '2nd', '3rd'];
   container.innerHTML = balances.map((item, index) => {
     const isTop3 = index < 3;
-    const rankLabels = ['1st', '2nd', '3rd'];
     const username = escapeHtml(userMap[item.wallet_address] || 'Unknown User');
     const bal = escapeHtml(item.balance);
     const rankText = isTop3 ? rankLabels[index] : '#' + (index + 1);
-
-    return `<div class="${isTop3 ? 'lb-item top-3' : 'lb-item'}">
-      <div class="lb-info-row">
-        <span class="lb-rank">${rankText}</span>
-        <div>
-          <h4 class="lb-name">${username}</h4>
-        </div>
-      </div>
-      <div class="lb-right">
-        <div class="lb-balance">${bal}</div>
-        <div class="lb-balance-label">SOW</div>
-      </div>
-    </div>`;
+    return `<div class="${isTop3 ? 'lb-item top-3' : 'lb-item'}"><div class="lb-info-row"><span class="lb-rank">${rankText}</span><div><h4 class="lb-name">${username}</h4></div></div><div class="lb-right"><div class="lb-balance">${bal}</div><div class="lb-balance-label">SOW</div></div></div>`;
   }).join('');
-}
+};
 
 // ==========================================
-// PROFILE SCREEN
-// =========================================
-// UPDATE SOW BALANCE BADGE IN HEADER
+// SOW BADGE UPDATE
+// ==========================================
 async function updateSowBadge() {
   if (!userWallet) return;
   try {
@@ -1383,24 +1388,29 @@ async function updateSowBadge() {
     const homeCount = document.getElementById('homeSowCount');
     if (statsCard) statsCard.style.display = 'block';
     if (homeCount) homeCount.textContent = sow;
-  } catch(e) {}
+  } catch (e) {}
 }
 
+// ==========================================
+// PROFILE
+// ==========================================
 window.renderProfile = async function() {
   const container = document.getElementById('profileContainer');
   if (!userWallet || !currentUsername) {
-    container.innerHTML = '<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p class="profile-title">Wallet Not Connected</p><p class="profile-subtitle">Connect your wallet to access your profile</p></div>';
+    container.innerHTML = `<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p class="profile-title">${t('walletNotConnected')}</p><p class="profile-subtitle">${t('connectToAccess')}</p></div>`;
     return;
   }
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
+  const verifiedHtml = isVerified ? '<span class="verify-badge verify-badge-inline">Verified</span>' : '';
+
   container.innerHTML = `
     <div class="profile-card">
       <div class="profile-header-row">
         <div>
           <p class="profile-label">Profile</p>
-          <h3 class="profile-name">${escapeHtml(currentUsername)}</h3>
+          <h3 class="profile-name">${escapeHtml(currentUsername)}${verifiedHtml}</h3>
         </div>
         <span class="sow-stats-icon">SOW</span>
       </div>
@@ -1411,6 +1421,7 @@ window.renderProfile = async function() {
     </div>
     <div class="profile-actions">
       <button onclick="window.openLeaderboard()" class="btn-profile-action btn-leaderboard">View Leaderboard</button>
+      <button onclick="verifyWorldID().then(v => { if(v) { isVerified=true; window.renderProfile(); } })" class="btn-profile-action btn-verify">Verify World ID</button>
       <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">Support</a>
       ${isAdmin ? '<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">Admin Panel</button>' : ''}
     </div>
