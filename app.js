@@ -59,6 +59,34 @@ const LOCALES = {
     verifyTitle: 'Verify Your Identity',
     verifyDesc: 'Verify your World ID to prove you are a real person. This helps keep the marketplace safe.',
     verified: 'Verified',
+    worldAppRequired: 'World App Required',
+    worldAppDesc: 'This app can only be used inside World App. Please open it from World App to continue.',
+    worldAppBadge: 'Open in World App',
+    dbUnavailable: 'Database not available. Check your internet connection.',
+    invalidAddress: 'Invalid wallet address.',
+    connectFailed: 'Connection Failed',
+    walletConnectFailed: 'Wallet connect failed. Please try again.',
+    walletConnectError: 'Wallet connect error. Try again.',
+    invalidTitle: 'Invalid Title',
+    invalidDesc: 'Invalid Description',
+    locationRequired: 'Location Required',
+    locationRequiredDesc: 'Please click Detect GPS to capture your location!',
+    invalidPrice: 'Invalid Price',
+    ruleViolation: 'Rule Violation',
+    phoneNotAllowed: 'Phone numbers are not allowed to prevent scams!',
+    prohibitedItem: 'Prohibited Item',
+    containsRestricted: 'Contains restricted keyword',
+    noExternalLinks: 'External links are not allowed!',
+    verifyRequired: 'Verification Required',
+    verifyRequiredDesc: 'You must verify your World ID to post an ad. This keeps the marketplace safe.',
+    imageMissing: 'Image Missing',
+    imageMissingDesc: 'Please select at least one product image!',
+    limitReached: 'Limit Reached',
+    limitReachedDesc: 'Max 4 photos allowed!',
+    fileTooLarge: 'File Too Large',
+    fileTooLargeDesc: 'Each image must be under 5MB.',
+    paymentFailed: 'Payment Cancelled',
+    paymentFailedDesc: 'Payment failed or was cancelled.',
   },
   es: {
     appName: 'WantSell', subtitle: 'Compra y vende articulos cerca de ti', connectWallet: 'Conectar Billetera',
@@ -103,6 +131,34 @@ const LOCALES = {
     locationConsent: 'WantSell necesita tu ubicacion para mostrar anuncios cercanos.',
     verifyTitle: 'Verifica tu Identidad', verifyDesc: 'Verifica tu World ID para demostrar que eres real.',
     verified: 'Verificado',
+    worldAppRequired: 'World App Requerido',
+    worldAppDesc: 'Esta app solo funciona dentro de World App. Abrela desde World App.',
+    worldAppBadge: 'Abrir en World App',
+    dbUnavailable: 'Base de datos no disponible. Verifica tu conexion.',
+    invalidAddress: 'Direccion invalida.',
+    connectFailed: 'Conexion Fallida',
+    walletConnectFailed: 'Error al conectar billetera.',
+    walletConnectError: 'Error de conexion. Intenta de nuevo.',
+    invalidTitle: 'Titulo Invalido',
+    invalidDesc: 'Descripcion Invalida',
+    locationRequired: 'Ubicacion Requerida',
+    locationRequiredDesc: 'Toca Detectar GPS para capturar tu ubicacion!',
+    invalidPrice: 'Precio Invalido',
+    ruleViolation: 'Violacion de Reglas',
+    phoneNotAllowed: 'No se permiten numeros de telefono!',
+    prohibitedItem: 'Articulo Prohibido',
+    containsRestricted: 'Contiene palabra restringida',
+    noExternalLinks: 'No se permiten enlaces externos!',
+    verifyRequired: 'Verificacion Requerida',
+    verifyRequiredDesc: 'Debes verificar tu World ID para publicar un anuncio.',
+    imageMissing: 'Imagen Faltante',
+    imageMissingDesc: 'Selecciona al menos una imagen del producto!',
+    limitReached: 'Limite Alcanzado',
+    limitReachedDesc: 'Maximo 4 fotos permitidas!',
+    fileTooLarge: 'Archivo Demasiado Grande',
+    fileTooLargeDesc: 'Cada imagen debe ser menor a 5MB.',
+    paymentFailed: 'Pago Cancelado',
+    paymentFailedDesc: 'El pago fallo o fue cancelado.',
   },
   pt: {
     appName: 'WantSell', subtitle: 'Compre e venda perto de voce', connectWallet: 'Conectar Carteira',
@@ -147,6 +203,34 @@ const LOCALES = {
     locationConsent: 'WantSell precisa da sua localizacao para mostrar anuncios proximos.',
     verifyTitle: 'Verifique sua Identidade', verifyDesc: 'Verifique seu World ID para provar que voce e real.',
     verified: 'Verificado',
+    worldAppRequired: 'World App Necessario',
+    worldAppDesc: 'Este app so funciona dentro do World App. Abra pelo World App.',
+    worldAppBadge: 'Abrir no World App',
+    dbUnavailable: 'Banco de dados indisponivel. Verifique sua conexao.',
+    invalidAddress: 'Endereco invalido.',
+    connectFailed: 'Conexao Falhou',
+    walletConnectFailed: 'Falha ao conectar carteira.',
+    walletConnectError: 'Erro de conexao. Tente novamente.',
+    invalidTitle: 'Titulo Invalido',
+    invalidDesc: 'Descricao Invalida',
+    locationRequired: 'Localizacao Necessaria',
+    locationRequiredDesc: 'Toque Detectar GPS para capturar sua localizacao!',
+    invalidPrice: 'Preco Invalido',
+    ruleViolation: 'Violacao de Regras',
+    phoneNotAllowed: 'Numeros de telefone nao sao permitidos!',
+    prohibitedItem: 'Item Proibido',
+    containsRestricted: 'Contem palavra restrita',
+    noExternalLinks: 'Links externos nao sao permitidos!',
+    verifyRequired: 'Verificacao Necessaria',
+    verifyRequiredDesc: 'Voce deve verificar seu World ID para publicar um anuncio.',
+    imageMissing: 'Imagem Faltando',
+    imageMissingDesc: 'Selecione pelo menos uma imagem do produto!',
+    limitReached: 'Limite Atingido',
+    limitReachedDesc: 'Maximo de 4 fotos permitidas!',
+    fileTooLarge: 'Arquivo Muito Grande',
+    fileTooLargeDesc: 'Cada imagem deve ter menos de 5MB.',
+    paymentFailed: 'Pagamento Cancelado',
+    paymentFailedDesc: 'O pagamento falhou ou foi cancelado.',
   },
   th: {
     appName: 'WantSell', subtitle: 'ซื้อขายของใกล้คุณ', connectWallet: 'เชื่อมต่อกระเป๋าเงิน',
@@ -185,6 +269,10 @@ const LOCALES = {
     notFound: 'ไม่พบประกาศ', removedAd: 'ประกาศถูกลบแล้ว', active: 'ใช้งาน',
     locationAccess: 'ขอสิทธิ์ตำแหน่ง', locationConsent: 'WantSell ต้องการตำแหน่งของคุณเพื่อแสดงประกาศใกล้เคียง',
     verifyTitle: 'ยืนยันตัวตน', verifyDesc: 'ยืนยัน World ID เพื่อพิสูจน์ว่าคุณเป็นคนจริง', verified: 'ยืนยันแล้ว',
+    worldAppRequired: 'ต้องใช้ World App', worldAppDesc: 'แอปนี้ใช้ได้เฉพาะใน World App เท่านั้น', worldAppBadge: 'เปิดใน World App',
+    dbUnavailable: 'ฐานข้อมูลไม่พร้อมใช้งาน', invalidAddress: 'ที่อยู่ไม่ถูกต้อง', connectFailed: 'เชื่อมต่อล้มเหลว', walletConnectFailed: 'เชื่อมต่อกระเป๋าล้มเหลว', walletConnectError: 'เกิดข้อผิดพลาด', invalidTitle: 'ชื่อไม่ถูกต้อง', invalidDesc: 'รายละเอียดไม่ถูกต้อง', locationRequired: 'ต้องระบุตำแหน่ง', locationRequiredDesc: 'แตะ GPS เพื่อค้นหาตำแหน่ง!', invalidPrice: 'ราคาไม่ถูกต้อง', ruleViolation: 'ละเมิดกฎ', phoneNotAllowed: 'ไม่อนุญาตให้ใส่เบอร์โทรศัพท์!', prohibitedItem: 'สินค้าต้องห้าม', containsRestricted: 'มีคำต้องห้าม', noExternalLinks: 'ไม่อนุญาตให้ใส่ลิงก์!', verifyRequired: 'ต้องยืนยันตัวตน', verifyRequiredDesc: 'ต้องยืนยัน World ID เพื่อลงประกาศ', imageMissing: 'ต้องมีรูปภาพ', imageMissingDesc: 'เลือกรูปสินค้าอย่างน้อย 1 รูป!',    limitReached: 'เกินขีดจำกัด', limitReachedDesc: 'อนุญาตสูงสุด 4 รูป!',
+    fileTooLarge: 'ไฟล์ใหญ่เกินไป', fileTooLargeDesc: 'รูปภาพต้องมีขนาดไม่เกิน 5MB',
+    paymentFailed: 'การชำระเงินล้มเหลว', paymentFailedDesc: 'การชำระเงินไม่สำเร็จ',
   },
   ja: {
     appName: 'WantSell', subtitle: '近くの品物を売り買い', connectWallet: 'ウォレット接続',
@@ -197,7 +285,7 @@ const LOCALES = {
     category: 'カテゴリ', selectCategory: 'カテゴリを選択',
     countryRegion: '国 / 地域', selectCountry: '国を選択',
     location: '場所', tapDetect: 'GPS検索または入力', detectGps: 'GPS',
-    condition: '状態', brandNew: '新品', likeNew: '几乎新品',
+    condition: '状態', brandNew: '新品', likeNew: 'ほぼ新品',
     good: '良好', fair: '普通', used: '中古',
     priceType: '価格タイプ', selectPriceType: 'タイプ',
     negotiable: '値段交渉可', fixedPrice: '定価',
@@ -222,6 +310,10 @@ const LOCALES = {
     notFound: '掲載が見つかりません', removedAd: 'この掲載は削除されました', active: '有効',
     locationAccess: '位置情報', locationConsent: 'WantSellは近くの掲載を表示するために位置情報を使用します',
     verifyTitle: '本人確認', verifyDesc: 'World ID で本人確認を行ってください', verified: '確認済み',
+    worldAppRequired: 'World Appが必要です', worldAppDesc: 'このアプリはWorld App内でのみ使用できます', worldAppBadge: 'World Appで開く',
+    dbUnavailable: 'データベースが利用できません', invalidAddress: '無効なアドレスです', connectFailed: '接続失敗', walletConnectFailed: 'ウォレット接続に失敗しました', walletConnectError: '接続エラー。再試行してください', invalidTitle: '無効なタイトル', invalidDesc: '無効な説明', locationRequired: '位置情報が必要', locationRequiredDesc: 'GPS検索をタップして位置情報を取得!', invalidPrice: '無効な価格', ruleViolation: 'ルール違反', phoneNotAllowed: '電話番号は禁止されています!', prohibitedItem: '禁止アイテム', containsRestricted: '制限されたキーワードを含んでいます', noExternalLinks: '外部リンクは禁止されています!', verifyRequired: '本人確認が必要', verifyRequiredDesc: '掲載するにはWorld IDの確認が必要です', imageMissing: '画像がありません', imageMissingDesc: '商品画像を少なくとも1枚選択してください!',    limitReached: '上限に達しました', limitReachedDesc: '写真は最大4枚まで!',
+    fileTooLarge: 'ファイルが大きすぎます', fileTooLargeDesc: '各画像は5MB以下にしてください',
+    paymentFailed: '支払いキャンセル', paymentFailedDesc: '支払いに失敗しました',
   },
   ko: {
     appName: 'WantSell', subtitle: '주변 물건을 사고 팔기', connectWallet: '지갑 연결',
@@ -259,6 +351,10 @@ const LOCALES = {
     notFound: '게시물을 찾을 수 없습니다', removedAd: '이 게시물은 삭제되었습니다', active: '활성',
     locationAccess: '위치 접근', locationConsent: 'WantSell은 주변 게시물을 표시하기 위해 위치 정보를 사용합니다',
     verifyTitle: '본인 확인', verifyDesc: 'World ID로 본인 확인을 해주세요', verified: '확인됨',
+    worldAppRequired: 'World App 필요', worldAppDesc: '이 앱은 World App 안에서만 사용할 수 있습니다', worldAppBadge: 'World App에서 열기',
+    dbUnavailable: '데이터베이스를 사용할 수 없습니다', invalidAddress: '잘못된 주소입니다', connectFailed: '연결 실패', walletConnectFailed: '지갑 연결에 실패했습니다', walletConnectError: '연결 오류. 다시 시도해주세요', invalidTitle: '잘못된 제목', invalidDesc: '잘못된 설명', locationRequired: '위치 필요', locationRequiredDesc: 'GPS 검색을 눌러 위치를 지정하세요!', invalidPrice: '잘못된 가격', ruleViolation: '규칙 위반', phoneNotAllowed: '전화번호는 허용되지 않습니다!', prohibitedItem: '금지된 항목', containsRestricted: '제한된 키워드 포함', noExternalLinks: '외부 링크는 허용되지 않습니다!', verifyRequired: '인증 필요', verifyRequiredDesc: '게시물을 올리려면 World ID 인증이 필요합니다', imageMissing: '이미지 없음', imageMissingDesc: '상품 이미지를 최소 1장 선택하세요!',    limitReached: '한도 도달', limitReachedDesc: '최대 4장의 사진만 허용됩니다!',
+    fileTooLarge: '파일이 너무 큽니다', fileTooLargeDesc: '각 이미지는 5MB 이하여야 합니다',
+    paymentFailed: '결제 취소됨', paymentFailedDesc: '결제에 실패했거나 취소되었습니다',
   }
 };
 
@@ -310,7 +406,7 @@ function checkWorldAppEnvironment() {
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
     document.getElementById('splashScreen').style.display = 'flex';
-    document.getElementById('splashScreen').innerHTML = '<div class="blocker-content"><div class="blocker-icon">W</div><h1 class="blocker-title">World App Required</h1><p class="blocker-text">This app can only be used inside <b>World App</b>. Please open it from World App to continue.</p><div class="blocker-badge">Open in World App</div></div>';
+    document.getElementById('splashScreen').innerHTML = `<div class="blocker-content"><div class="blocker-icon">W</div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
     return false;
   }
   return true;
@@ -369,7 +465,7 @@ function checkRateLimit(action, cooldownMs) {
 // ==========================================
 // ADDRESS UTILS
 // ==========================================
-function getDisplayName(addr) { return addr ? addr.substring(0, 10) + '...' : 'Unknown'; }
+function getDisplayName() { return 'User'; }
 function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
 
 // ==========================================
@@ -513,7 +609,7 @@ function showWalletRequiredOverlay() {
   const overlay = document.createElement('div');
   overlay.id = 'walletRequiredOverlay';
   overlay.className = 'wallet-required-overlay';
-  overlay.innerHTML = `<div class="wallet-required-box"><div class="wallet-required-icon">W</div><h2 class="wallet-required-title">Connect Your Wallet</h2><p class="wallet-required-text">You need to connect your wallet to use this feature.</p><button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">Connect Wallet</button></div>`;
+  overlay.innerHTML = `<div class="wallet-required-box"><div class="wallet-required-icon">W</div><h2 class="wallet-required-title">${t('connectYourWallet')}</h2><p class="wallet-required-text">${t('walletRequired')}</p><button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">${t('connectWallet')}</button></div>`;
   document.body.appendChild(overlay);
 }
 
@@ -683,7 +779,7 @@ function setupUI() {
 // ==========================================
 async function handleLogin() {
   if (!checkWorldAppEnvironment()) return;
-  if (!supabase) { showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
+  if (!supabase) { showNeonPopup('Offline', t('dbUnavailable'), 'OK'); return; }
   if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', t('loginRate'), 'OK'); return; }
   try {
     const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
@@ -694,7 +790,7 @@ async function handleLogin() {
       statement: 'Sign in to WantSell',
     });
     if (finalPayload?.status === 'success' && finalPayload?.address) {
-      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', 'Invalid wallet address.', 'OK'); return; }
+      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', t('invalidAddress'), 'OK'); return; }
       userWallet = finalPayload.address;
       const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
       if (userData && userData.username) {
@@ -719,11 +815,11 @@ async function handleLogin() {
       detectUserCurrentPosition();
       fetchListings();
     } else {
-      showNeonPopup('Connection Failed', 'Wallet connect failed.', 'OK');
+      showNeonPopup(t('connectFailed'), t('walletConnectFailed'), 'OK');
     }
   } catch (err) {
     console.error('[LOGIN ERROR]', err.message || err);
-    showNeonPopup('Error', 'Wallet connect error. Try again.', 'OK');
+    showNeonPopup('Error', t('walletConnectError'), 'OK');
   }
 }
 
@@ -873,38 +969,38 @@ async function handlePostAd(e) {
   e.preventDefault();
   if (!requireWallet()) return;
   if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', t('postAdRate'), 'OK'); return; }
-  if (!supabase) { await showNeonPopup('Offline', 'Database not available.', 'OK'); return; }
+  if (!supabase) { await showNeonPopup('Offline', t('dbUnavailable'), 'OK'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
-  if (!titleV.valid) { await showNeonPopup('Invalid Title', titleV.error, 'OK'); return; }
+  if (!titleV.valid) { await showNeonPopup(t('invalidTitle'), titleV.error, 'OK'); return; }
   const descV = validateDescription(document.getElementById('description').value);
-  if (!descV.valid) { await showNeonPopup('Invalid Description', descV.error, 'OK'); return; }
+  if (!descV.valid) { await showNeonPopup(t('invalidDesc'), descV.error, 'OK'); return; }
   const addrV = validateAddress(document.getElementById('adAddress').value);
-  if (!addrV.valid) { await showNeonPopup('Location Required', 'Please click Detect GPS to capture your location!', 'OK'); return; }
+  if (!addrV.valid) { await showNeonPopup(t('locationRequired'), t('locationRequiredDesc'), 'OK'); return; }
   const priceV = validatePrice(document.getElementById('price').value);
-  if (!priceV.valid) { await showNeonPopup('Invalid Price', priceV.error, 'OK'); return; }
+  if (!priceV.valid) { await showNeonPopup(t('invalidPrice'), priceV.error, 'OK'); return; }
 
   if (containsPhoneNumber(titleV.clean) || containsPhoneNumber(descV.clean) || containsPhoneNumber(addrV.clean)) {
-    await showNeonPopup('Rule Violation', 'Phone numbers are not allowed to prevent scams!', 'OK'); return;
+    await showNeonPopup(t('ruleViolation'), t('phoneNotAllowed'), 'OK'); return;
   }
   const restrictedWord = validateListingContent(titleV.clean, descV.clean);
-  if (restrictedWord) { await showNeonPopup('Prohibited Item', `Contains restricted keyword ("${escapeHtml(restrictedWord)}").`, 'OK'); return; }
+  if (restrictedWord) {    await showNeonPopup(t('prohibitedItem'), `${t('containsRestricted')} ("${escapeHtml(restrictedWord)}").`, 'OK'); return; }
   if (/https?:\/\//i.test(descV.clean) || /www\./i.test(descV.clean)) {
-    await showNeonPopup('Rule Violation', 'External links are not allowed!', 'OK'); return;
+    await showNeonPopup(t('ruleViolation'), t('noExternalLinks'), 'OK'); return;
   }
 
   // MINIKIT COMMAND: Verify World ID before posting
   const verified = await verifyWorldID();
   if (!verified) {
-    await showNeonPopup('Verification Required', 'You must verify your World ID to post an ad. This keeps the marketplace safe for everyone.', 'OK');
+    await showNeonPopup(t('verifyRequired'), t('verifyRequiredDesc'), 'OK');
     return;
   }
 
   const fileInput = document.getElementById('imageInput');
   const files = fileInput.files;
-  if (files.length === 0) { await showNeonPopup('Image Missing', 'Please select at least one product image!', 'OK'); return; }
-  if (files.length > 4) { await showNeonPopup('Limit Reached', 'Max 4 photos allowed!', 'OK'); return; }
-  for (let f of files) { if (f.size > 5 * 1024 * 1024) { await showNeonPopup('File Too Large', 'Each image must be under 5MB.', 'OK'); return; } }
+  if (files.length === 0) { await showNeonPopup(t('imageMissing'), t('imageMissingDesc'), 'OK'); return; }
+  if (files.length > 4) { await showNeonPopup(t('limitReached'), t('limitReachedDesc'), 'OK'); return; }
+  for (let f of files) { if (f.size > 5 * 1024 * 1024) {    await showNeonPopup(t('fileTooLarge'), t('fileTooLargeDesc'), 'OK'); return; } }
 
   if (!checkWorldAppEnvironment()) { return; }
 
@@ -925,7 +1021,7 @@ async function handlePostAd(e) {
     if (paymentSuccessful) console.log(`[PAYMENT OK] ref=${paymentRef}`);
   } catch (err) { console.error('[PAYMENT FAILED]', err); }
 
-  if (!paymentSuccessful) { await showNeonPopup('Payment Cancelled', 'Payment failed or was cancelled.', 'OK'); return; }
+  if (!paymentSuccessful) { await showNeonPopup(t('paymentFailed'), t('paymentFailedDesc'), 'OK'); return; }
 
   let imageUrls = ['', '', '', ''];
   for (let i = 0; i < files.length; i++) {
@@ -1071,8 +1167,8 @@ async function fetchListings() {
 window.openAdDetails = async function(id) {
   const cleanId = String(id).replace(/[^a-zA-Z0-9\-]/g, '');
   const { data, error } = await supabase.from('listings').select('*').eq('id', cleanId).single();
-  if (error || !data) { await showNeonPopup('Not Found', t('notFound'), 'OK'); return; }
-  if (data.status === 'deleted') { await showNeonPopup('Removed', t('removedAd'), 'OK'); return; }
+  if (error || !data) {  await showNeonPopup(t('notFound'), t('notFound'), 'OK'); return; }
+  if (data.status === 'deleted') {  await showNeonPopup(t('removedAd'), t('removedAd'), 'OK'); return; }
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
@@ -1129,7 +1225,7 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'OK'); return; }
   currentChatSeller = sellerWallet;
   window.currentChatAdTitle = adTitle;
-  document.getElementById('chatTitle').innerText = `Chat with ${sellerName || getDisplayName(sellerWallet)}`;
+  document.getElementById('chatTitle').innerText = `Chat with ${sellerName || 'User'}`;
   const chatBox = document.getElementById('chatMessages');
   chatBox.innerHTML = `<p class="loading-placeholder">${t('loadChat')}</p>`;
   document.getElementById('chatModal').style.display = 'flex';
