@@ -879,7 +879,12 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function containsPhoneNumber(text) {
-  return /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}|\b\d{10}\b/.test(text);
+  // Strip spaces/dashes/parens then check for 10+ digits, or +country code pattern
+  const stripped = text.replace(/[\s\-().]/g, '');
+  if (/\b\d{10,}\b/.test(stripped)) return true;
+  if (/\+\d{7,}/.test(stripped)) return true;
+  // Also check original for formatted patterns like (555) 123-4567
+  return /(\+?\d{1,3}[-.\s]?)?\(?\d{3,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/.test(text);
 }
 
 // ==========================================
