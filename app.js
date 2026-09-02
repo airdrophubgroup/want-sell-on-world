@@ -1320,7 +1320,7 @@ window.openAdminPanel = async function() {
   const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
   const { count: totalChats } = await supabase.from('chats').select('*', { count: 'exact', head: true });
 
-  statsContainer.innerHTML = `<div class="admin-stats-grid"><div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="sow-stats-label">${t('activeAds')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="sow-stats-label">${t('users')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="sow-stats-label">${t('messages')}</span></div></div>`;
+  statsContainer.innerHTML = `<div class="admin-stats-grid"><div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="admin-stat-label">${t('activeAds')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="admin-stat-label">${t('users')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="admin-stat-label">${t('messages')}</span></div></div>`;
 
   const { data: listings } = await supabase.from('listings').select('*').neq('status', 'deleted').order('created_at', { ascending: false });
   if (!listings || listings.length === 0) { listingsContainer.innerHTML = `<p class="loading-placeholder">${t('noListingsFound')}</p>`; return; }

@@ -462,6 +462,11 @@ body {
 .admin-stat-indigo { color: var(--primary); }
 .admin-stat-success { color: var(--success); }
 .admin-stat-warning { color: var(--warning); }
+.admin-stat-label {
+  font-size: 0.7rem; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+  text-align: center; display: block; margin-top: 4px;
+}
 .admin-ad-subtitle { font-size: 0.78rem; color: var(--text-2); }
 
 /* ===== IMAGE VIEWER ===== */
