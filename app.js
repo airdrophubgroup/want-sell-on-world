@@ -1263,6 +1263,18 @@ window.sendMessage = async function() {
   chatBox.scrollTop = chatBox.scrollHeight;
   const { error } = await supabase.from('chats').insert([{ sender: userWallet, receiver: currentChatSeller, ad_title: window.currentChatAdTitle, message: msg }]);
   if (error) console.error('[CHAT ERROR]', error);
+  // MINIKIT COMMAND: Notify seller of new message
+  try {
+    const mk = MiniKit;
+    if (mk && mk.commandsAsync && mk.commandsAsync.sendNotification) {
+      await mk.commandsAsync.sendNotification({
+        wallet_addresses: [currentChatSeller],
+        title: 'New Message',
+        message: `${currentUsername} sent you a message about "${window.currentChatAdTitle}"`,
+      });
+      console.log('[NOTIFY] Seller notified of new message');
+    }
+  } catch (notifErr) { console.log('[NOTIFY] Failed:', notifErr.message); }
 };
 
 // ==========================================

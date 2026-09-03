@@ -227,6 +227,17 @@ body {
   width: 100px; height: 100px;
   background: rgba(79,70,229,0.06); border-radius: 50%;
 }
+.promo-banner-title {
+  font-size: 0.95rem; font-weight: 700; color: #1e40af;
+  margin-bottom: 2px;
+}
+.promo-banner-subtitle {
+  font-size: 0.75rem; color: #6b7280;
+  margin-bottom: 8px;
+}
+.promo-banner-badges {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
 
 /* ===== CATEGORY CHIPS ===== */
 .category-scroll {
