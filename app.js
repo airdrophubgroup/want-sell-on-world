@@ -597,13 +597,18 @@ async function getMiniKitUsernameAsync(payload = null) {
       } catch (e) {}
     }
     if (u && typeof u === 'object') {
-      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || (u.profile && (u.profile.username || u.profile.name));
+      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || u.worldName || u.worldcoin_username || u.worldIdUsername || (u.profile && (u.profile.username || u.profile.name || u.profile.handle)) || (u.wallet && u.wallet.username) || (u.identity && (u.identity.username || u.identity.name));
       if (candidate && typeof candidate === 'string') return candidate.trim();
     }
     if (payload && typeof payload === 'object') {
-      const keys = ['username', 'name', 'displayName', 'handle', 'nickName'];
+      const keys = ['username', 'name', 'displayName', 'handle', 'nickName', 'worldName', 'worldcoin_username'];
       for (const k of keys) {
         if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
+      }
+      if (payload.identity && typeof payload.identity === 'object') {
+        for (const k of keys) {
+          if (payload.identity[k] && typeof payload.identity[k] === 'string') return payload.identity[k].trim();
+        }
       }
     }
   } catch (e) {}
@@ -619,13 +624,18 @@ function getMiniKitUsername(payload = null) {
     }
     if (!u && typeof MiniKit !== 'undefined' && MiniKit.user) u = MiniKit.user;
     if (u && typeof u === 'object') {
-      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || (u.profile && (u.profile.username || u.profile.name));
+      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || u.worldName || u.worldcoin_username || u.worldIdUsername || (u.profile && (u.profile.username || u.profile.name || u.profile.handle)) || (u.wallet && u.wallet.username) || (u.identity && (u.identity.username || u.identity.name));
       if (candidate && typeof candidate === 'string') return candidate.trim();
     }
     if (payload && typeof payload === 'object') {
-      const keys = ['username', 'name', 'displayName', 'handle', 'nickName'];
+      const keys = ['username', 'name', 'displayName', 'handle', 'nickName', 'worldName', 'worldcoin_username'];
       for (const k of keys) {
         if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
+      }
+      if (payload.identity && typeof payload.identity === 'object') {
+        for (const k of keys) {
+          if (payload.identity[k] && typeof payload.identity[k] === 'string') return payload.identity[k].trim();
+        }
       }
     }
   } catch (e) {}
@@ -981,7 +991,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Restore saved wallet immediately
   const savedAddress = localStorage.getItem('userWallet');
-  const savedUsername = localStorage.getItem('currentUsername');
+  let savedUsername = localStorage.getItem('currentUsername');
+  const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+  if (isFallback(savedUsername)) {
+    localStorage.removeItem('currentUsername');
+    savedUsername = null;
+  }
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
     currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
@@ -994,12 +1009,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         let p = await getMiniKitUsernameAsync();
         if (!p) p = getMiniKitUsername();
-        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
         if (p && !isFallback(p)) {
           currentUsername = p;
           localStorage.setItem('currentUsername', currentUsername);
           if (loginBtnInit) loginBtnInit.innerText = currentUsername;
           try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+        } else {
+          // Still try to get from MiniKit.user directly
+          try {
+            if (MiniKit.user) {
+              const pu = MiniKit.user;
+              const pcand = pu.username || pu.name || pu.displayName || pu.handle || pu.worldName;
+              if (pcand && !isFallback(pcand)) {
+                currentUsername = pcand;
+                localStorage.setItem('currentUsername', currentUsername);
+                if (loginBtnInit) loginBtnInit.innerText = currentUsername;
+                try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+              }
+            }
+          } catch (e) {}
         }
       } catch (e) {}
     }
@@ -1062,20 +1090,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   setTimeout(async () => {
     try {
       if (userWallet && typeof MiniKit !== 'undefined') {
-        let p = await getMiniKitUsernameAsync();
-        if (!p) p = getMiniKitUsername();
         const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
-        if (p && !isFallback(p)) {
-          currentUsername = p;
-          localStorage.setItem('currentUsername', currentUsername);
-          const lb = document.getElementById('loginBtn');
-          if (lb) lb.innerText = currentUsername;
-          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
-          if (document.querySelector('#screenProfile.active')) window.renderProfile();
+        for (let i = 0; i < 5; i++) {
+          let p = await getMiniKitUsernameAsync();
+          if (!p) p = getMiniKitUsername();
+          if (!p && MiniKit.user) {
+            const pu = MiniKit.user;
+            p = pu.username || pu.name || pu.displayName || pu.handle || pu.worldName;
+          }
+          if (!p && typeof MiniKit.getUser === 'function') {
+            try { const mu = await MiniKit.getUser(); if (mu) { p = await getMiniKitUsernameAsync(mu); if (!p) p = getMiniKitUsername(mu); } } catch (e) {}
+          }
+          if (p && !isFallback(p)) {
+            currentUsername = p;
+            localStorage.setItem('currentUsername', currentUsername);
+            const lb = document.getElementById('loginBtn');
+            if (lb) lb.innerText = currentUsername;
+            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+            if (document.querySelector('#screenProfile.active')) window.renderProfile();
+            break;
+          }
+          await new Promise(r => setTimeout(r, 800));
         }
       }
     } catch (e) {}
-  }, 1000);
+  }, 500);
 });
 
 function setupUI() {
