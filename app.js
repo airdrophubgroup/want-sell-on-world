@@ -990,11 +990,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSowBadge();
     detectUserCurrentPosition();
     fetchListings();
-    if (currentUsername && (currentUsername.startsWith('User_') || currentUsername.length < 3) && typeof MiniKit !== 'undefined') {
+    if (typeof MiniKit !== 'undefined') {
       try {
         let p = await getMiniKitUsernameAsync();
         if (!p) p = getMiniKitUsername();
-        if (p && !p.startsWith('User_') && p.length >= 2) {
+        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+        if (p && !isFallback(p)) {
           currentUsername = p;
           localStorage.setItem('currentUsername', currentUsername);
           if (loginBtnInit) loginBtnInit.innerText = currentUsername;
@@ -1028,15 +1029,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
         let profileUsername = await getMiniKitUsernameAsync(finalPayload);
         if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
-        if (profileUsername && (!userData?.username || userData.username.startsWith('User_'))) {
+        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+        if (profileUsername && !isFallback(profileUsername)) {
           currentUsername = profileUsername;
-        } else {
-          currentUsername = userData?.username || profileUsername || ('User_' + userWallet.substring(2, 8));
-        }
-        if (profileUsername && profileUsername !== (userData?.username || '')) {
           try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
-        } else if (!userData?.username && currentUsername && !currentUsername.startsWith('User_')) {
-          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+        } else if (userData?.username && !isFallback(userData.username)) {
+          currentUsername = userData.username;
+          if (profileUsername && !isFallback(profileUsername) && profileUsername !== userData.username) {
+            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); currentUsername = profileUsername; } catch (e) {}
+          }
+        } else {
+          currentUsername = profileUsername && !isFallback(profileUsername) ? profileUsername : (userData?.username || profileUsername || ('User_' + userWallet.substring(2, 8)));
+          if (profileUsername && !isFallback(profileUsername)) {
+            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
+          }
         }
         localStorage.setItem('userWallet', userWallet);
         localStorage.setItem('currentUsername', currentUsername);
@@ -1055,10 +1061,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   detectUserCurrentPosition();
   setTimeout(async () => {
     try {
-      if (userWallet && currentUsername && (currentUsername.startsWith('User_') || currentUsername.length < 3) && typeof MiniKit !== 'undefined') {
+      if (userWallet && typeof MiniKit !== 'undefined') {
         let p = await getMiniKitUsernameAsync();
         if (!p) p = getMiniKitUsername();
-        if (p && !p.startsWith('User_') && p.length >= 2) {
+        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+        if (p && !isFallback(p)) {
           currentUsername = p;
           localStorage.setItem('currentUsername', currentUsername);
           const lb = document.getElementById('loginBtn');
@@ -1068,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
     } catch (e) {}
-  }, 1200);
+  }, 1000);
 });
 
 function setupUI() {
@@ -1130,11 +1137,12 @@ async function handleLogin() {
         const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
         let profileUsername = await getMiniKitUsernameAsync(finalPayload);
         if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
-        if (userData && userData.username) {
-          currentUsername = profileUsername && profileUsername !== userData.username ? profileUsername : userData.username;
-          if (profileUsername && profileUsername !== userData.username) {
-            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
-          }
+        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+        if (profileUsername && !isFallback(profileUsername)) {
+          currentUsername = profileUsername;
+          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+        } else if (userData?.username && !isFallback(userData.username)) {
+          currentUsername = userData.username;
         } else {
           if (profileUsername && /^[a-zA-Z0-9 _\-]{2,20}$/.test(profileUsername)) {
             currentUsername = profileUsername.replace(/[^a-zA-Z0-9 _\-]/g, '').trim();
@@ -1609,14 +1617,14 @@ async function fetchListings() {
     data = result.data;
     error = result.error;
   } catch (netErr) {
-    container.innerHTML = emptyState(t('networkError'));
+    container.innerHTML = emptyState(t('networkError'), t('genericErrorDesc'), t('retry'), 'fetchListings()');
     return;
   }
 
   container.innerHTML = showSkeleton(4);
 
   if (error) {
-    container.innerHTML = emptyState(t('networkError'), '', t('retry'), 'fetchListings()');
+    container.innerHTML = emptyState(t('networkError'), t('genericErrorDesc'), t('retry'), 'fetchListings()');
     return;
   }
   if (!data || data.length === 0) {
