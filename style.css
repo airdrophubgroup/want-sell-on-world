@@ -581,8 +581,10 @@ img { display: block; }
   font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
   cursor: pointer; font-family: inherit; margin-bottom: 24px;
   box-shadow: var(--shadow-md);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: transform 0.15s, background 0.15s;
 }
+.btn-post-ad[disabled] { cursor: progress; opacity: 0.85; }
 .btn-post-ad:active { transform: scale(0.97); background: #000; }
 
 /* ===== BALANCE CARD ===== */
@@ -1147,3 +1149,59 @@ img { display: block; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes slideInUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ===== LOCATION CHIP ===== */
+.loc-chip {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 9px var(--sp-sm);
+  margin-bottom: var(--sp-sm);
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  color: var(--ink-2); font-family: inherit;
+  font-size: 0.8rem; font-weight: 600; text-align: left;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.loc-chip > svg {
+  width: 15px; height: 15px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.loc-chip .loc-chip-chevron { margin-left: auto; width: 13px; height: 13px; color: var(--ink-3); flex: none; }
+#locChipText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.loc-chip-on { color: var(--primary-deep); background: var(--primary-light); border-color: var(--primary-subtle); }
+.loc-chip.is-busy { opacity: 0.6; }
+.loc-chip:active { transform: scale(0.995); }
+
+/* ===== CARD META ===== */
+.card-meta-right { display: inline-flex; align-items: center; gap: 6px; }
+.card-distance {
+  font-size: 0.64rem; font-weight: 700; color: var(--ink-2);
+  background: var(--surface-2); border: 1px solid var(--line);
+  padding: 2px 6px; border-radius: var(--r-full);
+}
+
+/* ===== POPUP ACCENTS (class-based, set from JS) ===== */
+.neon-popup-box--primary { border-color: var(--primary-subtle); }
+.neon-popup-box--success { border-color: #bfe8d6; }
+.neon-popup-box--danger { border-color: #f6c9cb; }
+
+/* ===== ASYNC BUTTON STATES ===== */
+.btn-post-ad.is-loading::before,
+.btn-detect.is-busy::before {
+  content: ''; width: 14px; height: 14px; flex: none;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; opacity: 0.8;
+  animation: spin 0.7s linear infinite;
+}
+.btn-detect {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 96px; height: 44px;
+}
+.btn-detect > svg {
+  width: 14px; height: 14px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.btn-detect.is-busy { opacity: 0.75; cursor: progress; }
+.btn-detect.is-done { color: var(--success); background: var(--success-light); border-color: #bfe8d6; }
+.field-busy { color: var(--ink-3); }

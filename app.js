@@ -358,27 +358,135 @@ const LOCALES = {
   }
 };
 
+// Strings added after the original dictionary. Kept separate so every language
+// can fall back per-key instead of shipping a half-translated screen.
+const EXTRA_LOCALES = {
+  en: {
+    home: 'Home', all: 'All', reviews: 'Reviews', share: 'Share', chat: 'Chat', shareCopied: 'Link copied to clipboard',
+    enableLocation: 'Turn on location', nearPlace: 'Near {place}', locationOn: 'Location on',
+    detecting: 'Locating...', locationCaptured: 'Location captured',
+    locationOff: 'Location unavailable', locationOffDesc: 'Turn on location or type your area manually.',
+    uploadingPhotos: 'Uploading photos...', confirmingPayment: 'Confirm payment...', publishing: 'Publishing...',
+    uploadFailed: 'Upload Failed', uploadFailedDesc: 'Your photos could not be uploaded. You have not been charged.',
+    publishFailed: 'Ad Not Saved', publishFailedDesc: 'Your payment went through but the ad could not be saved. Contact support with reference {ref} and we will restore it.',
+    adPosted: 'Ad Posted', adPostedDesc: 'Your ad is live and visible to buyers nearby.',
+    sowEarned: '+1 SOW coin earned',
+    slowDown: 'Slow Down', genericError: 'Something Went Wrong', genericErrorDesc: 'Please try again in a moment.',
+    verifyAction: 'Verify World ID', notSpecified: 'Not specified', seller: 'Seller', photosTap: 'Photos ({n}) - tap to zoom',
+  },
+  es: {
+    home: 'Inicio', all: 'Todo', reviews: 'Resenas', share: 'Compartir', chat: 'Chat', shareCopied: 'Enlace copiado',
+    enableLocation: 'Activar ubicacion', nearPlace: 'Cerca de {place}', locationOn: 'Ubicacion activa',
+    detecting: 'Ubicando...', locationCaptured: 'Ubicacion capturada',
+    locationOff: 'Ubicacion no disponible', locationOffDesc: 'Activa la ubicacion o escribe tu zona manualmente.',
+    uploadingPhotos: 'Subiendo fotos...', confirmingPayment: 'Confirma el pago...', publishing: 'Publicando...',
+    uploadFailed: 'Error al subir', uploadFailedDesc: 'No se pudieron subir tus fotos. No se te ha cobrado.',
+    publishFailed: 'Anuncio no guardado', publishFailedDesc: 'Tu pago se completo pero el anuncio no se pudo guardar. Contacta con soporte con la referencia {ref} y lo restauraremos.',
+    adPosted: 'Anuncio publicado', adPostedDesc: 'Tu anuncio esta activo y visible para compradores cercanos.',
+    sowEarned: '+1 moneda SOW ganada',
+    slowDown: 'Mas despacio', genericError: 'Algo salio mal', genericErrorDesc: 'Intentalo de nuevo en un momento.',
+    verifyAction: 'Verificar World ID', notSpecified: 'No especificado', seller: 'Vendedor', photosTap: 'Fotos ({n}) - toca para ampliar',
+  },
+  pt: {
+    home: 'Inicio', all: 'Tudo', reviews: 'Avaliacoes', share: 'Compartilhar', chat: 'Chat', shareCopied: 'Link copiado',
+    enableLocation: 'Ativar localizacao', nearPlace: 'Perto de {place}', locationOn: 'Localizacao ativa',
+    detecting: 'Localizando...', locationCaptured: 'Localizacao capturada',
+    locationOff: 'Localizacao indisponivel', locationOffDesc: 'Ative a localizacao ou digite sua regiao manualmente.',
+    uploadingPhotos: 'Enviando fotos...', confirmingPayment: 'Confirme o pagamento...', publishing: 'Publicando...',
+    uploadFailed: 'Falha no envio', uploadFailedDesc: 'Nao foi possivel enviar suas fotos. Voce nao foi cobrado.',
+    publishFailed: 'Anuncio nao salvo', publishFailedDesc: 'Seu pagamento foi concluido, mas o anuncio nao pode ser salvo. Fale com o suporte com a referencia {ref} e vamos restaura-lo.',
+    adPosted: 'Anuncio publicado', adPostedDesc: 'Seu anuncio esta no ar e visivel para compradores proximos.',
+    sowEarned: '+1 moeda SOW ganha',
+    slowDown: 'Calma', genericError: 'Algo deu errado', genericErrorDesc: 'Tente novamente em instantes.',
+    verifyAction: 'Verificar World ID', notSpecified: 'Nao especificado', seller: 'Vendedor', photosTap: 'Fotos ({n}) - toque para ampliar',
+  },
+  th: {
+    home: 'หน้าแรก', all: 'ทั้งหมด', reviews: 'รีวิว', share: 'แชร์', chat: 'แชท', shareCopied: 'คัดลอกลิงก์แล้ว',
+    enableLocation: 'เปิดตำแหน่ง', nearPlace: 'ใกล้ {place}', locationOn: 'เปิดตำแหน่งแล้ว',
+    detecting: 'กำลังค้นหาตำแหน่ง...', locationCaptured: 'บันทึกตำแหน่งแล้ว',
+    locationOff: 'ไม่พบตำแหน่ง', locationOffDesc: 'เปิดตำแหน่งหรือพิมพ์พื้นที่ของคุณเอง',
+    uploadingPhotos: 'กำลังอัปโหลดรูป...', confirmingPayment: 'ยืนยันการชำระเงิน...', publishing: 'กำลังเผยแพร่...',
+    uploadFailed: 'อัปโหลดไม่สำเร็จ', uploadFailedDesc: 'ไม่สามารถอัปโหลดรูปได้ คุณยังไม่ถูกเรียกเก็บเงิน',
+    publishFailed: 'บันทึกประกาศไม่สำเร็จ', publishFailedDesc: 'ชำระเงินสำเร็จแต่บันทึกประกาศไม่สำเร็จ กรุณาติดต่อฝ่ายสนับสนุนพร้อมรหัส {ref} เพื่อกู้คืนประกาศ',
+    adPosted: 'ประกาศแล้ว', adPostedDesc: 'ประกาศของคุณเผยแพร่และผู้ซื้อใกล้คุณมองเห็นได้แล้ว',
+    sowEarned: 'ได้รับ +1 เหรียญ SOW',
+    slowDown: 'ช้าๆ ก่อน', genericError: 'เกิดข้อผิดพลาด', genericErrorDesc: 'กรุณาลองใหม่อีกครั้ง',
+    verifyAction: 'ยืนยัน World ID', notSpecified: 'ไม่ได้ระบุ', seller: 'ผู้ขาย', photosTap: 'รูป ({n}) - แตะเพื่อซูม',
+  },
+  ja: {
+    home: 'ホーム', all: 'すべて', reviews: 'レビュー', share: '共有', chat: 'チャット', shareCopied: 'リンクをコピーしました',
+    enableLocation: '位置情報をオン', nearPlace: '{place} 付近', locationOn: '位置情報オン',
+    detecting: '位置情報を取得中...', locationCaptured: '位置情報を取得しました',
+    locationOff: '位置情報を取得できません', locationOffDesc: '位置情報をオンにするか、地域を入力してください。',
+    uploadingPhotos: '写真をアップロード中...', confirmingPayment: '支払いを確認中...', publishing: '公開中...',
+    uploadFailed: 'アップロード失敗', uploadFailedDesc: '写真をアップロードできませんでした。料金は発生していません。',
+    publishFailed: '広告を保存できません', publishFailedDesc: '支払いは完了しましたが、広告を保存できませんでした。参照番号 {ref} を添えてサポートにご連絡ください。',
+    adPosted: '広告を投稿しました', adPostedDesc: '広告は公開され、近くの購入者に表示されています。',
+    sowEarned: 'SOWコイン +1',
+    slowDown: '少しお待ちください', genericError: 'エラーが発生しました', genericErrorDesc: 'しばらくしてからもう一度お試しください。',
+    verifyAction: 'World ID を認証', notSpecified: '未設定', seller: '出品者', photosTap: '写真 ({n}) - タップで拡大',
+  },
+  ko: {
+    home: '홈', all: '전체', reviews: '리뷰', share: '공유', chat: '채팅', shareCopied: '링크가 복사되었습니다',
+    enableLocation: '위치 켜기', nearPlace: '{place} 근처', locationOn: '위치 켜짐',
+    detecting: '위치 확인 중...', locationCaptured: '위치를 저장했습니다',
+    locationOff: '위치를 찾을 수 없음', locationOffDesc: '위치를 켜거나 지역을 직접 입력하세요.',
+    uploadingPhotos: '사진 업로드 중...', confirmingPayment: '결제 확인 중...', publishing: '게시 중...',
+    uploadFailed: '업로드 실패', uploadFailedDesc: '사진을 업로드하지 못했습니다. 결제되지 않았습니다.',
+    publishFailed: '광고 저장 안 됨', publishFailedDesc: '결제는 완료되었지만 광고를 저장하지 못했습니다. 참조 번호 {ref}와 함께 지원팀에 문의하시면 복구해 드리겠습니다.',
+    adPosted: '광고 게시됨', adPostedDesc: '광고가 게시되어 근처 구매자에게 표시됩니다.',
+    sowEarned: 'SOW 코인 +1 획득',
+    slowDown: '잠시만요', genericError: '문제가 발생했습니다', genericErrorDesc: '잠시 후 다시 시도해 주세요.',
+    verifyAction: 'World ID 인증', notSpecified: '미지정', seller: '판매자', photosTap: '사진 ({n}) - 탭하여 확대',
+  },
+};
+
 let currentLang = localStorage.getItem('lang') || (navigator.language || 'en').substring(0, 2);
 if (!LOCALES[currentLang]) currentLang = 'en';
 
 function t(key, replacements) {
-  const val = LOCALES[currentLang] && LOCALES[currentLang][key] ? LOCALES[currentLang][key] : LOCALES.en[key] || key;
+  const packs = [EXTRA_LOCALES[currentLang], LOCALES[currentLang], EXTRA_LOCALES.en, LOCALES.en];
+  let val;
+  for (let i = 0; i < packs.length; i++) {
+    if (packs[i] && typeof packs[i][key] === 'string') { val = packs[i][key]; break; }
+  }
+  if (val == null) val = key;
   if (!replacements) return val;
   return Object.entries(replacements).reduce((s, [k, v]) => s.replace('{' + k + '}', v), val);
+}
+
+// Translates every static element that opts in with data-i18n / data-i18n-ph,
+// then re-renders whatever screen is visible so dynamic markup matches.
+function applyTranslations() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
+  document.title = t('appName');
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) loginBtn.textContent = userWallet ? currentUsername : t('connectWallet');
+  const langBtn = document.getElementById('langToggle');
+  if (langBtn) langBtn.textContent = currentLang.toUpperCase();
+  const sub = document.querySelector('.splash-subtitle');
+  if (sub) sub.textContent = t('subtitle');
+  updateLocationChip();
+  const activeScreen = document.querySelector('.app-screen.active');
+  if (activeScreen) {
+    const id = activeScreen.id;
+    if (id === 'screenMyAds') window.openMyAdsScreen();
+    else if (id === 'screenProfile') window.renderProfile();
+    else fetchListings();
+  }
 }
 
 function switchLang(lang) {
   if (!LOCALES[lang]) return;
   currentLang = lang;
   localStorage.setItem('lang', lang);
-  const logo = document.querySelector('.app-logo');
-  if (logo) logo.textContent = t('appName');
-  const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn) loginBtn.innerText = userWallet ? currentUsername : t('connectWallet');
-  const sub = document.querySelector('.splash-subtitle');
-  if (sub) sub.textContent = t('subtitle');
-  const langBtn = document.getElementById('langToggle');
-  if (langBtn) langBtn.textContent = currentLang.toUpperCase();
+  applyTranslations();
 }
 
 const LANG_ORDER = ['en', 'es', 'pt', 'th', 'ja', 'ko'];
@@ -394,17 +502,18 @@ window.cycleLang = function() {
 let userWallet = null;
 let currentUsername = null;
 let currentChatSeller = null;
-let currentLat = 28.6139;
-let currentLng = 77.2090;
+// No city is assumed: null means "location unknown", which shows every listing
+// instead of silently filtering the feed around a hard-coded coordinate.
+let currentLat = null;
+let currentLng = null;
+let locationLabel = '';
 let isVerified = false;
 
 // ==========================================
 // WORLD APP ENVIRONMENT CHECK
 // ==========================================
 function checkWorldAppEnvironment() {
-  let miniOk = false;
-  try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
-  if (!miniOk) {
+  if (!isMiniKitInstalled()) {
     document.getElementById('splashScreen').style.display = 'flex';
     document.getElementById('splashScreen').innerHTML = `<div class="blocker-content"><div class="brand-mark brand-mark-lg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4V3.4H13l7.6 7.6a2 2 0 0 1 0 2.4Z"/><circle cx="8" cy="8" r="1.6"/></svg></div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
     return false;
@@ -412,15 +521,20 @@ function checkWorldAppEnvironment() {
   return true;
 }
 
-function waitForMiniKitReady(timeoutMs = 5000) {
+function isMiniKitInstalled() {
+  try { return typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); }
+  catch (e) { return false; }
+}
+
+// The SDK logs each isInstalled() call when it is not hosted by World App, so
+// poll gently instead of ten times a second.
+function waitForMiniKitReady(timeoutMs = 12000) {
   return new Promise((resolve) => {
     const start = Date.now();
     (function check() {
-      let miniOk = false;
-      try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
-      if (miniOk) { resolve(true); }
+      if (isMiniKitInstalled()) { resolve(true); }
       else if (Date.now() - start > timeoutMs) { resolve(false); }
-      else { setTimeout(check, 100); }
+      else { setTimeout(check, 1500); }
     })();
   });
 }
@@ -564,11 +678,13 @@ function initApp() {
 // POPUP SYSTEM
 // ==========================================
 let popupResolve = null;
-window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
+window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert', allowHtml = false) {
   return new Promise((resolve) => {
+    const popupText = document.getElementById('neonPopupText');
     document.getElementById('neonPopupIcon').innerText = icon;
     document.getElementById('neonPopupTitle').innerText = title;
-    document.getElementById('neonPopupText').innerHTML = text;
+    // Escaped by default; only callers that pass allowHtml can render markup.
+    popupText.innerHTML = allowHtml ? String(text == null ? '' : text) : escapeHtml(String(text == null ? '' : text));
     const inputContainer = document.getElementById('neonPopupInputContainer');
     const alertBtns = document.getElementById('neonPopupAlertBtnContainer');
     const confirmBtns = document.getElementById('neonPopupConfirmBtnContainer');
@@ -576,21 +692,21 @@ window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert') {
     inputContainer.style.display = 'none';
     alertBtns.style.display = 'none';
     confirmBtns.style.display = 'none';
+    popupBox.classList.remove('neon-popup-box--danger', 'neon-popup-box--success', 'neon-popup-box--primary');
     if (type === 'confirm') {
       confirmBtns.style.display = 'flex';
-      popupBox.style.borderColor = 'var(--danger)';
+      popupBox.classList.add('neon-popup-box--danger');
     } else if (type === 'prompt') {
       inputContainer.style.display = 'block';
       document.getElementById('neonPopupInput').value = '';
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'Submit';
-      popupBox.style.borderColor = 'var(--success)';
+      popupBox.classList.add('neon-popup-box--success');
     } else {
       alertBtns.style.display = 'block';
       document.getElementById('neonPopupAlertBtn').innerText = 'OK';
-      popupBox.style.borderColor = 'var(--primary)';
+      popupBox.classList.add('neon-popup-box--primary');
     }
-    popupBox.style.boxShadow = 'var(--shadow-lg)';
     document.getElementById('neonPopup').style.display = 'flex';
     popupResolve = resolve;
     document.getElementById('neonPopupAlertBtn').onclick = function() {
@@ -646,7 +762,7 @@ async function verifyWorldID() {
   try {
     const mk = MiniKit;
     if (!mk || !mk.commandsAsync || !mk.commandsAsync.verify) {
-      console.log('[VERIFY] MiniKit verify not available');
+      return false;
       return false;
     }
     const { finalPayload } = await mk.commandsAsync.verify({
@@ -656,13 +772,10 @@ async function verifyWorldID() {
     if (finalPayload && finalPayload.status === 'success') {
       isVerified = true;
       localStorage.setItem('worldIdVerified', 'true');
-      console.log('[VERIFY] World ID verified successfully');
       return true;
     }
-    console.log('[VERIFY] Verification failed or cancelled:', finalPayload?.status);
     return false;
   } catch (err) {
-    console.log('[VERIFY] Error:', err.message);
     return false;
   }
 }
@@ -676,29 +789,34 @@ async function requestNotificationPermissions() {
     const mk = MiniKit;
     if (mk && mk.commandsAsync && mk.commandsAsync.requestNotificationPermissions) {
       await mk.commandsAsync.requestNotificationPermissions();
-      console.log('[NOTIF] Notification permissions requested');
     }
-  } catch (err) {
-    console.log('[NOTIF] Could not request notifications:', err.message);
-  }
+  } catch (err) {}
 }
 
 // ==========================================
 // MINIKIT COMMANDS: SHARE (when sharing ad)
 // ==========================================
 async function shareAd(title, price) {
+  const shareText = `Check out "${title}" for ${price} WLD on WantSell!`;
   try {
     const mk = MiniKit;
     if (mk && mk.commandsAsync && mk.commandsAsync.share) {
-      await mk.commandsAsync.share({
-        title: `WantSell: ${title}`,
-        text: `Check out "${title}" for ${price} WLD on WantSell!`,
-      });
-      console.log('[SHARE] Ad shared via MiniKit');
+      const { finalPayload } = await mk.commandsAsync.share({ title: `WantSell: ${title}`, text: shareText });
+      if (finalPayload && finalPayload.status === 'success') return;
+      if (finalPayload && finalPayload.status === 'error') return;
     }
-  } catch (err) {
-    console.log('[SHARE] Share failed:', err.message);
-  }
+  } catch (err) {}
+  // Fallback so the button is never inert when the share command is unavailable.
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: `WantSell: ${title}`, text: shareText });
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(shareText);
+      await showNeonPopup(t('share'), t('shareCopied'), 'OK');
+    }
+  } catch (e) {}
 }
 window.shareAd = shareAd;
 
@@ -706,7 +824,12 @@ window.shareAd = shareAd;
 // DOMContentLoaded — APP BOOT
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
+  window.__appBooted = true;
   try { MiniKit.install(APP_ID); } catch (e) {}
+
+  // Language and saved location are restored before anything renders.
+  restoreGeo();
+  applyTranslations();
 
   // Restore saved wallet immediately
   const savedAddress = localStorage.getItem('userWallet');
@@ -729,8 +852,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ready = await waitForMiniKitReady();
   if (!ready) { checkWorldAppEnvironment(); return; }
 
-  // Silent wallet auth
-  if (typeof MiniKit !== 'undefined') {
+  // Refresh the session for a returning user only. A first-time visitor is
+  // never hit with an unexplained signature prompt on launch.
+  if (savedAddress && typeof MiniKit !== 'undefined') {
     try {
       const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
         nonce: randomAlphaNumeric(24),
@@ -757,10 +881,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initApp();
   fetchListings();
 
-  // Request notification permissions (MiniKit command)
-  setTimeout(() => requestNotificationPermissions(), 3000);
-
-  if (!userWallet) detectUserCurrentPosition();
+  detectUserCurrentPosition();
 });
 
 function setupUI() {
@@ -847,51 +968,164 @@ async function handleLogin() {
 // ==========================================
 // LOCATION DETECTION
 // ==========================================
-function detectUserCurrentPosition() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      currentLat = position.coords.latitude;
-      currentLng = position.coords.longitude;
-    }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+const GEO_KEY = 'wantsell_geo_v1';
+const GEO_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+function saveGeo(lat, lng, label) {
+  const nLat = Number(lat), nLng = Number(lng);
+  if (!isFinite(nLat) || !isFinite(nLng)) return;
+  currentLat = nLat;
+  currentLng = nLng;
+  if (typeof label === 'string' && label.trim()) locationLabel = label.trim();
+  try {
+    localStorage.setItem(GEO_KEY, JSON.stringify({ lat: nLat, lng: nLng, label: locationLabel, ts: Date.now() }));
+  } catch (e) {}
+  updateLocationChip();
+}
+
+function restoreGeo() {
+  try {
+    const raw = localStorage.getItem(GEO_KEY);
+    if (!raw) return false;
+    const g = JSON.parse(raw);
+    if (!g || !isFinite(Number(g.lat)) || !isFinite(Number(g.lng))) return false;
+    if (!g.ts || Date.now() - g.ts > GEO_MAX_AGE_MS) return false;
+    currentLat = Number(g.lat);
+    currentLng = Number(g.lng);
+    locationLabel = typeof g.label === 'string' ? g.label : '';
+    return true;
+  } catch (e) { return false; }
+}
+
+function updateLocationChip() {
+  const chip = document.getElementById('locChip');
+  const text = document.getElementById('locChipText');
+  if (!chip || !text) return;
+  if (currentLat == null || currentLng == null) {
+    chip.classList.remove('loc-chip-on');
+    chip.setAttribute('aria-label', t('enableLocation'));
+    text.textContent = t('enableLocation');
+  } else {
+    chip.classList.add('loc-chip-on');
+    text.textContent = locationLabel ? t('nearPlace', { place: locationLabel }) : t('locationOn');
+    chip.setAttribute('aria-label', text.textContent);
   }
 }
 
-window.detectLocation = async function() {
-  if (!requireWallet()) return;
-  const consent = await showNeonPopup(t('locationAccess'), t('locationConsent'), 'OK', 'confirm');
-  if (!consent) return;
-  const addressField = document.getElementById('adAddress');
-  addressField.value = "Detecting precise location...";
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      try {
-        currentLat = position.coords.latitude;
-        currentLng = position.coords.longitude;
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`);
-        const data = await response.json();
-        if (data && data.display_name) { addressField.value = data.display_name; }
-        else { addressField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`; }
-      } catch (e) {
-        addressField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)}`;
-      }
-    }, async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const locData = await res.json();
-        if (locData && locData.city) {
-          currentLat = locData.latitude; currentLng = locData.longitude;
-          addressField.value = `${locData.city}, ${locData.region}, ${locData.country_name}`;
-        } else { addressField.value = ""; await showNeonPopup('Notice', 'Could not auto-detect. Please type manually.', 'OK'); }
-      } catch (err) { addressField.value = ""; await showNeonPopup('Error', 'Location permissions denied. Please type manually.', 'OK'); }
-    }, { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 });
-  } else { addressField.value = ""; await showNeonPopup('Error', 'Geolocation not supported.', 'OK'); }
+function getPosition(options) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) { reject(new Error('unsupported')); return; }
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
 }
+
+async function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+  finally { clearTimeout(timer); }
+}
+
+async function reverseGeocode(lat, lng) {
+  const data = await fetchWithTimeout(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=16`, 6000);
+  if (!data) return '';
+  const a = data.address || {};
+  const parts = [a.suburb || a.neighbourhood || a.village || a.town || a.city, a.state || a.country].filter(Boolean);
+  return parts.join(', ') || data.display_name || '';
+}
+
+async function forwardGeocode(query) {
+  if (!query || query.trim().length < 3) return null;
+  const data = await fetchWithTimeout(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`, 6000);
+  if (!Array.isArray(data) || !data.length) return null;
+  const first = data[0];
+  const lat = Number(first.lat), lng = Number(first.lon);
+  if (!isFinite(lat) || !isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+async function coarseLocate() {
+  const data = await fetchWithTimeout('https://ipapi.co/json/', 4000);
+  if (!data || !isFinite(Number(data.latitude)) || !isFinite(Number(data.longitude))) return null;
+  const label = [data.city, data.region || data.country_name].filter(Boolean).join(', ');
+  return { lat: Number(data.latitude), lng: Number(data.longitude), label };
+}
+
+// Silent refresh only. Never raises a permission prompt on launch: if the user
+// has not already granted location, the feed simply shows every listing.
+async function detectUserCurrentPosition() {
+  try {
+    if (!navigator.permissions || !navigator.permissions.query) return;
+    const perm = await navigator.permissions.query({ name: 'geolocation' });
+    if (perm.state !== 'granted') return;
+    const pos = await getPosition({ enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 });
+    saveGeo(pos.coords.latitude, pos.coords.longitude, locationLabel);
+    fetchListings();
+  } catch (e) {}
+}
+
+// Explicit, consent-first capture shared by the GPS button and the home chip.
+async function captureLocation() {
+  const consent = await showNeonPopup(t('locationAccess'), t('locationConsent'), 'OK', 'confirm');
+  if (!consent) return false;
+  try {
+    const pos = await getPosition({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    const label = await reverseGeocode(lat, lng);
+    saveGeo(lat, lng, label);
+    return true;
+  } catch (e) {}
+  const coarse = await coarseLocate();
+  if (coarse) { saveGeo(coarse.lat, coarse.lng, coarse.label); return true; }
+  return false;
+}
+
+window.detectLocation = async function() {
+  const btn = document.getElementById('detectLocationBtn');
+  const field = document.getElementById('adAddress');
+  if (btn && btn.disabled) return;
+  const btnLabel = btn ? btn.querySelector('span') : null;
+  const previousLabel = btnLabel ? btnLabel.textContent : '';
+  if (btn) { btn.disabled = true; btn.classList.add('is-busy'); }
+  if (btnLabel) btnLabel.textContent = t('detecting');
+  if (field) { field.classList.add('is-busy'); field.placeholder = t('detecting'); }
+  try {
+    const ok = await captureLocation();
+    if (ok) {
+      if (field) field.value = locationLabel || `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
+      if (btn) btn.classList.add('is-done');
+    } else if (field) {
+      await showNeonPopup(t('locationOff'), t('locationOffDesc'), 'OK');
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.classList.remove('is-busy'); }
+    if (btnLabel) btnLabel.textContent = previousLabel || t('detectGps');
+    if (field) { field.classList.remove('is-busy'); field.placeholder = t('tapDetect'); }
+  }
+};
+
+window.enableHomeLocation = async function() {
+  if (currentLat != null && currentLng != null) {
+    await showNeonPopup(t('locationOn'), locationLabel || '', 'OK');
+    return;
+  }
+  const chip = document.getElementById('locChip');
+  if (chip) chip.classList.add('is-busy');
+  const ok = await captureLocation();
+  if (chip) chip.classList.remove('is-busy');
+  if (ok) { fetchListings(); }
+  else { await showNeonPopup(t('locationOff'), t('locationOffDesc'), 'OK'); }
+};
 
 // ==========================================
 // DISTANCE CALC
 // ==========================================
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
+  if (![lat1, lon1, lat2, lon2].every(v => typeof v === 'number' && isFinite(v))) return null;
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -930,12 +1164,13 @@ function timeAgo(dateStr) {
 // BADGES
 // ==========================================
 function getConditionBadge(cond) {
-  const map = { 'new': { text: 'Brand New', cls: 'new' }, 'like_new': { text: 'Like New', cls: 'like-new' }, 'good': { text: 'Good', cls: 'good' }, 'fair': { text: 'Fair', cls: 'fair' }, 'used': { text: 'Used', cls: 'used' } };
-  return map[cond] || map['used'];
+  const map = { 'new': t('brandNew'), 'like_new': t('likeNew'), 'good': t('good'), 'fair': t('fair'), 'used': t('used') };
+  const cls = { 'new': 'new', 'like_new': 'like-new', 'good': 'good', 'fair': 'fair', 'used': 'used' }[cond] || 'used';
+  return { text: map[cond] || map['used'], cls };
 }
 function getPriceTypeBadge(pt) {
-  if (pt === 'negotiable') return { text: 'Negotiable', cls: 'negotiable' };
-  return { text: 'Fixed', cls: 'fixed' };
+  if (pt === 'negotiable') return { text: t('negotiable'), cls: 'negotiable' };
+  return { text: t('fixedPrice'), cls: 'fixed' };
 }
 
 // ==========================================
@@ -989,13 +1224,24 @@ function compressImage(file, maxWidth = 1000, quality = 0.7) {
 }
 
 // ==========================================
-// POST AD — with MiniKit verify + pay
+// POST AD — upload, then MiniKit pay, then publish
 // ==========================================
+let isPosting = false;
+
 async function handlePostAd(e) {
   e.preventDefault();
+  if (isPosting) return;
   if (!requireWallet()) return;
-  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup('Slow Down', t('postAdRate'), 'OK'); return; }
-  if (!supabase) { await showNeonPopup('Offline', t('dbUnavailable'), 'OK'); return; }
+
+  const postBtn = document.getElementById('postAdSubmit');
+  const setStage = (label) => {
+    if (postBtn) { postBtn.disabled = true; postBtn.classList.add('is-loading'); postBtn.textContent = label; }
+  };
+  const resetBtn = () => {
+    if (postBtn) { postBtn.disabled = false; postBtn.classList.remove('is-loading'); postBtn.textContent = t('postAdBtn'); }
+  };
+  if (!checkRateLimit('postAd', 10000)) { await showNeonPopup(t('slowDown'), t('postAdRate'), 'OK'); return; }
+  if (!supabase) { await showNeonPopup(t('genericError'), t('dbUnavailable'), 'OK'); return; }
 
   const titleV = validateTitle(document.getElementById('title').value);
   if (!titleV.valid) { await showNeonPopup(t('invalidTitle'), titleV.error, 'OK'); return; }
@@ -1015,13 +1261,6 @@ async function handlePostAd(e) {
     await showNeonPopup(t('ruleViolation'), t('noExternalLinks'), 'OK'); return;
   }
 
-  // MINIKIT COMMAND: Verify World ID before posting
-  const verified = await verifyWorldID();
-  if (!verified) {
-    await showNeonPopup(t('verifyRequired'), t('verifyRequiredDesc'), 'OK');
-    return;
-  }
-
   const fileInput = document.getElementById('imageInput');
   const files = fileInput.files;
   if (files.length === 0) { await showNeonPopup(t('imageMissing'), t('imageMissingDesc'), 'OK'); return; }
@@ -1030,36 +1269,61 @@ async function handlePostAd(e) {
 
   if (!checkWorldAppEnvironment()) { return; }
 
-  // MINIKIT COMMAND: Pay 1 WLD
+  isPosting = true;
+
+  // Photos are uploaded BEFORE payment. A failed upload must never cost WLD.
+  setStage(t('uploadingPhotos'));
+  const imageUrls = ['', '', '', ''];
+  for (let i = 0; i < files.length; i++) {
+    try {
+      const cf = await compressImage(files[i]);
+      const fn = `${Date.now()}_${randomAlphaNumeric(8)}.jpg`;
+      const { error: ue } = await supabase.storage.from('listing').upload(fn, cf);
+      if (ue) {
+        resetBtn(); isPosting = false;
+        await showNeonPopup(t('uploadFailed'), t('uploadFailedDesc'), 'OK');
+        return;
+      }
+      const { data: pd } = supabase.storage.from('listing').getPublicUrl(fn);
+      imageUrls[i] = pd.publicUrl;
+    } catch (imgErr) {
+      resetBtn(); isPosting = false;
+      await showNeonPopup(t('uploadFailed'), t('uploadFailedDesc'), 'OK');
+      return;
+    }
+  }
+
+  // Pin the ad to the typed address when GPS was never captured, so listings
+  // are not published with someone else's coordinates.
+  if (currentLat == null || currentLng == null) {
+    setStage(t('detecting'));
+    const geo = await forwardGeocode(addrV.clean);
+    if (geo) saveGeo(geo.lat, geo.lng, addrV.clean);
+  }
+
+  // MINIKIT COMMAND: Pay the 1 WLD listing fee
+  setStage(t('confirmingPayment'));
   let paymentSuccessful = false;
   const paymentRef = randomAlphaNumeric(16);
   try {
     const WLD_SYMBOL = (Tokens && Tokens.WLD) || 'WLD';
-    const WLD_TO_DEC = tokenToDecimals;
-    const tokenAmount = WLD_TO_DEC ? WLD_TO_DEC(1, WLD_SYMBOL).toString() : '1000000000000000000';
-    console.log(`[PAY] Sending ${tokenAmount} ${WLD_SYMBOL} to ${ADMIN_WALLET}`);
+    const tokenAmount = tokenToDecimals ? tokenToDecimals(1, WLD_SYMBOL).toString() : '1000000000000000000';
     const { finalPayload } = await MiniKit.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
       tokens: [{ symbol: WLD_SYMBOL, token_amount: tokenAmount }],
       description: 'Listing Fee: 1 WLD',
     });
     paymentSuccessful = (finalPayload?.status === 'success');
-    if (paymentSuccessful) console.log(`[PAYMENT OK] ref=${paymentRef}`);
-  } catch (err) { console.error('[PAYMENT FAILED]', err); }
+  } catch (err) { paymentSuccessful = false; }
 
-  if (!paymentSuccessful) { await showNeonPopup(t('paymentFailed'), t('paymentFailedDesc'), 'OK'); return; }
-
-  let imageUrls = ['', '', '', ''];
-  for (let i = 0; i < files.length; i++) {
-    try {
-      const cf = await compressImage(files[i]);
-      const fn = `${Date.now()}_${randomAlphaNumeric(8)}.jpg`;
-      const { error: ue } = await supabase.storage.from('listing').upload(fn, cf);
-      if (ue) { await showNeonPopup('Upload Error', 'Image upload failed. Try again.', 'OK'); return; }
-      const { data: pd } = supabase.storage.from('listing').getPublicUrl(fn);
-      imageUrls[i] = pd.publicUrl;
-    } catch (imgErr) { await showNeonPopup('Image Error', imgErr.message || 'Process failed.', 'OK'); return; }
+  if (!paymentSuccessful) {
+    resetBtn();
+    isPosting = false;
+    await showNeonPopup(t('paymentFailed'), t('paymentFailedDesc'), 'OK');
+    return;
   }
+
+  setStage(t('publishing'));
 
   const listingPayload = {
     seller_address: userWallet, seller_name: currentUsername,
@@ -1081,24 +1345,30 @@ async function handlePostAd(e) {
     insertError = retry.error;
   }
 
-  if (!insertError) {
-    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-    const { data: recentAds } = await supabase.from('listings').select('id').eq('seller_address', userWallet).eq('title', titleV.clean).gte('created_at', twoMinAgo);
-    if ((recentAds || []).length <= 1) {
-      const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
-      let newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
-      await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
-      updateSowBadge();
-      await showNeonPopup('Success', `Ad posted successfully!<br><span class="sow-earned-text">+1 SOW Coin Earned!</span>`, 'OK');
-    } else {
-      await showNeonPopup('Ad Posted', 'Your ad is now live.', 'OK');
-    }
-    document.getElementById('adForm').reset();
-    window.switchTab('screenHome');
-  } else {
-    console.error('[DB ERROR]', insertError);
-    await showNeonPopup('Error', 'Could not save your ad. Try again.', 'OK');
+  resetBtn();
+  isPosting = false;
+
+  if (insertError) {
+    // The user already paid: hand them a reference they can quote to support.
+    await showNeonPopup(t('publishFailed'), t('publishFailedDesc', { ref: paymentRef }), 'OK');
+    return;
   }
+
+  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const { data: recentAds } = await supabase.from('listings').select('id').eq('seller_address', userWallet).eq('title', titleV.clean).gte('created_at', twoMinAgo);
+  if ((recentAds || []).length <= 1) {
+    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
+    const newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
+    await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
+    updateSowBadge();
+    await showNeonPopup(t('adPosted'), t('adPostedDesc') + '<br><span class="sow-earned-text">' + escapeHtml(t('sowEarned')) + '</span>', 'OK', 'alert', true);
+  } else {
+    await showNeonPopup(t('adPosted'), t('adPostedDesc'), 'OK');
+  }
+  document.getElementById('adForm').reset();
+  window.switchTab('screenHome');
+  // Ask for notifications after a real action instead of on launch.
+  setTimeout(requestNotificationPermissions, 1200);
 }
 
 // ==========================================
@@ -1130,19 +1400,28 @@ async function fetchListings() {
 
   container.innerHTML = showSkeleton(4);
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    container.innerHTML = emptyState(t('networkError'));
+    return;
+  }
+  if (!data || data.length === 0) {
     container.innerHTML = emptyState(t('noListings'));
     return;
   }
 
+  // Distance filtering only applies once we actually know where the user is.
+  // Listings without coordinates are never hidden by the radius filter.
+  const hasUserLocation = currentLat != null && currentLng != null;
   const filteredData = data.filter((item) => {
-    const itemLat = item.lat || 28.6139;
-    const itemLng = item.lng || 77.2090;
+    if (searchText && !String(item.title || '').toLowerCase().includes(searchText)) return false;
+    if (!hasUserLocation) return true;
+    const itemLat = item.lat != null && item.lat !== '' && isFinite(Number(item.lat)) ? Number(item.lat) : null;
+    const itemLng = item.lng != null && item.lng !== '' && isFinite(Number(item.lng)) ? Number(item.lng) : null;
+    if (itemLat == null || itemLng == null) return true;
     const realDist = calculateDistance(currentLat, currentLng, itemLat, itemLng);
+    if (realDist == null) return true;
     item.calculatedDistance = realDist;
-    if (realDist > maxDistance) return false;
-    if (searchText && !item.title.toLowerCase().includes(searchText)) return false;
-    return true;
+    return realDist <= maxDistance;
   });
 
   if (filteredData.length === 0) {
@@ -1162,6 +1441,7 @@ async function fetchListings() {
     const cBadge = getConditionBadge(item.condition);
     const pBadge = getPriceTypeBadge(item.price_type);
     const posted = timeAgo(item.created_at);
+    const distLabel = typeof item.calculatedDistance === 'number' ? `<span class="card-distance">${item.calculatedDistance} km</span>` : '';
     return `
       <div class="listing-card" onclick="window.openAdDetails('${iId}')">
         <div class="card-media">
@@ -1176,11 +1456,11 @@ async function fetchListings() {
           <h3 class="card-title">${iTitle}</h3>
           <div class="card-meta">
             <span class="card-seller"><span class="card-avatar">${dInitial}</span><span>${dName}</span></span>
-            <span class="card-time">${posted}</span>
+            <span class="card-meta-right">${distLabel}<span class="card-time">${posted}</span></span>
           </div>
         </div>
         <div class="card-actions">
-          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.8L3 20.5l1.4-4.7A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>Chat</button>
+          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.8L3 20.5l1.4-4.7A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>${t('chat')}</button>
           <button onclick="event.stopPropagation(); window.shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="btn-chat-seller btn-share" aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.8"/><circle cx="6" cy="12" r="2.8"/><circle cx="18" cy="18.5" r="2.8"/><path d="m8.4 10.6 7.2-3.8M8.4 13.4l7.2 3.8"/></svg></button>
         </div>
       </div>
@@ -1205,7 +1485,7 @@ window.openAdDetails = async function(id) {
   const pBadge = getPriceTypeBadge(data.price_type);
   const posted = timeAgo(data.created_at);
   const dist = data.calculatedDistance ? ` (~${escapeHtml(data.calculatedDistance)} km)` : '';
-  const verifiedBadge = isVerified ? '<span class="verify-badge">Verified</span>' : '';
+  const verifiedBadge = isVerified ? `<span class="verify-badge">${t('verified')}</span>` : '';
   document.getElementById('adDetailsBody').innerHTML = `
     <div>
       <div class="detail-meta">
@@ -1222,22 +1502,22 @@ window.openAdDetails = async function(id) {
         <h3 class="detail-price">${escapeHtml(data.price)} WLD</h3>
         <span class="card-seller">${escapeHtml(data.country)}${dist}</span>
       </div>
-      <div class="detail-section"><b>Location:</b> ${escapeHtml(data.address || 'Not specified')}</div>
+      <div class="detail-section"><b>${t('location')}:</b> ${escapeHtml(data.address || t('notSpecified'))}</div>
       <div class="detail-seller-bar">
         <div>
-          <span class="detail-seller-label">Seller</span>
+          <span class="detail-seller-label">${t('seller')}</span>
           <h4 class="detail-seller-name">${dName}</h4>
         </div>
-        <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">Reviews</button>
+        <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">${t('reviews')}</button>
       </div>
       <hr class="detail-divider">
-      <h4 class="detail-section-title">Photos (${allImages.length}) - Tap to Zoom</h4>
+      <h4 class="detail-section-title">${t('photosTap', { n: allImages.length })}</h4>
       <div class="detail-images-scroll">${imagesHtml}</div>
-      <h4 class="detail-section-title">Description</h4>
+      <h4 class="detail-section-title">${t('description')}</h4>
       <p class="detail-section detail-description">${escapeHtml(data.description)}</p>
       <div class="detail-action-bar">
-        <button class="btn-chat-seller btn-back" onclick="document.getElementById('adDetailsModal').style.display='none';">Back</button>
-        <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">Chat with Seller</button>
+        <button class="btn-chat-seller btn-back" onclick="document.getElementById('adDetailsModal').style.display='none';">${t('back')}</button>
+        <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">${t('chatSeller')}</button>
       </div>
     </div>`;
   document.getElementById('adDetailsModal').style.display = 'flex';
@@ -1252,7 +1532,7 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   if (sellerWallet === userWallet) { await showNeonPopup('Notice', 'You cannot chat with yourself!', 'OK'); return; }
   currentChatSeller = sellerWallet;
   window.currentChatAdTitle = adTitle;
-  document.getElementById('chatTitle').innerText = `Chat with ${sellerName || 'User'}`;
+  document.getElementById('chatTitle').innerText = t('chatWith', { name: sellerName || 'User' });
   const chatBox = document.getElementById('chatMessages');
   chatBox.innerHTML = `<p class="loading-placeholder">${t('loadChat')}</p>`;
   document.getElementById('chatModal').style.display = 'flex';
@@ -1284,7 +1564,7 @@ window.sendMessage = async function() {
   input.value = '';
   chatBox.scrollTop = chatBox.scrollHeight;
   const { error } = await supabase.from('chats').insert([{ sender: userWallet, receiver: currentChatSeller, ad_title: window.currentChatAdTitle, message: msg }]);
-  if (error) console.error('[CHAT ERROR]', error);
+  if (error) { await showNeonPopup(t('genericError'), t('genericErrorDesc'), 'OK'); return; }
   // MINIKIT COMMAND: Notify seller of new message
   try {
     const mk = MiniKit;
@@ -1294,9 +1574,9 @@ window.sendMessage = async function() {
         title: 'New Message',
         message: `${currentUsername} sent you a message about "${window.currentChatAdTitle}"`,
       });
-      console.log('[NOTIFY] Seller notified of new message');
+      return;
     }
-  } catch (notifErr) { console.log('[NOTIFY] Failed:', notifErr.message); }
+  } catch (notifErr) {}
 };
 
 // ==========================================
@@ -1333,7 +1613,7 @@ window.submitReview = async function() {
   if (ex) { await showNeonPopup('Already Reviewed', 'One review per buyer per seller.', 'OK'); return; }
   const { error } = await supabase.from('reviews').insert([{ seller_address: window.targetSellerAddress, buyer_address: userWallet, buyer_name: currentUsername, rating, comment }]);
   if (!error) { document.getElementById('reviewComment').value = ''; await showNeonPopup('Success', 'Review submitted!', 'OK'); window.openReviews(window.targetSellerAddress, 'Seller'); }
-  else { console.error('[REVIEW ERROR]', error); await showNeonPopup('Error', 'Could not submit review.', 'OK'); }
+  else { await showNeonPopup(t('genericError'), t('genericErrorDesc'), 'OK'); }
 };
 
 // ==========================================
@@ -1404,7 +1684,7 @@ window.openMyAdsScreen = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
 
-  document.getElementById('myAdsBalanceCard').innerHTML = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">SOW Balance</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">Rankings</button></div>`;
+  document.getElementById('myAdsBalanceCard').innerHTML = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">${t('yourSowBalance')}</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">${t('rankings')}</button></div>`;
 
   const { data: allMyAds } = await supabase.from('listings').select('*').eq('seller_address', userWallet).neq('status', 'deleted').order('created_at', { ascending: false });
 
@@ -1539,17 +1819,17 @@ window.renderProfile = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
-  const verifiedHtml = isVerified ? '<span class="verify-badge verify-badge-inline">Verified</span>' : '';  container.innerHTML = `
+  const verifiedHtml = isVerified ? `<span class="verify-badge verify-badge-inline">${t('verified')}</span>` : '';  container.innerHTML = `
     <div class="profile-card">
       <div class="profile-hero">
         <div class="profile-avatar">${escapeHtml((currentUsername || 'U').trim().charAt(0).toUpperCase() || 'U')}</div>
         <div>
-          <p class="profile-label">Profile</p>
+          <p class="profile-label">${t('profile')}</p>
           <h3 class="profile-name">${escapeHtml(currentUsername)}${verifiedHtml}</h3>
         </div>
       </div>
       <div class="profile-balance-section">
-        <p class="profile-label">SOW Balance</p>
+        <p class="profile-label">${t('yourSowBalance')}</p>
         <p class="sow-stats-value">${earnedSow}</p>
       </div>
     </div>
@@ -1557,22 +1837,22 @@ window.renderProfile = async function() {
     <div class="profile-actions">
       <button onclick="window.openLeaderboard()" class="btn-profile-action btn-leaderboard">
         <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2.5a2.5 2.5 0 0 1-2.5 2.5M7 5H4.5A2.5 2.5 0 0 0 7 7.5"/></svg>
-        <span class="action-text">View Leaderboard</span>
+        <span class="action-text">${t('viewLeaderboard')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>
       <button onclick="window.verifyWorldID().then(v => { if(v) { isVerified=true; window.renderProfile(); } })" class="btn-profile-action btn-verify">
         <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 10-4-2.2-7-5.5-7-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>
-        <span class="action-text">Verify World ID</span>
+        <span class="action-text">${t('verifyAction')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>
       <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">
         <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
-        <span class="action-text">Support</span>
+        <span class="action-text">${t('support')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </a>
       ${isAdmin ? `<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">
         <svg viewBox="0 0 24 24"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8Z"/><path d="M4 8l8 4.5L20 8M12 12.5v8"/></svg>
-        <span class="action-text">Admin Panel</span>
+        <span class="action-text">${t('adminPanel')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>` : ''}
     </div>
