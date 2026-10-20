@@ -61,6 +61,9 @@
         <div class="search-shell">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
           <input type="text" id="searchInput" class="search-input" placeholder="Search ads..." data-i18n-ph="searchAds" maxlength="50">
+          <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" onclick="window.clearSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
         </div>
 
         <!-- Location -->
@@ -148,14 +151,12 @@
           </div>
         </div>
 
-        <!-- Promo Banner -->
-        <div class="promo-banner">
-          <p class="promo-banner-title" data-i18n="localMarketplace">Local Marketplace</p>
-          <p class="promo-banner-subtitle" data-i18n="marketplaceDesc">Buy and sell items near you. 1 WLD per listing.</p>
-          <div class="promo-banner-badges">
-            <span class="badge badge-negotiable" data-i18n="perAd">1 WLD per ad</span>
-            <span class="badge badge-new" data-i18n="earnSow">Earn SOW coins</span>
-          </div>
+        <!-- Fee + reward strip -->
+        <div class="fee-strip">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4V3.4H13l7.6 7.6a2 2 0 0 1 0 2.4Z"/><circle cx="8" cy="8" r="1.6"/></svg>
+          <strong data-i18n="perAd">1 WLD per ad</strong>
+          <span class="sep" aria-hidden="true"></span>
+          <span data-i18n="earnSow">Earn SOW coins</span>
         </div>
 
         <!-- SOW Stats Card -->
@@ -173,7 +174,7 @@
         </div>
 
         <!-- Listings Feed -->
-        <div class="feed-header"><h2 data-i18n="exploreListings">Explore Listings</h2></div>
+        <div class="feed-header"><h2 data-i18n="exploreListings">Explore Listings</h2><span class="feed-count" id="feedCount"></span></div>
         <div id="listingsContainer" class="listings-list">
           <div class="skeleton-card"><div class="skeleton sk-media"></div><div class="sk-body"><div class="skeleton sk-price"></div><div class="skeleton skeleton-text skeleton-text-70"></div><div class="skeleton skeleton-text-sm"></div></div></div>
           <div class="skeleton-card"><div class="skeleton sk-media"></div><div class="sk-body"><div class="skeleton sk-price"></div><div class="skeleton skeleton-text skeleton-text-70"></div><div class="skeleton skeleton-text-sm"></div></div></div>
@@ -198,7 +199,16 @@
           <div class="form-row"><div class="form-group half"><label data-i18n="condition">Condition</label><select id="adCondition" required><option value="" disabled selected>Condition</option><option value="new">Brand New</option><option value="like_new">Like New</option><option value="good">Good</option><option value="fair">Fair</option><option value="used">Used</option></select></div><div class="form-group half"><label>Price Type</label><select id="priceType" required><option value="" disabled selected>Price Type</option><option value="negotiable">Negotiable</option><option value="fixed">Fixed Price</option></select></div></div>
           <div class="form-group"><label data-i18n="description">Description</label><textarea id="description" placeholder="Describe your item..." data-i18n-ph="describeItem" required maxlength="500"></textarea></div>
           <div class="form-group"><label data-i18n="priceWld">Price (WLD)</label><input type="number" id="price" placeholder="0.00" required min="0.01" max="1000000" step="0.01"></div>
-          <div class="form-group"><label data-i18n="photosMax">Photos (max 4)</label><input type="file" id="imageInput" multiple accept="image/*" required></div>
+          <div class="form-group">
+            <label data-i18n="photosMax">Photos (max 4)</label>
+            <div class="photo-field">
+              <div class="photo-input-row">
+                <input type="file" id="imageInput" multiple accept="image/*" required>
+                <span class="photo-hint" id="photoCount">0 / 4</span>
+              </div>
+              <div class="photo-grid" id="photoGrid" aria-live="polite"></div>
+            </div>
+          </div>
           <button type="submit" id="postAdSubmit" class="btn-post-ad" data-i18n="postAdBtn">Post Ad (1 WLD)</button>
         </form>
       </div>
@@ -220,11 +230,6 @@
         <div id="profileContainer"></div>
       </div>
     </div>
-
-    <!-- FAB -->
-    <button class="fab" id="fabPost" style="display:none;" aria-label="Post an ad">
-      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
 
     <!-- Tab Bar -->
     <nav class="tab-bar">
@@ -329,6 +334,8 @@
       <div class="blocker-badge">Access Denied Outside World App</div>
     </div>
   </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
 
   <!-- Popup System -->
   <div id="neonPopup" class="neon-popup-overlay" style="display:none;">

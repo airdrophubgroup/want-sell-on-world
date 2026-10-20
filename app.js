@@ -370,7 +370,7 @@ const EXTRA_LOCALES = {
     uploadFailed: 'Upload Failed', uploadFailedDesc: 'Your photos could not be uploaded. You have not been charged.',
     publishFailed: 'Ad Not Saved', publishFailedDesc: 'Your payment went through but the ad could not be saved. Contact support with reference {ref} and we will restore it.',
     adPosted: 'Ad Posted', adPostedDesc: 'Your ad is live and visible to buyers nearby.',
-    sowEarned: '+1 SOW coin earned',
+    sowEarned: '+1 SOW coin earned', postFirstAd: 'Post the first ad', widenRadius: 'Search wider', retry: 'Try again',
     slowDown: 'Slow Down', genericError: 'Something Went Wrong', genericErrorDesc: 'Please try again in a moment.',
     verifyAction: 'Verify World ID', notSpecified: 'Not specified', seller: 'Seller', photosTap: 'Photos ({n}) - tap to zoom',
   },
@@ -383,7 +383,7 @@ const EXTRA_LOCALES = {
     uploadFailed: 'Error al subir', uploadFailedDesc: 'No se pudieron subir tus fotos. No se te ha cobrado.',
     publishFailed: 'Anuncio no guardado', publishFailedDesc: 'Tu pago se completo pero el anuncio no se pudo guardar. Contacta con soporte con la referencia {ref} y lo restauraremos.',
     adPosted: 'Anuncio publicado', adPostedDesc: 'Tu anuncio esta activo y visible para compradores cercanos.',
-    sowEarned: '+1 moneda SOW ganada',
+    sowEarned: '+1 moneda SOW ganada', postFirstAd: 'Publica el primer anuncio', widenRadius: 'Ampliar busqueda', retry: 'Reintentar',
     slowDown: 'Mas despacio', genericError: 'Algo salio mal', genericErrorDesc: 'Intentalo de nuevo en un momento.',
     verifyAction: 'Verificar World ID', notSpecified: 'No especificado', seller: 'Vendedor', photosTap: 'Fotos ({n}) - toca para ampliar',
   },
@@ -396,7 +396,7 @@ const EXTRA_LOCALES = {
     uploadFailed: 'Falha no envio', uploadFailedDesc: 'Nao foi possivel enviar suas fotos. Voce nao foi cobrado.',
     publishFailed: 'Anuncio nao salvo', publishFailedDesc: 'Seu pagamento foi concluido, mas o anuncio nao pode ser salvo. Fale com o suporte com a referencia {ref} e vamos restaura-lo.',
     adPosted: 'Anuncio publicado', adPostedDesc: 'Seu anuncio esta no ar e visivel para compradores proximos.',
-    sowEarned: '+1 moeda SOW ganha',
+    sowEarned: '+1 moeda SOW ganha', postFirstAd: 'Publique o primeiro anuncio', widenRadius: 'Ampliar busca', retry: 'Tentar de novo',
     slowDown: 'Calma', genericError: 'Algo deu errado', genericErrorDesc: 'Tente novamente em instantes.',
     verifyAction: 'Verificar World ID', notSpecified: 'Nao especificado', seller: 'Vendedor', photosTap: 'Fotos ({n}) - toque para ampliar',
   },
@@ -409,7 +409,7 @@ const EXTRA_LOCALES = {
     uploadFailed: 'อัปโหลดไม่สำเร็จ', uploadFailedDesc: 'ไม่สามารถอัปโหลดรูปได้ คุณยังไม่ถูกเรียกเก็บเงิน',
     publishFailed: 'บันทึกประกาศไม่สำเร็จ', publishFailedDesc: 'ชำระเงินสำเร็จแต่บันทึกประกาศไม่สำเร็จ กรุณาติดต่อฝ่ายสนับสนุนพร้อมรหัส {ref} เพื่อกู้คืนประกาศ',
     adPosted: 'ประกาศแล้ว', adPostedDesc: 'ประกาศของคุณเผยแพร่และผู้ซื้อใกล้คุณมองเห็นได้แล้ว',
-    sowEarned: 'ได้รับ +1 เหรียญ SOW',
+    sowEarned: 'ได้รับ +1 เหรียญ SOW', postFirstAd: 'ลงประกาศชิ้นแรก', widenRadius: 'ค้นหาให้กว้างขึ้น', retry: 'ลองอีกครั้ง',
     slowDown: 'ช้าๆ ก่อน', genericError: 'เกิดข้อผิดพลาด', genericErrorDesc: 'กรุณาลองใหม่อีกครั้ง',
     verifyAction: 'ยืนยัน World ID', notSpecified: 'ไม่ได้ระบุ', seller: 'ผู้ขาย', photosTap: 'รูป ({n}) - แตะเพื่อซูม',
   },
@@ -422,7 +422,7 @@ const EXTRA_LOCALES = {
     uploadFailed: 'アップロード失敗', uploadFailedDesc: '写真をアップロードできませんでした。料金は発生していません。',
     publishFailed: '広告を保存できません', publishFailedDesc: '支払いは完了しましたが、広告を保存できませんでした。参照番号 {ref} を添えてサポートにご連絡ください。',
     adPosted: '広告を投稿しました', adPostedDesc: '広告は公開され、近くの購入者に表示されています。',
-    sowEarned: 'SOWコイン +1',
+    sowEarned: 'SOWコイン +1', postFirstAd: '最初の広告を投稿', widenRadius: '範囲を広げる', retry: '再試行',
     slowDown: '少しお待ちください', genericError: 'エラーが発生しました', genericErrorDesc: 'しばらくしてからもう一度お試しください。',
     verifyAction: 'World ID を認証', notSpecified: '未設定', seller: '出品者', photosTap: '写真 ({n}) - タップで拡大',
   },
@@ -435,7 +435,7 @@ const EXTRA_LOCALES = {
     uploadFailed: '업로드 실패', uploadFailedDesc: '사진을 업로드하지 못했습니다. 결제되지 않았습니다.',
     publishFailed: '광고 저장 안 됨', publishFailedDesc: '결제는 완료되었지만 광고를 저장하지 못했습니다. 참조 번호 {ref}와 함께 지원팀에 문의하시면 복구해 드리겠습니다.',
     adPosted: '광고 게시됨', adPostedDesc: '광고가 게시되어 근처 구매자에게 표시됩니다.',
-    sowEarned: 'SOW 코인 +1 획득',
+    sowEarned: 'SOW 코인 +1 획득', postFirstAd: '첫 광고 올리기', widenRadius: '범위 넓히기', retry: '다시 시도',
     slowDown: '잠시만요', genericError: '문제가 발생했습니다', genericErrorDesc: '잠시 후 다시 시도해 주세요.',
     verifyAction: 'World ID 인증', notSpecified: '미지정', seller: '판매자', photosTap: '사진 ({n}) - 탭하여 확대',
   },
@@ -619,9 +619,12 @@ function showSkeleton(count) {
 }
 
 // Centered illustrated empty state (World guideline: empty states middle-aligned)
-function emptyState(title, sub) {
+function emptyState(title, sub, ctaLabel, ctaAction) {
   const safeTitle = escapeHtml(String(title == null ? '' : title));
   const safeSub = sub ? escapeHtml(String(sub)) : '';
+  const cta = ctaLabel
+    ? `<button type="button" class="empty-cta" onclick="${escapeAttr(ctaAction || '')}">${escapeHtml(ctaLabel)}</button>`
+    : '';
   return `<div class="empty-state">
     <svg class="empty-illustration" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <rect x="16" y="22" width="64" height="50" rx="8"/>
@@ -631,8 +634,103 @@ function emptyState(title, sub) {
     </svg>
     <h3 class="empty-title">${safeTitle}</h3>
     ${safeSub ? `<p class="empty-sub">${safeSub}</p>` : ''}
+    ${cta}
   </div>`;
 }
+
+// Paints the filled portion of the hand-drawn range track.
+function syncRangeFill(input) {
+  if (!input) return;
+  const min = Number(input.min) || 0;
+  const max = Number(input.max) || 100;
+  const pct = ((Number(input.value) - min) / (max - min)) * 100;
+  input.style.setProperty('--pct', pct + '%');
+}
+
+function syncSearchClear() {
+  const shell = document.querySelector('.search-shell');
+  const input = document.getElementById('searchInput');
+  if (shell && input) shell.classList.toggle('has-value', input.value.trim().length > 0);
+}
+
+window.clearSearch = function () {
+  const input = document.getElementById('searchInput');
+  if (!input) return;
+  input.value = '';
+  syncSearchClear();
+  fetchListings();
+  input.focus();
+};
+
+window.widenRadius = function () {
+  const input = document.getElementById('distanceRange');
+  if (!input) return;
+  input.value = input.max;
+  syncRangeFill(input);
+  const label = document.getElementById('rangeValue');
+  if (label) label.innerText = input.value + ' km';
+  fetchListings();
+};
+
+// Selected photos are shown before paying, so the seller sees exactly what
+// will be published and can drop one without re-picking the rest.
+let photoFiles = [];
+let photoUrls = [];
+function renderPhotoPreviews() {
+  const input = document.getElementById('imageInput');
+  const grid = document.getElementById('photoGrid');
+  const counter = document.getElementById('photoCount');
+  if (!input || !grid) return;
+
+  const picked = Array.from(input.files || []);
+  if (picked.length > 4) {
+    const dt = new DataTransfer();
+    picked.slice(0, 4).forEach((f) => dt.items.add(f));
+    input.files = dt.files;
+  }
+  photoFiles = Array.from(input.files || []);
+
+  photoUrls.forEach((u) => URL.revokeObjectURL(u));
+  photoUrls = photoFiles.map((f) => URL.createObjectURL(f));
+
+  grid.innerHTML = photoUrls
+    .map((url, i) => `<div class="photo-tile"><img src="${url}" alt=""><button type="button" class="photo-remove" aria-label="Remove photo" onclick="window.removePhoto(${i})">&#215;</button></div>`)
+    .join('');
+  if (counter) counter.textContent = `${photoFiles.length} / 4`;
+}
+
+window.removePhoto = function (index) {
+  const input = document.getElementById('imageInput');
+  if (!input) return;
+  const dt = new DataTransfer();
+  photoFiles.forEach((f, i) => { if (i !== index) dt.items.add(f); });
+  input.files = dt.files;
+  renderPhotoPreviews();
+};
+
+function resetPhotoPreviews() {
+  photoFiles = [];
+  photoUrls.forEach((u) => URL.revokeObjectURL(u));
+  photoUrls = [];
+  const grid = document.getElementById('photoGrid');
+  const counter = document.getElementById('photoCount');
+  if (grid) grid.innerHTML = '';
+  if (counter) counter.textContent = '0 / 4';
+}
+
+function showToast(message) {
+  const stack = document.getElementById('toastStack');
+  if (!stack) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = message;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('is-out');
+    setTimeout(() => el.remove(), 220);
+  }, 2200);
+}
+window.showToast = showToast;
 
 function initApp() {
   const tabItems = document.querySelectorAll('.tab-item');
@@ -814,7 +912,7 @@ async function shareAd(title, price) {
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(shareText);
-      await showNeonPopup(t('share'), t('shareCopied'), 'OK');
+      showToast(t('shareCopied'));
     }
   } catch (e) {}
 }
@@ -891,19 +989,27 @@ function setupUI() {
   document.getElementById('categoryFilter').addEventListener('change', fetchListings);
 
   const rangeInput = document.getElementById('distanceRange');
-  rangeInput.addEventListener('input', (e) => {
-    document.getElementById('rangeValue').innerText = e.target.value + ' km';
-  });
-  rangeInput.addEventListener('change', fetchListings);
+  if (rangeInput) {
+    syncRangeFill(rangeInput);
+    rangeInput.addEventListener('input', (e) => {
+      document.getElementById('rangeValue').innerText = e.target.value + ' km';
+      syncRangeFill(e.target);
+    });
+    rangeInput.addEventListener('change', fetchListings);
+  }
 
   let searchDebounceTimer;
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
     searchInput.addEventListener('input', () => {
+      syncSearchClear();
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(fetchListings, 300);
     });
   }
+
+  const imageInput = document.getElementById('imageInput');
+  if (imageInput) imageInput.addEventListener('change', () => renderPhotoPreviews());
 
   // Offline banner
   const offlineBanner = document.createElement('div');
@@ -1098,6 +1204,7 @@ window.detectLocation = async function() {
     if (ok) {
       if (field) field.value = locationLabel || `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
       if (btn) btn.classList.add('is-done');
+      showToast(t('locationCaptured'));
     } else if (field) {
       await showNeonPopup(t('locationOff'), t('locationOffDesc'), 'OK');
     }
@@ -1373,6 +1480,7 @@ async function handlePostAd(e) {
   const earnedCoin = award && award.awarded === true;
   await showNeonPopup(t('adPosted'), t('adPostedDesc') + (earnedCoin ? '<br><span class="sow-earned-text">' + escapeHtml(t('sowEarned')) + '</span>' : ''), 'OK', 'alert', true);
   document.getElementById('adForm').reset();
+  resetPhotoPreviews();
   window.switchTab('screenHome');
   // Ask for notifications after a real action instead of on launch.
   setTimeout(requestNotificationPermissions, 1200);
@@ -1408,11 +1516,11 @@ async function fetchListings() {
   container.innerHTML = showSkeleton(4);
 
   if (error) {
-    container.innerHTML = emptyState(t('networkError'));
+    container.innerHTML = emptyState(t('networkError'), '', t('retry'), 'fetchListings()');
     return;
   }
   if (!data || data.length === 0) {
-    container.innerHTML = emptyState(t('noListings'));
+    container.innerHTML = emptyState(t('noListings'), '', t('postFirstAd'), "window.switchTab('screenPost')");
     return;
   }
 
@@ -1431,8 +1539,11 @@ async function fetchListings() {
     return realDist <= maxDistance;
   });
 
+  const feedCount = document.getElementById('feedCount');
+  if (feedCount) feedCount.textContent = filteredData.length ? String(filteredData.length) : '';
+
   if (filteredData.length === 0) {
-    container.innerHTML = emptyState(t('noListingsNearby', { km: maxDistance }));
+    container.innerHTML = emptyState(t('noListingsNearby', { km: maxDistance }), '', t('widenRadius'), 'window.widenRadius()');
     return;
   }
 
@@ -1454,6 +1565,7 @@ async function fetchListings() {
         <div class="card-media">
           <img src="${thumbImg}" class="card-thumb" alt="${iTitle}" onerror="this.onerror=null;this.src='${fallbackThumb}'">
           <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
+          <button onclick="event.stopPropagation(); window.shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="card-quick-action" aria-label="${t('share')}"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="m8.3 10.7 7.4-3.9M8.3 13.3l7.4 3.9"/></svg></button>
         </div>
         <div class="card-info">
           <div class="card-price-row">
@@ -1465,10 +1577,6 @@ async function fetchListings() {
             <span class="card-seller"><span class="card-avatar">${dInitial}</span><span>${dName}</span></span>
             <span class="card-meta-right">${distLabel}<span class="card-time">${posted}</span></span>
           </div>
-        </div>
-        <div class="card-actions">
-          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.8L3 20.5l1.4-4.7A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>${t('chat')}</button>
-          <button onclick="event.stopPropagation(); window.shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="btn-chat-seller btn-share" aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.8"/><circle cx="6" cy="12" r="2.8"/><circle cx="18" cy="18.5" r="2.8"/><path d="m8.4 10.6 7.2-3.8M8.4 13.4l7.2 3.8"/></svg></button>
         </div>
       </div>
     `;
