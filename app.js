@@ -406,7 +406,7 @@ function checkWorldAppEnvironment() {
   try { miniOk = typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); } catch (e) {}
   if (!miniOk) {
     document.getElementById('splashScreen').style.display = 'flex';
-    document.getElementById('splashScreen').innerHTML = `<div class="blocker-content"><div class="blocker-icon">W</div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
+    document.getElementById('splashScreen').innerHTML = `<div class="blocker-content"><div class="brand-mark brand-mark-lg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4V3.4H13l7.6 7.6a2 2 0 0 1 0 2.4Z"/><circle cx="8" cy="8" r="1.6"/></svg></div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
     return false;
   }
   return true;
@@ -499,9 +499,25 @@ window.switchTab = function(screenId) {
 function showSkeleton(count) {
   let html = '';
   for (let i = 0; i < count; i++) {
-    html += '<div class="skeleton skeleton-card skeleton-card-inner"><div class="skeleton skeleton-thumb"></div><div class="card-info"><div class="skeleton skeleton-text skeleton-text-70"></div><div class="skeleton skeleton-text skeleton-text-50"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
+    html += '<div class="skeleton-card"><div class="skeleton sk-media"></div><div class="sk-body"><div class="skeleton sk-price"></div><div class="skeleton skeleton-text skeleton-text-70"></div><div class="skeleton skeleton-text-sm"></div></div></div>';
   }
   return html;
+}
+
+// Centered illustrated empty state (World guideline: empty states middle-aligned)
+function emptyState(title, sub) {
+  const safeTitle = escapeHtml(String(title == null ? '' : title));
+  const safeSub = sub ? escapeHtml(String(sub)) : '';
+  return `<div class="empty-state">
+    <svg class="empty-illustration" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="16" y="22" width="64" height="50" rx="8"/>
+      <circle cx="34" cy="39" r="5"/>
+      <path class="accent" d="M22 64l16-16 12 12 9-9 15 15"/>
+      <path d="M36 82h24"/>
+    </svg>
+    <h3 class="empty-title">${safeTitle}</h3>
+    ${safeSub ? `<p class="empty-sub">${safeSub}</p>` : ''}
+  </div>`;
 }
 
 function initApp() {
@@ -609,7 +625,7 @@ function showWalletRequiredOverlay() {
   const overlay = document.createElement('div');
   overlay.id = 'walletRequiredOverlay';
   overlay.className = 'wallet-required-overlay';
-  overlay.innerHTML = `<div class="wallet-required-box"><div class="wallet-required-icon">W</div><h2 class="wallet-required-title">${t('connectYourWallet')}</h2><p class="wallet-required-text">${t('walletRequired')}</p><button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">${t('connectWallet')}</button></div>`;
+  overlay.innerHTML = `<div class="wallet-required-box"><div class="wallet-required-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/></svg></div><h2 class="wallet-required-title">${t('connectYourWallet')}</h2><p class="wallet-required-text">${t('walletRequired')}</p><button class="wallet-required-btn" onclick="document.getElementById('walletRequiredOverlay').remove(); document.getElementById('loginBtn').click();">${t('connectWallet')}</button></div>`;
   document.body.appendChild(overlay);
 }
 
@@ -650,6 +666,7 @@ async function verifyWorldID() {
     return false;
   }
 }
+window.verifyWorldID = verifyWorldID;
 
 // ==========================================
 // MINIKIT COMMANDS: NOTIFICATION PERMISSIONS
@@ -683,6 +700,7 @@ async function shareAd(title, price) {
     console.log('[SHARE] Share failed:', err.message);
   }
 }
+window.shareAd = shareAd;
 
 // ==========================================
 // DOMContentLoaded — APP BOOT
@@ -697,6 +715,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     userWallet = savedAddress;
     currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
     document.getElementById('loginBtn').innerText = currentUsername;
+    document.getElementById('loginBtn').classList.add('connected');
     updateSowBadge();
     detectUserCurrentPosition();
     fetchListings();
@@ -727,6 +746,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('userWallet', userWallet);
         localStorage.setItem('currentUsername', currentUsername);
         document.getElementById('loginBtn').innerText = currentUsername;
+        document.getElementById('loginBtn').classList.add('connected');
         updateSowBadge();
         detectUserCurrentPosition();
       }
@@ -811,6 +831,7 @@ async function handleLogin() {
       localStorage.setItem('userWallet', userWallet);
       localStorage.setItem('currentUsername', currentUsername);
       document.getElementById('loginBtn').innerText = currentUsername;
+      document.getElementById('loginBtn').classList.add('connected');
       updateSowBadge();
       detectUserCurrentPosition();
       fetchListings();
@@ -1086,7 +1107,7 @@ async function handlePostAd(e) {
 async function fetchListings() {
   const container = document.getElementById('listingsContainer');
   if (!container) return;
-  if (!supabase) { container.innerHTML = '<p class="loading-placeholder">Database not available.</p>'; return; }
+  if (!supabase) { container.innerHTML = emptyState(t('dbUnavailable')); return; }
   const selectedCountry = document.getElementById('countryFilter').value;
   const selectedCategory = document.getElementById('categoryFilter').value;
   const maxDistance = parseInt(document.getElementById('distanceRange').value);
@@ -1103,14 +1124,14 @@ async function fetchListings() {
     data = result.data;
     error = result.error;
   } catch (netErr) {
-    container.innerHTML = `<p class="loading-placeholder">${t('networkError')}</p>`;
+    container.innerHTML = emptyState(t('networkError'));
     return;
   }
 
   container.innerHTML = showSkeleton(4);
 
   if (error || !data || data.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">${t('noListings')}</p>`;
+    container.innerHTML = emptyState(t('noListings'));
     return;
   }
 
@@ -1125,15 +1146,16 @@ async function fetchListings() {
   });
 
   if (filteredData.length === 0) {
-    container.innerHTML = `<p class="loading-placeholder">${t('noListingsNearby', { km: maxDistance })}</p>`;
+    container.innerHTML = emptyState(t('noListingsNearby', { km: maxDistance }));
     return;
   }
 
+  const fallbackThumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 96 96%22%3E%3Crect width=%2296%22 height=%2296%22 fill=%22%23f1f1ec%22/%3E%3Crect x=%2224%22 y=%2226%22 width=%2248%22 height=%2240%22 rx=%226%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Ccircle cx=%2237%22 cy=%2239%22 r=%224%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Cpath d=%22M28 60l12-12 9 9 7-7 12 12%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E';
   container.innerHTML = filteredData.map((item) => {
-    const thumbImg = (item.image1 && item.image1.startsWith('http')) ? escapeAttr(item.image1) : 'https://via.placeholder.com/90';
+    const thumbImg = (item.image1 && item.image1.startsWith('http')) ? escapeAttr(item.image1) : fallbackThumb;
     const dName = escapeHtml(item.seller_name || 'User');
+    const dInitial = escapeHtml((item.seller_name || 'U').trim().charAt(0).toUpperCase() || 'U');
     const iTitle = escapeHtml(item.title);
-    const iCountry = escapeHtml(item.country);
     const iPrice = escapeHtml(item.price);
     const iId = escapeAttr(item.id);
     const iSeller = escapeAttr(item.seller_address);
@@ -1142,24 +1164,24 @@ async function fetchListings() {
     const posted = timeAgo(item.created_at);
     return `
       <div class="listing-card" onclick="window.openAdDetails('${iId}')">
-        <div class="card-inner">
-          <img src="${thumbImg}" class="card-thumb" alt="listing">
-          <div class="card-info">
-            <div class="card-badges">
-              <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
-              <span class="badge badge-${pBadge.cls}">${pBadge.text}</span>
-            </div>
-            <h3 class="card-title">${iTitle}</h3>
-            <p class="card-price">${iPrice} WLD</p>
-            <div class="card-meta">
-              <span class="card-seller">${dName} - ${iCountry}</span>
-              <span class="card-time">${posted}</span>
-            </div>
+        <div class="card-media">
+          <img src="${thumbImg}" class="card-thumb" alt="${iTitle}" onerror="this.onerror=null;this.src='${fallbackThumb}'">
+          <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
+        </div>
+        <div class="card-info">
+          <div class="card-price-row">
+            <p class="card-price">${iPrice}<span class="card-unit">WLD</span></p>
+            <span class="badge badge-${pBadge.cls}">${pBadge.text}</span>
+          </div>
+          <h3 class="card-title">${iTitle}</h3>
+          <div class="card-meta">
+            <span class="card-seller"><span class="card-avatar">${dInitial}</span><span>${dName}</span></span>
+            <span class="card-time">${posted}</span>
           </div>
         </div>
         <div class="card-actions">
-          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller">Chat Seller</button>
-          <button onclick="event.stopPropagation(); shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="btn-chat-seller btn-share">Share</button>
+          <button onclick="event.stopPropagation(); window.openChat('${iSeller}', '${escapeAttr(item.title)}', '${escapeAttr(item.seller_name || 'User')}')" class="btn-chat-seller"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.8L3 20.5l1.4-4.7A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>Chat</button>
+          <button onclick="event.stopPropagation(); window.shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="btn-chat-seller btn-share" aria-label="Share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.8"/><circle cx="6" cy="12" r="2.8"/><circle cx="18" cy="18.5" r="2.8"/><path d="m8.4 10.6 7.2-3.8M8.4 13.4l7.2 3.8"/></svg></button>
         </div>
       </div>
     `;
@@ -1288,7 +1310,7 @@ window.openReviews = async function(sellerAddress, sellerName) {
   const container = document.getElementById('reviewsListContainer');
   container.innerHTML = `<p class="loading-placeholder">${t('loadingReviews')}</p>`;
   const { data: reviews, error } = await supabase.from('reviews').select('*').eq('seller_address', sellerAddress).order('created_at', { ascending: false });
-  if (error || !reviews || reviews.length === 0) { container.innerHTML = `<p class="loading-placeholder">${t('noReviews')}</p>`; return; }
+  if (error || !reviews || reviews.length === 0) { container.innerHTML = emptyState(t('noReviews')); return; }
   container.innerHTML = reviews.map(r => {
     const bName = escapeHtml(r.buyer_name);
     const comment = escapeHtml(r.comment || 'No comment provided.');
@@ -1335,7 +1357,7 @@ window.openAdminPanel = async function() {
   statsContainer.innerHTML = `<div class="admin-stats-grid"><div class="detail-section"><b class="admin-stat-number admin-stat-indigo">${totalListings || 0}</b><span class="admin-stat-label">${t('activeAds')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-success">${totalUsers || 0}</b><span class="admin-stat-label">${t('users')}</span></div><div class="detail-section"><b class="admin-stat-number admin-stat-warning">${totalChats || 0}</b><span class="admin-stat-label">${t('messages')}</span></div></div>`;
 
   const { data: listings } = await supabase.from('listings').select('*').neq('status', 'deleted').order('created_at', { ascending: false });
-  if (!listings || listings.length === 0) { listingsContainer.innerHTML = `<p class="loading-placeholder">${t('noListingsFound')}</p>`; return; }
+  if (!listings || listings.length === 0) { listingsContainer.innerHTML = emptyState(t('noListingsFound')); return; }
 
   listingsContainer.innerHTML = listings.map(item => {
     const sT = escapeHtml(item.title), sN = escapeHtml(item.seller_name), sP = escapeHtml(item.price), sI = escapeAttr(item.id);
@@ -1372,7 +1394,7 @@ window.adminDeleteAd = async function(id) {
 // ==========================================
 window.openMyAdsScreen = async function() {
   if (!userWallet) {
-    document.getElementById('myAdsContainer').innerHTML = `<p class="loading-placeholder">Please connect wallet first.</p>`;
+    document.getElementById('myAdsContainer').innerHTML = emptyState(t('walletNotConnected'), t('connectToAccess'));
     document.getElementById('myAdsBalanceCard').innerHTML = '';
     return;
   }
@@ -1404,7 +1426,7 @@ window.openMyAdsScreen = async function() {
       return `<div onclick="window.openAdDetails('${sI}')" class="my-ad-item sold"><div><h4 class="my-ad-title my-ad-sold-title">${sT}</h4><p class="my-ad-price my-ad-sold-price">${sP} WLD (${sC})</p></div><span class="btn-sold-done">${t('sold')}</span></div>`;
     }).join('');
   }
-  if (!html) html = '<p class="loading-placeholder">No ads yet. Post your first ad!</p>';
+  if (!html) html = emptyState('No ads yet. Post your first ad!');
   container.innerHTML = html;
 };
 
@@ -1473,7 +1495,7 @@ window.openLeaderboard = async function() {
   const container = document.getElementById('leaderboardContainer');
   container.innerHTML = showSkeleton(3);
   const { data: balances, error: balError } = await supabase.from('sow_balances').select('*').order('balance', { ascending: false }).limit(50);
-  if (balError || !balances || balances.length === 0) { container.innerHTML = `<p class="loading-placeholder">${t('noSowData')}</p>`; return; }
+  if (balError || !balances || balances.length === 0) { container.innerHTML = emptyState(t('noSowData')); return; }
   const wallets = balances.map(b => b.wallet_address);
   const { data: usersData } = await supabase.from('users').select('*').in('wallet_address', wallets);
   const userMap = {};
@@ -1485,7 +1507,8 @@ window.openLeaderboard = async function() {
     const username = escapeHtml(userMap[item.wallet_address] || 'Unknown User');
     const bal = escapeHtml(item.balance);
     const rankText = isTop3 ? rankLabels[index] : '#' + (index + 1);
-    return `<div class="${isTop3 ? 'lb-item top-3' : 'lb-item'}"><div class="lb-info-row"><span class="lb-rank">${rankText}</span><div><h4 class="lb-name">${username}</h4></div></div><div class="lb-right"><div class="lb-balance">${bal}</div><div class="lb-balance-label">SOW</div></div></div>`;
+    const lbInitial = escapeHtml((userMap[item.wallet_address] || 'U').trim().charAt(0).toUpperCase() || 'U');
+    return `<div class="lb-item${isTop3 ? ' top-3' : ''}${index === 0 ? ' top-1' : ''}"><div class="lb-info-row"><span class="lb-rank">${rankText}</span><span class="lb-avatar">${lbInitial}</span><div><h4 class="lb-name">${username}</h4></div></div><div class="lb-right"><div class="lb-balance">${bal}</div><div class="lb-balance-label">SOW</div></div></div>`;
   }).join('');
 };
 
@@ -1516,27 +1539,42 @@ window.renderProfile = async function() {
   const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
-  const verifiedHtml = isVerified ? '<span class="verify-badge verify-badge-inline">Verified</span>' : '';
-
-  container.innerHTML = `
+  const verifiedHtml = isVerified ? '<span class="verify-badge verify-badge-inline">Verified</span>' : '';  container.innerHTML = `
     <div class="profile-card">
-      <div class="profile-header-row">
+      <div class="profile-hero">
+        <div class="profile-avatar">${escapeHtml((currentUsername || 'U').trim().charAt(0).toUpperCase() || 'U')}</div>
         <div>
           <p class="profile-label">Profile</p>
           <h3 class="profile-name">${escapeHtml(currentUsername)}${verifiedHtml}</h3>
         </div>
-        <span class="sow-stats-icon">SOW</span>
       </div>
       <div class="profile-balance-section">
         <p class="profile-label">SOW Balance</p>
         <p class="sow-stats-value">${earnedSow}</p>
       </div>
     </div>
+
     <div class="profile-actions">
-      <button onclick="window.openLeaderboard()" class="btn-profile-action btn-leaderboard">View Leaderboard</button>
-      <button onclick="verifyWorldID().then(v => { if(v) { isVerified=true; window.renderProfile(); } })" class="btn-profile-action btn-verify">Verify World ID</button>
-      <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">Support</a>
-      ${isAdmin ? '<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">Admin Panel</button>' : ''}
+      <button onclick="window.openLeaderboard()" class="btn-profile-action btn-leaderboard">
+        <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M17 5h2.5a2.5 2.5 0 0 1-2.5 2.5M7 5H4.5A2.5 2.5 0 0 0 7 7.5"/></svg>
+        <span class="action-text">View Leaderboard</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <button onclick="window.verifyWorldID().then(v => { if(v) { isVerified=true; window.renderProfile(); } })" class="btn-profile-action btn-verify">
+        <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 10-4-2.2-7-5.5-7-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span class="action-text">Verify World ID</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+        <span class="action-text">Support</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+      ${isAdmin ? `<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">
+        <svg viewBox="0 0 24 24"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8Z"/><path d="M4 8l8 4.5L20 8M12 12.5v8"/></svg>
+        <span class="action-text">Admin Panel</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>` : ''}
     </div>
   `;
 };
