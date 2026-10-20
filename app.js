@@ -870,7 +870,7 @@ window.showNeonPopup = function(title, text, icon = 'Notice', type = 'alert', al
     document.getElementById('neonPopupAlertBtn').onclick = function() {
       if (type === 'prompt') {
         const val = document.getElementById('neonPopupInput').value.trim();
-        if (!val) closeNeonPopup("User_" + Math.floor(Math.random() * 10000));
+        if (!val) { const sa = userWallet ? (userWallet.substring(0,6)+'...'+userWallet.substring(userWallet.length-4)) : 'User'; closeNeonPopup(sa); }
         else closeNeonPopup(val);
       } else { closeNeonPopup(true); }
     };
@@ -999,7 +999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
-    currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
+    const shortAddr = savedAddress ? (savedAddress.substring(0, 6) + '...' + savedAddress.substring(savedAddress.length - 4)) : 'User'; currentUsername = savedUsername || shortAddr;
     const loginBtnInit = document.getElementById('loginBtn');
     if (loginBtnInit) { loginBtnInit.innerText = currentUsername; loginBtnInit.classList.add('connected'); }
     updateSowBadge();
@@ -1067,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); currentUsername = profileUsername; } catch (e) {}
           }
         } else {
-          currentUsername = profileUsername && !isFallback(profileUsername) ? profileUsername : (userData?.username || profileUsername || ('User_' + userWallet.substring(2, 8)));
+          const shortAddr2 = userWallet ? (userWallet.substring(0,6)+'...'+userWallet.substring(userWallet.length-4)) : 'User'; currentUsername = profileUsername && !isFallback(profileUsername) ? profileUsername : (userData?.username || profileUsername || shortAddr2);
           if (profileUsername && !isFallback(profileUsername)) {
             try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
           }
@@ -1192,7 +1192,7 @@ async function handleLogin() {
               const v = validateUsername(usernameInput);
               if (v.valid) { currentUsername = v.clean; break; }
               attempts++;
-              if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); break; }
+              if (attempts >= 3) { const sa = userWallet ? (userWallet.substring(0,6)+'...'+userWallet.substring(userWallet.length-4)) : 'User'; currentUsername = sa; break; }
               usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
             }
           }
