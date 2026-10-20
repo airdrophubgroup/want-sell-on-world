@@ -582,6 +582,56 @@ function checkRateLimit(action, cooldownMs) {
 function getDisplayName() { return 'User'; }
 function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
 
+async function getMiniKitUsernameAsync(payload = null) {
+  try {
+    let u = null;
+    if (payload) {
+      u = payload.user || payload.profile || null;
+      if (!u && payload.finalPayload) u = payload.finalPayload.user || payload.finalPayload.profile;
+    }
+    if (!u && typeof MiniKit !== 'undefined' && MiniKit.user) u = MiniKit.user;
+    if (!u && typeof MiniKit !== 'undefined' && typeof MiniKit.getUser === 'function') {
+      try {
+        const gu = await MiniKit.getUser();
+        if (gu) u = gu;
+      } catch (e) {}
+    }
+    if (u && typeof u === 'object') {
+      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || (u.profile && (u.profile.username || u.profile.name));
+      if (candidate && typeof candidate === 'string') return candidate.trim();
+    }
+    if (payload && typeof payload === 'object') {
+      const keys = ['username', 'name', 'displayName', 'handle', 'nickName'];
+      for (const k of keys) {
+        if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+function getMiniKitUsername(payload = null) {
+  try {
+    let u = null;
+    if (payload) {
+      u = payload.user || payload.profile || null;
+      if (!u && payload.finalPayload) u = payload.finalPayload.user || payload.finalPayload.profile;
+    }
+    if (!u && typeof MiniKit !== 'undefined' && MiniKit.user) u = MiniKit.user;
+    if (u && typeof u === 'object') {
+      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || (u.profile && (u.profile.username || u.profile.name));
+      if (candidate && typeof candidate === 'string') return candidate.trim();
+    }
+    if (payload && typeof payload === 'object') {
+      const keys = ['username', 'name', 'displayName', 'handle', 'nickName'];
+      for (const k of keys) {
+        if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 // ==========================================
 // TAB NAVIGATION
 // ==========================================
@@ -935,11 +985,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
     currentUsername = savedUsername || ('User_' + savedAddress.substring(2, 8));
-    document.getElementById('loginBtn').innerText = currentUsername;
-    document.getElementById('loginBtn').classList.add('connected');
+    const loginBtnInit = document.getElementById('loginBtn');
+    if (loginBtnInit) { loginBtnInit.innerText = currentUsername; loginBtnInit.classList.add('connected'); }
     updateSowBadge();
     detectUserCurrentPosition();
     fetchListings();
+    if (currentUsername && (currentUsername.startsWith('User_') || currentUsername.length < 3) && typeof MiniKit !== 'undefined') {
+      try {
+        let p = await getMiniKitUsernameAsync();
+        if (!p) p = getMiniKitUsername();
+        if (p && !p.startsWith('User_') && p.length >= 2) {
+          currentUsername = p;
+          localStorage.setItem('currentUsername', currentUsername);
+          if (loginBtnInit) loginBtnInit.innerText = currentUsername;
+          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+        }
+      } catch (e) {}
+    }
   }
 
   // Check saved verification
@@ -964,11 +1026,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (finalPayload?.status === 'success' && finalPayload?.address) {
         userWallet = finalPayload.address;
         const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
-        currentUsername = userData?.username || ('User_' + userWallet.substring(2, 8));
+        let profileUsername = await getMiniKitUsernameAsync(finalPayload);
+        if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
+        if (profileUsername && (!userData?.username || userData.username.startsWith('User_'))) {
+          currentUsername = profileUsername;
+        } else {
+          currentUsername = userData?.username || profileUsername || ('User_' + userWallet.substring(2, 8));
+        }
+        if (profileUsername && profileUsername !== (userData?.username || '')) {
+          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
+        } else if (!userData?.username && currentUsername && !currentUsername.startsWith('User_')) {
+          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+        }
         localStorage.setItem('userWallet', userWallet);
         localStorage.setItem('currentUsername', currentUsername);
-        document.getElementById('loginBtn').innerText = currentUsername;
-        document.getElementById('loginBtn').classList.add('connected');
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) { loginBtn.innerText = currentUsername; loginBtn.classList.add('connected'); }
         updateSowBadge();
         detectUserCurrentPosition();
       }
@@ -980,6 +1053,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchListings();
 
   detectUserCurrentPosition();
+  setTimeout(async () => {
+    try {
+      if (userWallet && currentUsername && (currentUsername.startsWith('User_') || currentUsername.length < 3) && typeof MiniKit !== 'undefined') {
+        let p = await getMiniKitUsernameAsync();
+        if (!p) p = getMiniKitUsername();
+        if (p && !p.startsWith('User_') && p.length >= 2) {
+          currentUsername = p;
+          localStorage.setItem('currentUsername', currentUsername);
+          const lb = document.getElementById('loginBtn');
+          if (lb) lb.innerText = currentUsername;
+          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
+          if (document.querySelector('#screenProfile.active')) window.renderProfile();
+        }
+      }
+    } catch (e) {}
+  }, 1200);
 });
 
 function setupUI() {
@@ -1035,26 +1124,37 @@ async function handleLogin() {
       expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       notBefore: new Date(Date.now() - 60 * 1000),
       statement: 'Sign in to WantSell',
-    });
-    if (finalPayload?.status === 'success' && finalPayload?.address) {
-      if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', t('invalidAddress'), 'OK'); return; }
-      userWallet = finalPayload.address;
-      const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
-      if (userData && userData.username) {
-        currentUsername = userData.username;
-      } else {
-        let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
-        let attempts = 0;
-        while (attempts < 3) {
-          const v = validateUsername(usernameInput);
-          if (v.valid) { currentUsername = v.clean; break; }
-          attempts++;
-          if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); break; }
-          usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
+    });      if (finalPayload?.status === 'success' && finalPayload?.address) {
+        if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', t('invalidAddress'), 'OK'); return; }
+        userWallet = finalPayload.address;
+        const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
+        let profileUsername = await getMiniKitUsernameAsync(finalPayload);
+        if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
+        if (userData && userData.username) {
+          currentUsername = profileUsername && profileUsername !== userData.username ? profileUsername : userData.username;
+          if (profileUsername && profileUsername !== userData.username) {
+            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
+          }
+        } else {
+          if (profileUsername && /^[a-zA-Z0-9 _\-]{2,20}$/.test(profileUsername)) {
+            currentUsername = profileUsername.replace(/[^a-zA-Z0-9 _\-]/g, '').trim();
+          } else {
+            let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
+            let attempts = 0;
+            while (attempts < 3) {
+              const v = validateUsername(usernameInput);
+              if (v.valid) { currentUsername = v.clean; break; }
+              attempts++;
+              if (attempts >= 3) { currentUsername = 'User_' + Math.floor(Math.random() * 10000); break; }
+              usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
+            }
+          }
+          try {
+            const { data: exUser } = await supabase.from('users').select('wallet_address').eq('wallet_address', userWallet).single();
+            if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
+            else { await supabase.from('users').update({ username: currentUsername }).eq('wallet_address', userWallet); }
+          } catch (e) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
         }
-        const { data: exUser } = await supabase.from('users').select('wallet_address').eq('wallet_address', userWallet).single();
-        if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
-      }
       localStorage.setItem('userWallet', userWallet);
       localStorage.setItem('currentUsername', currentUsername);
       document.getElementById('loginBtn').innerText = currentUsername;
@@ -1973,6 +2073,7 @@ window.renderProfile = async function() {
         <div>
           <p class="profile-label">${t('profile')}</p>
           <h3 class="profile-name">${escapeHtml(currentUsername)}${verifiedHtml}</h3>
+          <p class="profile-wallet" title="${escapeAttr(userWallet)}">${escapeHtml(userWallet.substring(0,6) + '...' + userWallet.substring(userWallet.length-4))}</p>
         </div>
       </div>
       <div class="profile-balance-section">
