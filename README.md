@@ -108,6 +108,41 @@ want-sell-on-world/
 
 ---
 
+## SOW Coin security (required setup)
+
+SOW coins are **minted by the database only**. The browser never writes a
+balance: after a listing is created it calls `award_sow_for_listing(ad_id)`, a
+`SECURITY DEFINER` function that
+
+- takes the wallet from the listing row, not from the request,
+- records one `sow_ledger` row per listing (`UNIQUE listing_id`), so retries,
+  double taps and concurrent calls cannot double-credit,
+- refuses listings that are not `active` or older than 10 minutes,
+- caps a wallet at 20 coins per day,
+- increments the balance atomically.
+
+**Apply the migration once** in Supabase → SQL Editor:
+
+```
+SUPABASE_SQL_SOW_SECURITY.sql
+```
+
+Then verify the lockdown from a machine that can reach the project:
+
+```bash
+node security-tests/sow-security.mjs --static-only   # bundle-level checks
+node security-tests/sow-security.mjs                 # live attack simulation
+node security-tests/sow-security.mjs --burst 400     # 400 concurrent users
+```
+
+The live suite acts as a hostile visitor using the public anon key: it tries to
+write `sow_balances` and `sow_ledger` directly, replays awards, races 50 calls
+against one listing, and checks each of 400 wallets receives exactly one coin.
+Exit code `1` means a real vulnerability, `2` means it could not reach the
+project.
+
+---
+
 <div align="center">
   <p><b>Built for the World App Community</b></p>
 </div>

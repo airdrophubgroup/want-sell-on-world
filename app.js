@@ -1337,11 +1337,12 @@ async function handlePostAd(e) {
     status: 'active'
   };
 
-  let { error: insertError } = await supabase.from('listings').insert([listingPayload]);
+  let { data: insertedRows, error: insertError } = await supabase.from('listings').insert([listingPayload]).select('id');
   if (insertError && insertError.message && (insertError.message.includes('condition') || insertError.message.includes('price_type') || insertError.message.includes('column'))) {
     delete listingPayload.condition;
     delete listingPayload.price_type;
-    const retry = await supabase.from('listings').insert([listingPayload]);
+    const retry = await supabase.from('listings').insert([listingPayload]).select('id');
+    insertedRows = retry.data;
     insertError = retry.error;
   }
 
@@ -1354,17 +1355,23 @@ async function handlePostAd(e) {
     return;
   }
 
-  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-  const { data: recentAds } = await supabase.from('listings').select('id').eq('seller_address', userWallet).eq('title', titleV.clean).gte('created_at', twoMinAgo);
-  if ((recentAds || []).length <= 1) {
-    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
-    const newBal = (balData && balData.balance) ? balData.balance + 1 : 1;
-    await supabase.from('sow_balances').upsert([{ wallet_address: userWallet, balance: newBal }]);
-    updateSowBadge();
-    await showNeonPopup(t('adPosted'), t('adPostedDesc') + '<br><span class="sow-earned-text">' + escapeHtml(t('sowEarned')) + '</span>', 'OK', 'alert', true);
-  } else {
-    await showNeonPopup(t('adPosted'), t('adPostedDesc'), 'OK');
+  // SOW is credited by the database, never by the browser: the RPC derives the
+  // wallet from the listing row and records one ledger entry per listing, so a
+  // retry, double tap or forged request cannot mint balance.
+  const newAdId = insertedRows && insertedRows[0] ? insertedRows[0].id : await findLatestAdId(titleV.clean);
+  let award = null;
+  if (newAdId != null) {
+    try {
+      const { data: awardData, error: awardError } = await supabase.rpc('award_sow_for_listing', { p_ad_id: newAdId });
+      if (!awardError && awardData) award = awardData;
+    } catch (e) {}
   }
+
+  if (award && award.balance != null) setSowBalance(award.balance);
+  else updateSowBadge();
+
+  const earnedCoin = award && award.awarded === true;
+  await showNeonPopup(t('adPosted'), t('adPostedDesc') + (earnedCoin ? '<br><span class="sow-earned-text">' + escapeHtml(t('sowEarned')) + '</span>' : ''), 'OK', 'alert', true);
   document.getElementById('adForm').reset();
   window.switchTab('screenHome');
   // Ask for notifications after a real action instead of on launch.
@@ -1681,7 +1688,7 @@ window.openMyAdsScreen = async function() {
   const container = document.getElementById('myAdsContainer');
   container.innerHTML = showSkeleton(3);
 
-  const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
+  const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', balanceKey(userWallet)).single();
   const earnedSow = balData ? balData.balance : 0;
 
   document.getElementById('myAdsBalanceCard').innerHTML = `<div class="sow-stats-inner"><div class="sow-stats-left"><span class="sow-stats-icon">SOW</span><div><p class="sow-stats-label">${t('yourSowBalance')}</p><p class="sow-stats-value">${earnedSow}</p></div></div><button onclick="window.openLeaderboard()" class="sow-stats-lead-btn">${t('rankings')}</button></div>`;
@@ -1776,35 +1783,67 @@ window.openLeaderboard = async function() {
   container.innerHTML = showSkeleton(3);
   const { data: balances, error: balError } = await supabase.from('sow_balances').select('*').order('balance', { ascending: false }).limit(50);
   if (balError || !balances || balances.length === 0) { container.innerHTML = emptyState(t('noSowData')); return; }
-  const wallets = balances.map(b => b.wallet_address);
-  const { data: usersData } = await supabase.from('users').select('*').in('wallet_address', wallets);
+  // Balance rows are keyed lowercase while users keep their checksummed
+  // address, so match case-insensitively instead of dropping every name.
+  const wallets = balances.map(b => balanceKey(b.wallet_address)).filter(Boolean);
   const userMap = {};
-  if (usersData) { usersData.forEach(u => { userMap[u.wallet_address] = u.username; }); }
+  if (wallets.length) {
+    const orFilter = wallets.slice(0, 50).map(w => `wallet_address.ilike.${w}`).join(',');
+    const { data: usersData } = await supabase.from('users').select('wallet_address, username').or(orFilter);
+    if (usersData) { usersData.forEach(u => { userMap[balanceKey(u.wallet_address)] = u.username; }); }
+  }
 
   const rankLabels = ['1st', '2nd', '3rd'];
   container.innerHTML = balances.map((item, index) => {
     const isTop3 = index < 3;
-    const username = escapeHtml(userMap[item.wallet_address] || 'Unknown User');
+    const username = escapeHtml(userMap[balanceKey(item.wallet_address)] || 'Unknown User');
     const bal = escapeHtml(item.balance);
     const rankText = isTop3 ? rankLabels[index] : '#' + (index + 1);
-    const lbInitial = escapeHtml((userMap[item.wallet_address] || 'U').trim().charAt(0).toUpperCase() || 'U');
+    const lbInitial = escapeHtml((userMap[balanceKey(item.wallet_address)] || 'U').trim().charAt(0).toUpperCase() || 'U');
     return `<div class="lb-item${isTop3 ? ' top-3' : ''}${index === 0 ? ' top-1' : ''}"><div class="lb-info-row"><span class="lb-rank">${rankText}</span><span class="lb-avatar">${lbInitial}</span><div><h4 class="lb-name">${username}</h4></div></div><div class="lb-right"><div class="lb-balance">${bal}</div><div class="lb-balance-label">SOW</div></div></div>`;
   }).join('');
 };
 
 // ==========================================
-// SOW BADGE UPDATE
+// SOW BALANCE DISPLAY (reads only; credits come from the database)
 // ==========================================
+// sow_balances keys are stored lowercased by the award function, while World
+// returns a checksummed address, so balance lookups must normalise.
+function balanceKey(wallet) {
+  return String(wallet || '').toLowerCase();
+}
+
+function setSowBalance(balance) {
+  const n = Number(balance);
+  if (!isFinite(n)) return;
+  const statsCard = document.getElementById('sowStatsCard');
+  const homeCount = document.getElementById('homeSowCount');
+  if (statsCard) statsCard.style.display = 'block';
+  if (homeCount) homeCount.textContent = n;
+}
+
 async function updateSowBadge() {
   if (!userWallet) return;
   try {
-    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
-    const sow = balData ? balData.balance : 0;
-    const statsCard = document.getElementById('sowStatsCard');
-    const homeCount = document.getElementById('homeSowCount');
-    if (statsCard) statsCard.style.display = 'block';
-    if (homeCount) homeCount.textContent = sow;
+    const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', balanceKey(userWallet)).single();
+    setSowBalance(balData ? balData.balance : 0);
   } catch (e) {}
+}
+
+// Used only when the insert response is empty (RLS without returning rows).
+// The RPC still validates that the listing is fresh, active and uncredited.
+async function findLatestAdId(title) {
+  try {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('seller_address', userWallet)
+      .eq('title', title)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    return (!error && data) ? data.id : null;
+  } catch (e) { return null; }
 }
 
 // ==========================================
@@ -1816,7 +1855,7 @@ window.renderProfile = async function() {
     container.innerHTML = `<div class="text-center py-20 color-muted"><p class="profile-wallet-icon">W</p><p class="profile-title">${t('walletNotConnected')}</p><p class="profile-subtitle">${t('connectToAccess')}</p></div>`;
     return;
   }
-  const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', userWallet).single();
+  const { data: balData } = await supabase.from('sow_balances').select('balance').eq('wallet_address', balanceKey(userWallet)).single();
   const earnedSow = balData ? balData.balance : 0;
   const isAdmin = userWallet.toLowerCase() === ADMIN_WALLET.toLowerCase();
   const verifiedHtml = isVerified ? `<span class="verify-badge verify-badge-inline">${t('verified')}</span>` : '';  container.innerHTML = `
