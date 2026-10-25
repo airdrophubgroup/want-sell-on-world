@@ -37,6 +37,7 @@ patch('silent-auth', "if (savedAddress && typeof MiniKit !== 'undefined') {", 'i
 patch('mock-pay', 'MiniKit.commandsAsync.pay({', '(window.__E2E_PAY || MiniKit.commandsAsync.pay)({');
 patch('mock-auth', 'MiniKit.commandsAsync.walletAuth({', '(window.__E2E_AUTH || MiniKit.commandsAsync.walletAuth)({', { all: true });
 patch('mock-verify', 'mk.commandsAsync.verify({', '(window.__E2E_VERIFY || mk.commandsAsync.verify)({');
+patch('mock-permission', 'mk.commandsAsync.requestPermission({ permission })', '(window.__E2E_PERMISSION || (function (p) { return mk.commandsAsync.requestPermission(p); }))({ permission })');
 // Short command timeouts keep the hang-detection paths inside a test run.
 patch('timeout-pay', "}), 120000, 'pay')", "}), 3000, 'pay')");
 patch('timeout-walletauth', "}), 60000, 'walletAuth')", "}), 3000, 'walletAuth')");
@@ -57,8 +58,9 @@ let testHtml = indexSrc.replace(/ {0,4}<meta http-equiv="Content-Security-Policy
 if (testHtml === indexSrc) throw new Error('CSP meta not found in index.html');
 testHtml = testHtml.replace('src="app.js"', 'src="/__app.test.js"');
 if (!testHtml.includes('/__app.test.js')) throw new Error('app script tag not found in index.html');
-testHtml = testHtml.replace('<script type="module" src="/__app.test.js"></script>', '<script src="/__e2e.js"></script>\n  <script type="module" src="/__app.test.js"></script>');
+testHtml = testHtml.replace('<script type="module" src="/__app.test.js"></script>', '<script src="/__probe.js"></script>\n  <script src="/__e2e.js"></script>\n  <script type="module" src="/__app.test.js"></script>');
 if (!testHtml.includes('/__e2e.js')) throw new Error('harness script injection failed');
+if (!testHtml.includes('/__probe.js')) throw new Error('probe script injection failed');
 fs.writeFileSync(path.join(OUT, 'index.test.html'), testHtml);
 
 fs.writeFileSync(path.join(__dirname, 'build.out'), 'patches applied: ' + applied.join(', ') + '\nindex bytes: ' + Buffer.byteLength(testHtml) + '\n');
@@ -89,6 +91,10 @@ const server = http.createServer((req, res) => {
   if (url === '/__e2e.js') {
     res.writeHead(200, { 'Content-Type': 'application/javascript' });
     return res.end(fs.readFileSync(path.join(__dirname, 'e2e.js')));
+  }
+  if (url === '/__probe.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript' });
+    return res.end(fs.readFileSync(path.join(__dirname, 'probe.js')));
   }
 
   const fp = path.join(ROOT, decodeURIComponent(url));

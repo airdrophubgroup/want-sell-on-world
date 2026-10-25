@@ -166,9 +166,33 @@ npm run e2e:serve                # test build of the app on :3456
 # open http://127.0.0.1:3456/?e2e=1  (add &step=1 to drive it from the console)
 ```
 
-Results are written to `tools/e2e/e2e-result.json` (29 checks, all should pass).
+Results are written to `tools/e2e/e2e-result.json` (33 checks, all should pass).
+The suite reseeds the mock database before each run, so it can be run repeatedly
+in the same tab. It also asserts the MiniKit payloads (`verify` action/signal,
+`pay` reference/tokens/description, `requestPermission` permission) against the
+1.9.6 contract, so an SDK mismatch fails the build instead of silently doing
+nothing in World App.
+
+`MOCK_DELAY_MS=250 npm run e2e:mock` simulates a mobile round trip. `probe.js`
+records `window.__PROBE__` (first card, splash, query counts) for feed timing.
 This suite never touches the hosted Supabase project; check the real backend
 itself with `npm run check:backend`.
+
+### Feed performance
+
+Measured on the harness with a 250 ms round trip, cold cache / warm cache:
+
+| | before | after |
+|---|---|---|
+| First listing card | 716 ms | 462 ms / 280 ms |
+| Splash dismissed | 2833 ms | 827 ms / 637 ms |
+| Listing queries per launch | 3 | 1 |
+| `users` queries per launch | 3 | 1 |
+
+The feed now paints from a `sessionStorage` cache before the network, asks once
+(60 rows, card columns only, newest first), patches seller names after paint, and
+requests 480px thumbnails from Supabase Storage instead of full-size uploads.
+The silent `walletAuth` no longer gates the first screen.
 
 ---
 

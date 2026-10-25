@@ -134,6 +134,11 @@
     return (await res.json()).log || '';
   }
 
+  async function metrics() {
+    var res = await fetch(API + '/__admin/metrics');
+    return (await res.json()).hits || {};
+  }
+
   function closeModals() {
     ['#chatModal', '#reviewsModal', '#adDetailsModal', '#legalModal', '#leaderboardModal', '#adminModal', '#imageViewerModal', '#neonPopup'].forEach(function (sel) {
       var el = $(sel);
@@ -422,7 +427,10 @@
 
     ['post: successful payment publishes and credits SOW', async function () {
       await sleep(450);
-      window.__E2E_PAY = function () { return Promise.resolve({ finalPayload: { status: 'success' } }); };
+      window.__E2E_PAY = function (payload) {
+        window.__E2E_PAY_PAYLOAD = payload;
+        return Promise.resolve({ finalPayload: { status: 'success' } });
+      };
       fillAdForm();
       setFiles([await makePngFile('lamp3.png')]);
       submitAdForm();
@@ -490,18 +498,24 @@
 
     ['feed: server failure shows an honest error and Retry recovers', async function () {
       var realFetch = window.fetch;
-      window.fetch = function () { return Promise.reject(new TypeError('Failed to fetch')); };
-      await window.fetchListings();
-      var body = txt($('#listingsContainer'));
-      assert(/server unavailable/i.test(body), 'error title, got "' + body.slice(0, 120) + '"');
-      assert(/UNREACHABLE/.test(body), 'error code missing');
-      var retry = Array.prototype.slice.call($('#listingsContainer').querySelectorAll('button')).filter(function (b) { return /try again/i.test(txt(b)); })[0];
-      assert(!!retry, 'retry button missing');
-      window.fetch = realFetch;
-      $('#searchInput').value = '';
-      $('#categoryFilter').value = 'ALL';
-      retry.click();
-      await until(function () { return cards().length >= 3; }, 'retry recovers the feed');
+      try {
+        window.fetch = function () { return Promise.reject(new TypeError('Failed to fetch')); };
+        await window.fetchListings({ force: true });
+        var body = txt($('#listingsContainer'));
+        assert(/server unavailable/i.test(body), 'error title, got "' + body.slice(0, 120) + '"');
+        assert(/UNREACHABLE/.test(body), 'error code missing');
+        var retry = Array.prototype.slice.call($('#listingsContainer').querySelectorAll('button')).filter(function (b) { return /try again/i.test(txt(b)); })[0];
+        assert(!!retry, 'retry button missing');
+        window.fetch = realFetch;
+        $('#searchInput').value = '';
+        $('#categoryFilter').value = 'ALL';
+        retry.click();
+        await until(function () { return cards().length >= 3; }, 'retry recovers the feed');
+      } finally {
+        // A failed assertion must not leave the page without a working fetch, or
+        // every later test fails for the wrong reason.
+        window.fetch = realFetch;
+      }
     }],
 
     ['admin: panel loads stats and listings', async function () {
@@ -515,14 +529,71 @@
     }],
 
     ['world id: verify that never answers fails loudly, success shows the badge', async function () {
+      // Start from an unverified profile even if an earlier run stored a proof.
+      localStorage.removeItem('worldIdVerified');
+      localStorage.removeItem('worldIdVerification');
       window.__E2E_VERIFY = function () { return new Promise(function () {}); };
       var bad = await act(function () { return window.verifyWorldID(); }, 'ok');
       assert(/verification failed/i.test(bad.title), 'verify timeout title, got "' + bad.title + '"');
-      window.__E2E_VERIFY = function () { return Promise.resolve({ finalPayload: { status: 'success' } }); };
+      var seen = null;
+      window.__E2E_VERIFY = function (payload) {
+        seen = payload;
+        return Promise.resolve({ finalPayload: { status: 'success', verification_level: 'orb', nullifier_hash: '0xnullifier' } });
+      };
       var ok = await window.verifyWorldID();
+      assert(seen && seen.action === 'post_ad', 'verify action must be post_ad, got ' + JSON.stringify(seen));
+      assert(seen.signal === USER, 'verify signal must be the wallet, got ' + seen.signal);
+      var stored = JSON.parse(localStorage.getItem('worldIdVerification') || 'null');
+      assert(stored && stored.nullifier_hash === '0xnullifier', 'verification proof was not stored');
+      assert(stored.verification_level === 'orb', 'verification level was not stored');
       assert(ok === true, 'verify success should return true');
       window.switchTab('screenProfile');
       await until(function () { return $('#profileContainer').querySelector('.verify-badge'); }, 'verified badge');
+    }],
+
+    ['minikit: notification permission uses the requestPermission command', async function () {
+      // 1.9.6 has no commandsAsync.requestNotificationPermissions; the old call
+      // was a silent no-op, so this asserts the documented payload is sent.
+      var seen = null;
+      window.__E2E_PERMISSION = function (payload) { seen = payload; return Promise.resolve({ finalPayload: { status: 'success' } }); };
+      await window.requestNotificationPermissions();
+      assert(seen, 'requestPermission was never called');
+      assert(seen.permission === 'notifications', 'permission payload, got ' + JSON.stringify(seen));
+      window.__E2E_PERMISSION = null;
+    }],
+
+    ['minikit: pay is called with the documented SDK payload', async function () {
+      var p = window.__E2E_PAY_PAYLOAD;
+      assert(p, 'pay payload was not captured');
+      assert(typeof p.reference === 'string' && p.reference.length >= 8, 'reference must be a non-empty string');
+      assert(/^0x[a-fA-F0-9]{40}$/.test(p.to), 'to must be a wallet address, got ' + p.to);
+      assert(Array.isArray(p.tokens) && p.tokens.length === 1, 'tokens must hold exactly one entry');
+      assert(p.tokens[0].symbol === 'WLD', 'token symbol, got ' + p.tokens[0].symbol);
+      assert(p.tokens[0].token_amount === '1000000000000000000', 'amount must be 1 WLD in base units, got ' + p.tokens[0].token_amount);
+      assert(/listing fee/i.test(p.description || ''), 'description must disclose the fee, got ' + p.description);
+    }],
+
+    ['feed: card photos use a resized storage URL', async function () {
+      var out = window.cardImageUrl('https://x.supabase.co/storage/v1/object/public/listing/a.jpg', 480);
+      assert(out.indexOf('/storage/v1/render/image/public/') !== -1, 'storage transform missing: ' + out);
+      assert(/width=480/.test(out) && /resize=cover/.test(out), 'resize params missing: ' + out);
+      var plain = window.cardImageUrl('https://images.example.com/a.jpg', 480);
+      assert(plain === 'https://images.example.com/a.jpg', 'non-storage urls must be untouched');
+    }],
+
+    ['feed: a warm cache paints before the network and skips the query', async function () {
+      await window.fetchListings({ force: true });
+      var before = await metrics();
+      var container = $('#listingsContainer');
+      container.innerHTML = '';
+      var pending = window.fetchListings();
+      assert(cards().length >= 3, 'cached cards must paint synchronously, got ' + cards().length);
+      var img = $('#listingsContainer .card-thumb');
+      assert(img && img.getAttribute('loading') === 'lazy', 'card images must load lazily');
+      await pending;
+      var after = await metrics();
+      var delta = (after['GET /rest/v1/listings'] || 0) - (before['GET /rest/v1/listings'] || 0);
+      assert(delta === 0, 'a fresh cache must not re-query listings, '+ delta + ' extra query');
     }],
 
     ['no uncaught errors during the run', async function () {
@@ -533,6 +604,13 @@
   async function run() {
     var t0 = Date.now();
     var results = [];
+    // Every run starts from the seed data, so a second run in the same browser
+    // does not inherit the previous run's listings, reviews or SOW balance.
+    try { await fetch(API + '/__admin/reseed'); } catch (e) {}
+    // The cached feed belongs to the previous run's data, not the fresh seed.
+    try { sessionStorage.removeItem('ws_feed_v1'); } catch (e) {}
+    try { await window.updateSowBadge(); } catch (e) {}
+    try { await window.fetchListings({ force: true }); } catch (e) {}
     for (var i = 0; i < suite.length; i++) {
       var name = suite[i][0];
       var fn = suite[i][1];

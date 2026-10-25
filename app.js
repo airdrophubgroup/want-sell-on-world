@@ -1,4 +1,4 @@
-import { MiniKit, Tokens, tokenToDecimals } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
+import { MiniKit, Tokens, tokenToDecimals, Permission } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
@@ -607,18 +607,34 @@ function checkRateLimit(action, cooldownMs) {
 let userNamesCache = {};
 let userNamesFetchedAt = 0;
 
+let userNamesInFlight = null;
+
 async function loadUserNames(force = false) {
   if (!force && Date.now() - userNamesFetchedAt < 60000) return userNamesCache;
+  // Boot, a login and a profile render can all ask for names at once; one query
+  // answers them instead of three identical ones.
+  if (userNamesInFlight) return userNamesInFlight;
+  const request = (async () => {
+    try {
+      const { data } = await withTimeout(
+        supabase.from('users').select('wallet_address, username').limit(500),
+        10000, 'users lookup'
+      );
+      const map = {};
+      (data || []).forEach((u) => {
+        if (u && u.wallet_address && u.username) map[String(u.wallet_address).toLowerCase()] = String(u.username);
+      });
+      userNamesCache = map;
+      userNamesFetchedAt = Date.now();
+    } catch (e) {}
+    return userNamesCache;
+  })();
+  userNamesInFlight = request;
   try {
-    const { data } = await supabase.from('users').select('wallet_address, username').limit(500);
-    const map = {};
-    (data || []).forEach((u) => {
-      if (u && u.wallet_address && u.username) map[String(u.wallet_address).toLowerCase()] = String(u.username);
-    });
-    userNamesCache = map;
-    userNamesFetchedAt = Date.now();
-  } catch (e) {}
-  return userNamesCache;
+    return await request;
+  } finally {
+    if (userNamesInFlight === request) userNamesInFlight = null;
+  }
 }
 
 function resolveSellerName(item) {
@@ -912,15 +928,27 @@ function initApp() {
   const detBtn = document.getElementById('detectLocationBtn');
   if (detBtn) detBtn.addEventListener('click', () => window.detectLocation());
 
-  setTimeout(() => {
-    const splash = document.getElementById('splashScreen');
-    const shell = document.getElementById('appShell');
-    const fab = document.getElementById('fabPost');
-    if (splash) { splash.style.opacity = '0'; splash.style.transition = 'opacity 0.5s'; setTimeout(() => splash.style.display = 'none', 500); }
-    if (shell) shell.style.display = 'flex';
-    if (fab) fab.style.display = 'flex';
-  }, 1500);
+  // Failsafe only: the splash is normally dismissed by the first painted feed.
+  setTimeout(hideSplash, 1200);
 }
+
+// One exit from the splash screen, however the first feed renders (cards, empty,
+// offline error). Waiting a fixed 1.5s made every launch feel slow even when the
+// listings were already on screen.
+let splashDismissed = false;
+function hideSplash() {
+  if (splashDismissed) return;
+  splashDismissed = true;
+  const splash = document.getElementById('splashScreen');
+  const shell = document.getElementById('appShell');
+  if (shell) shell.style.display = 'flex';
+  if (splash) {
+    splash.style.opacity = '0';
+    splash.style.transition = 'opacity 0.35s';
+    setTimeout(() => { splash.style.display = 'none'; }, 350);
+  }
+}
+window.hideSplash = hideSplash;
 
 // ==========================================
 // POPUP SYSTEM
@@ -1010,13 +1038,32 @@ function randomAlphaNumeric(len) {
 // the user instead of leaving a dead button behind.
 const VERIFY_ACTION = 'post_ad';
 
+// A second tap while World App is already showing the verification sheet would
+// open a second request and could mark the profile verified twice.
+let isVerifying = false;
+
+function readSavedVerification() {
+  try {
+    const raw = localStorage.getItem('worldIdVerification');
+    if (raw) {
+      const rec = JSON.parse(raw);
+      if (rec && rec.nullifier_hash) return rec;
+    }
+  } catch (e) {}
+  return null;
+}
+
 async function verifyWorldID() {
-  if (isVerified) return true;
+  // Only trust the in-memory flag while the stored proof is still there: if the
+  // user cleared app data the profile must be able to verify again.
+  if (isVerified && (readSavedVerification() || localStorage.getItem('worldIdVerified') === 'true')) return true;
+  if (isVerifying) return false;
   const mk = typeof MiniKit !== 'undefined' ? MiniKit : null;
   if (!mk || !mk.commandsAsync || typeof mk.commandsAsync.verify !== 'function') {
     await showNeonPopup(t('verifyUnavailable'), t('verifyUnavailableDesc'), 'OK');
     return false;
   }
+  isVerifying = true;
   try {
     // Never leave the profile row spinning if World App stops answering.
     const verifyResult = await withTimeout(mk.commandsAsync.verify({
@@ -1025,17 +1072,39 @@ async function verifyWorldID() {
     }), 60000, 'verify').catch(() => null);
     const finalPayload = verifyResult && verifyResult.finalPayload;
     if (finalPayload && finalPayload.status === 'success') {
+      // Keep the proof identity, not just a boolean: the level tells the UI what
+      // was actually proven (orb vs device) and the nullifier prevents a second
+      // verification of the same human.
+      try {
+        localStorage.setItem('worldIdVerification', JSON.stringify({
+          verification_level: finalPayload.verification_level || '',
+          nullifier_hash: finalPayload.nullifier_hash || '',
+          action: VERIFY_ACTION,
+          verified_at: new Date().toISOString(),
+        }));
+      } catch (e) {}
       isVerified = true;
       localStorage.setItem('worldIdVerified', 'true');
       showToast(t('verifiedToast'));
       return true;
     }
-    const code = finalPayload && finalPayload.error_code ? ` (${finalPayload.error_code})` : '';
-    await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc') + code, 'OK');
+    // World App reports why it refused; a silent "failed" makes the button look
+    // broken when the action is missing in the Developer Portal.
+    const reasons = {
+      user_rejected: 'Verification was cancelled.',
+      verification_rejected: 'World App rejected this verification.',
+      invalid_action: 'World ID action "' + VERIFY_ACTION + '" is not configured for this app.',
+      invalid_network: 'World App is on a different network than this app.',
+    };
+    const code = finalPayload && finalPayload.error_code ? String(finalPayload.error_code) : '';
+    const detail = reasons[code] || (code ? `World App returned ${code}.` : t('verifyFailedDesc'));
+    await showNeonPopup(t('verifyFailed'), detail, 'OK');
     return false;
   } catch (err) {
     await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc'), 'OK');
     return false;
+  } finally {
+    isVerifying = false;
   }
 }
 window.verifyWorldID = verifyWorldID;
@@ -1043,14 +1112,18 @@ window.verifyWorldID = verifyWorldID;
 // ==========================================
 // MINIKIT COMMANDS: NOTIFICATION PERMISSIONS
 // ==========================================
+// MiniKit 1.9.6 has no requestNotificationPermissions command; the old call was
+// guarded by an existence check, so asking for notifications silently did
+// nothing. The real command is requestPermission({ permission: Notifications }).
 async function requestNotificationPermissions() {
   try {
-    const mk = MiniKit;
-    if (mk && mk.commandsAsync && mk.commandsAsync.requestNotificationPermissions) {
-      await mk.commandsAsync.requestNotificationPermissions();
-    }
+    const mk = typeof MiniKit !== 'undefined' ? MiniKit : null;
+    if (!mk || !mk.commandsAsync || typeof mk.commandsAsync.requestPermission !== 'function') return;
+    const permission = (Permission && Permission.Notifications) || 'notifications';
+    await withTimeout(mk.commandsAsync.requestPermission({ permission }), 60000, 'requestPermission').catch(() => null);
   } catch (err) {}
 }
+window.requestNotificationPermissions = requestNotificationPermissions;
 
 // ==========================================
 // MINIKIT COMMANDS: SHARE (when sharing ad)
@@ -1098,37 +1171,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     localStorage.removeItem('currentUsername');
     savedUsername = null;
   }
+  let cachedName = null;
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
     // A cached name keeps the header correct before any network request.
-    const cachedName = savedUsername || readCachedUsername(savedAddress);
+    cachedName = savedUsername || readCachedUsername(savedAddress);
     currentUsername = cachedName || shortAddress(savedAddress);
     const loginBtnInit = document.getElementById('loginBtn');
     if (loginBtnInit) { loginBtnInit.innerText = currentUsername; loginBtnInit.classList.add('connected'); }
     updateSowBadge();
-    detectUserCurrentPosition();
-    fetchListings();
-    if (typeof MiniKit !== 'undefined') {
-      try {
-        const liveName = await getMiniKitUsernameAsync();
-        // Fire and forget: a slow database must never delay the first screen.
-        if (liveName) applyUsername(liveName).catch(() => {});
-      } catch (e) {}
-    }
   }
 
   // Check saved verification
   if (localStorage.getItem('worldIdVerified') === 'true') {
     isVerified = true;
   }
+  if (readSavedVerification()) isVerified = true;
 
+  // Nothing above this line touches the network, and nothing below it blocks the
+  // first screen: the cached feed paints immediately, the refresh lands later.
+  // Previously the silent walletAuth (up to 15s) ran before the UI was wired up,
+  // so a slow World App left every launch sitting on the splash screen.
+  setupUI();
+  initApp();
+  fetchListings();
+  detectUserCurrentPosition();
+
+  (async () => {
   const ready = await waitForMiniKitReady();
   if (!ready) { checkWorldAppEnvironment(); return; }
 
   // Refresh the session for a returning user only. A first-time visitor is
-  // never hit with an unexplained signature prompt on launch. The timeout
-  // matters: when World App never answers the command, this await used to keep
-  // the splash on screen forever and no UI listener was ever attached.
+  // never hit with an unexplained signature prompt on launch.
   if (savedAddress && typeof MiniKit !== 'undefined') {
     try {
       const authResult = await withTimeout(MiniKit.commandsAsync.walletAuth({
@@ -1155,32 +1229,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) { loginBtn.innerText = currentUsername; loginBtn.classList.add('connected'); }
         updateSowBadge();
-        detectUserCurrentPosition();
       }
     } catch (err) {}
   }
 
-  setupUI();
-  initApp();
-  fetchListings();
-
-  detectUserCurrentPosition();
-  setTimeout(async () => {
-    try {
-      if (userWallet && typeof MiniKit !== 'undefined') {
-        // The username registry occasionally answers late on a cold start, so a
-        // few short retries replace the old MiniKit.user polling loop.
-        for (let i = 0; i < 5; i++) {
-          const resolved = await resolveWorldUsername(userWallet);
-          if (resolved) {
-            await applyUsername(resolved, { sync: resolved !== currentUsername }).catch(() => {});
-            break;
-          }
-          await new Promise(r => setTimeout(r, 800 + i * 400));
+  // The username registry occasionally answers late on a cold start. Only a
+  // missing name is retried, and every wait happens after the feed is painted.
+  try {
+    if (userWallet && typeof MiniKit !== 'undefined') {
+      const attempts = cachedName && !isFallbackName(cachedName) ? 1 : 3;
+      for (let i = 0; i < attempts; i++) {
+        const resolved = await resolveWorldUsername(userWallet);
+        if (resolved) {
+          await applyUsername(resolved, { sync: resolved !== currentUsername }).catch(() => {});
+          break;
         }
+        if (i < attempts - 1) await new Promise(r => setTimeout(r, 800 + i * 600));
       }
-    } catch (e) {}
-  }, 500);
+    }
+  } catch (e) {}
+  })();
 });
 
 function setupUI() {
@@ -1710,6 +1778,7 @@ async function handlePostAd(e) {
   await showNeonPopup(t('adPosted'), t('adPostedDesc') + (earnedCoin ? '<br><span class="sow-earned-text">' + escapeHtml(t('sowEarned')) + '</span>' : ''), 'OK', 'alert', true);
   document.getElementById('adForm').reset();
   resetPhotoPreviews();
+  invalidateFeedCache();
   window.switchTab('screenHome');
   // Ask for notifications after a real action instead of on launch.
   setTimeout(requestNotificationPermissions, 1200);
@@ -1755,60 +1824,95 @@ function feedErrorState(diag) {
     : diag.kind === 'schema' ? t('connSchema')
     : t('connServer');
   const ref = diag.code ? ' (' + diag.code + ')' : '';
-  return emptyState(title, detail + ref, t('retry'), 'window.fetchListings()');
+  // The retry button must bypass the cache window, otherwise a failure that is
+  // still inside it would redraw the old cards and look like nothing happened.
+  return emptyState(title, detail + ref, t('retry'), 'window.fetchListings({ force: true })');
 }
 
 // ==========================================
 // FETCH LISTINGS
 // ==========================================
-async function fetchListings() {
-  const container = document.getElementById('listingsContainer');
-  if (!container) return;
-  if (!supabase) { container.innerHTML = emptyState(t('dbUnavailable')); return; }
-  const selectedCountry = document.getElementById('countryFilter').value;
-  const selectedCategory = document.getElementById('categoryFilter').value;
-  const maxDistance = parseInt(document.getElementById('distanceRange').value);
-  const searchInput = document.getElementById('searchInput');
-  const searchText = searchInput ? searchInput.value.trim().toLowerCase() : '';
+// The feed paints from a cached copy first and refreshes behind it. Before this,
+// every launch fired 3 identical listing queries (boot, wallet refresh, location
+// grant), each one replaced the grid with skeletons, and the cards waited for a
+// second users-table round trip before they could be drawn.
+const FEED_COLUMNS = 'id,seller_address,seller_name,title,price,category,country,lat,lng,condition,price_type,image1,created_at,status';
+const FEED_LIMIT = 60;
+const FEED_CACHE_KEY = 'ws_feed_v1';
+const FEED_FRESH_MS = 20000;
+const CARD_IMAGE_WIDTH = 480;
 
-  let query = supabase.from('listings').select('*').eq('status', 'active');
-  // An empty value means the select has no valid option selected; treat it as
-  // "all" instead of querying category=eq. (which silently returns nothing).
-  if (selectedCountry && selectedCountry !== 'ALL') query = query.eq('country', selectedCountry);
-  if (selectedCategory && selectedCategory !== 'ALL') query = query.eq('category', selectedCategory);
+let feedState = { key: '', at: 0, items: null };
+let feedInFlight = { key: '', promise: null };
 
-  container.innerHTML = showSkeleton(4);
+function feedFilters() {
+  const countryEl = document.getElementById('countryFilter');
+  const categoryEl = document.getElementById('categoryFilter');
+  const rangeEl = document.getElementById('distanceRange');
+  const searchEl = document.getElementById('searchInput');
+  const country = (countryEl && countryEl.value) || 'ALL';
+  const category = (categoryEl && categoryEl.value) || 'ALL';
+  const radius = rangeEl ? (parseInt(rangeEl.value, 10) || 50) : 50;
+  const search = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  return { country, category, radius, search, key: [country, category, search, radius].join('|') };
+}
 
-  let data, error, thrown = null;
+function readFeedCache() {
+  if (feedState.items) return feedState;
   try {
-    const timed = (typeof AbortSignal !== 'undefined' && AbortSignal.timeout && typeof query.abortSignal === 'function')
-      ? query.abortSignal(AbortSignal.timeout(FEED_TIMEOUT_MS))
-      : query;
-    const result = await timed;
-    data = result.data;
-    error = result.error;
-  } catch (netErr) {
-    thrown = netErr;
-  }
+    const raw = sessionStorage.getItem(FEED_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.items)) {
+        feedState = {
+          key: String(parsed.key || ''),
+          at: Number(parsed.at) || 0,
+          items: parsed.items,
+          query: String(parsed.query || ''),
+        };
+        return feedState;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
 
-  if (error || thrown) {
-    const diag = describeFeedFailure(error || thrown);
-    // supabase-js already retries a failed fetch a few times internally, so a
-    // second retry here would only keep the skeleton on screen for 15s.
-    console.error('[FEED] listings query failed:', diag.kind, diag.code, diag.message);
-    container.innerHTML = feedErrorState(diag);
-    return;
-  }
-  if (!data || data.length === 0) {
-    container.innerHTML = emptyState(t('noListings'), '', t('postFirstAd'), "window.switchTab('screenPost')");
-    return;
-  }
+function writeFeedCache(key, items, query) {
+  feedState = { key: key, at: Date.now(), items: items, query: query || '' };
+  try { sessionStorage.setItem(FEED_CACHE_KEY, JSON.stringify(feedState)); } catch (e) {}
+}
 
-  // Distance filtering only applies once we actually know where the user is.
-  // Listings without coordinates are never hidden by the radius filter.
-  const hasUserLocation = currentLat != null && currentLng != null;
-  const filteredData = data.filter((item) => {
-    if (searchText && !String(item.title || '').toLowerCase().includes(searchText)) return false;
+// Posting, deleting or selling changes the feed, so the cached copy must not keep
+// showing the old row for up to 20 seconds after the user acted on it.
+function invalidateFeedCache() {
+  feedState = { key: '', at: 0, items: null };
+  try { sessionStorage.removeItem(FEED_CACHE_KEY); } catch (e) {}
+}
+
+// A card image is at most ~320px wide. Supabase Storage can resize on request,
+// so the grid must not download the full-size upload for every listing.
+function cardImageUrl(url, width) {
+  return buildCardImageUrl(url, width);
+}
+window.cardImageUrl = cardImageUrl;
+
+function buildCardImageUrl(url, width) {
+  const raw = String(url || '');
+  if (!/^https?:\/\//i.test(raw)) return raw;
+  if (raw.indexOf('/storage/v1/object/public/') !== -1) {
+    const sized = raw.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+    return sized + (sized.indexOf('?') === -1 ? '?' : '&')
+      + 'width=' + width + '&height=' + width + '&resize=cover&quality=70';
+  }
+  return raw;
+}
+
+// Distance filtering only applies once we actually know where the user is.
+// Listings without coordinates are never hidden by the radius filter.
+function visibleFeedItems(items, filters) {
+  return (items || []).filter((item) => {
+    if (filters.search && !String(item.title || '').toLowerCase().includes(filters.search)) return false;
+    const hasUserLocation = currentLat != null && currentLng != null;
     if (!hasUserLocation) return true;
     const itemLat = item.lat != null && item.lat !== '' && isFinite(Number(item.lat)) ? Number(item.lat) : null;
     const itemLng = item.lng != null && item.lng !== '' && isFinite(Number(item.lng)) ? Number(item.lng) : null;
@@ -1816,37 +1920,31 @@ async function fetchListings() {
     const realDist = calculateDistance(currentLat, currentLng, itemLat, itemLng);
     if (realDist == null) return true;
     item.calculatedDistance = realDist;
-    return realDist <= maxDistance;
+    return realDist <= filters.radius;
   });
+}
 
-  const feedCount = document.getElementById('feedCount');
-  if (feedCount) feedCount.textContent = filteredData.length ? String(filteredData.length) : '';
+const FEED_FALLBACK_THUMB = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 96 96%22%3E%3Crect width=%2296%22 height=%2296%22 fill=%22%23f1f1ec%22/%3E%3Crect x=%2224%22 y=%2226%22 width=%2248%22 height=%2240%22 rx=%226%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Ccircle cx=%2237%22 cy=%2239%22 r=%224%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Cpath d=%22M28 60l12-12 9 9 7-7 12 12%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E';
 
-  if (filteredData.length === 0) {
-    container.innerHTML = emptyState(t('noListingsNearby', { km: maxDistance }), '', t('widenRadius'), 'window.widenRadius()');
-    return;
-  }
-
-  await loadUserNames();
-
-  const fallbackThumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 96 96%22%3E%3Crect width=%2296%22 height=%2296%22 fill=%22%23f1f1ec%22/%3E%3Crect x=%2224%22 y=%2226%22 width=%2248%22 height=%2240%22 rx=%226%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Ccircle cx=%2237%22 cy=%2239%22 r=%224%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Cpath d=%22M28 60l12-12 9 9 7-7 12 12%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E';
-  container.innerHTML = filteredData.map((item) => {
-    const thumbImg = (item.image1 && item.image1.startsWith('http')) ? escapeAttr(item.image1) : fallbackThumb;
-    const sellerName = resolveSellerName(item);
-    const dName = escapeHtml(sellerName);
-    const dInitial = escapeHtml(sellerName.trim().charAt(0).toUpperCase() || 'U');
-    const iTitle = escapeHtml(item.title);
-    const iPrice = escapeHtml(item.price);
-    const iId = escapeAttr(item.id);
-    const iSeller = escapeAttr(item.seller_address);
-    const cBadge = getConditionBadge(item.condition);
-    const pBadge = getPriceTypeBadge(item.price_type);
-    const posted = timeAgo(item.created_at);
-    const distLabel = typeof item.calculatedDistance === 'number' ? `<span class="card-distance">${item.calculatedDistance} km</span>` : '';
-    return `
+function listingCardHtml(item) {
+  const hasPhoto = !!(item.image1 && String(item.image1).startsWith('http'));
+  const thumbImg = hasPhoto ? escapeAttr(cardImageUrl(item.image1, CARD_IMAGE_WIDTH)) : FEED_FALLBACK_THUMB;
+  const sellerName = resolveSellerName(item);
+  const dName = escapeHtml(sellerName);
+  const dInitial = escapeHtml(sellerName.trim().charAt(0).toUpperCase() || 'U');
+  const iTitle = escapeHtml(item.title);
+  const iPrice = escapeHtml(item.price);
+  const iId = escapeAttr(item.id);
+  const cBadge = getConditionBadge(item.condition);
+  const pBadge = getPriceTypeBadge(item.price_type);
+  const posted = timeAgo(item.created_at);
+  const distLabel = typeof item.calculatedDistance === 'number' ? `<span class="card-distance">${item.calculatedDistance} km</span>` : '';
+  // Lazy + async so a long feed does not block the first visible cards.
+  const imgAttrs = hasPhoto ? ' loading="lazy" decoding="async"' : '';
+  return `
       <div class="listing-card" onclick="window.openAdDetails('${iId}')">
         <div class="card-media">
-          <img src="${thumbImg}" class="card-thumb" alt="${iTitle}" onerror="this.onerror=null;this.src='${fallbackThumb}'">
+          <img src="${thumbImg}" class="card-thumb" alt="${iTitle}"${imgAttrs} onerror="this.onerror=null;this.src='${FEED_FALLBACK_THUMB}'">
           <span class="badge badge-${cBadge.cls}">${cBadge.text}</span>
           <button onclick="event.stopPropagation(); window.shareAd('${escapeAttr(item.title)}', '${escapeAttr(item.price)}')" class="card-quick-action" aria-label="${t('share')}"><svg viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="m8.3 10.7 7.4-3.9M8.3 13.3l7.4 3.9"/></svg></button>
         </div>
@@ -1857,18 +1955,128 @@ async function fetchListings() {
           </div>
           <h3 class="card-title">${iTitle}</h3>
           <div class="card-meta">
-            <span class="card-seller"><span class="card-avatar">${dInitial}</span><span>${dName}</span></span>
+            <span class="card-seller" data-seller-wallet="${escapeAttr(item.seller_address)}" data-seller-name="${escapeAttr(item.seller_name)}"><span class="card-avatar">${dInitial}</span><span>${dName}</span></span>
             <span class="card-meta-right">${distLabel}<span class="card-time">${posted}</span></span>
           </div>
         </div>
       </div>
     `;
-  }).join('');
+}
+
+function paintFeed(items, filters) {
+  const container = document.getElementById('listingsContainer');
+  if (!container) return;
+  const filteredData = visibleFeedItems(items, filters);
+  const feedCount = document.getElementById('feedCount');
+  if (feedCount) feedCount.textContent = filteredData.length ? String(filteredData.length) : '';
+
+  if (filteredData.length === 0) {
+    container.innerHTML = (items && items.length)
+      ? emptyState(t('noListingsNearby', { km: filters.radius }), '', t('widenRadius'), 'window.widenRadius()')
+      : emptyState(t('noListings'), '', t('postFirstAd'), "window.switchTab('screenPost')");
+    hideSplash();
+    return;
+  }
+
+  container.innerHTML = filteredData.map(listingCardHtml).join('');
+  hideSplash();
+  // The users table is the source of truth for seller names, but a slow or failed
+  // lookup must not delay the cards: patch the names once they arrive.
+  refreshSellerNames();
+}
+
+// Replaces the name text inside every card, keeping the DOM (and scroll) intact.
+async function refreshSellerNames() {
+  const container = document.getElementById('listingsContainer');
+  if (!container) return;
+  const before = JSON.stringify(userNamesCache);
+  await loadUserNames();
+  if (JSON.stringify(userNamesCache) === before) return;
+  container.querySelectorAll('[data-seller-wallet]').forEach((el) => {
+    const name = resolveSellerName({
+      seller_address: el.getAttribute('data-seller-wallet'),
+      seller_name: el.getAttribute('data-seller-name'),
+    });
+    const text = el.querySelector('span:last-child');
+    if (text && text.textContent !== name) text.textContent = name;
+  });
+}
+
+async function fetchListings(options) {
+  const opts = options || {};
+  const container = document.getElementById('listingsContainer');
+  if (!container) return;
+  if (!supabase) { container.innerHTML = emptyState(t('dbUnavailable')); hideSplash(); return; }
+  const filters = feedFilters();
+  const cached = readFeedCache();
+  const cacheMatchesQuery = !!(cached && cached.items && cached.items.length
+    && cached.query === [filters.country, filters.category].join('|'));
+
+  if (cacheMatchesQuery) {
+    // Instant paint from the copy on the device; search and radius are applied
+    // locally, so typing in the search box does not need a round trip.
+    paintFeed(cached.items, filters);
+  } else {
+    container.innerHTML = showSkeleton(4);
+  }
+
+  const isFresh = !!(cached && cached.key === filters.key && (Date.now() - cached.at) < FEED_FRESH_MS);
+  if (isFresh && !opts.force) {
+    if (!cacheMatchesQuery) paintFeed(cached.items || [], filters);
+    hideSplash();
+    return;
+  }
+  if (!opts.force && feedInFlight.promise && feedInFlight.key === filters.key) {
+    return feedInFlight.promise;
+  }
+
+  const request = (async () => {
+    let query = supabase.from('listings').select(FEED_COLUMNS).eq('status', 'active');
+    // An empty value means the select has no valid option selected; treat it as
+    // "all" instead of querying category=eq. (which silently returns nothing).
+    if (filters.country && filters.country !== 'ALL') query = query.eq('country', filters.country);
+    if (filters.category && filters.category !== 'ALL') query = query.eq('category', filters.category);
+    query = query.order('created_at', { ascending: false }).limit(FEED_LIMIT);
+
+    let data, error, thrown = null;
+    try {
+      const timed = (typeof AbortSignal !== 'undefined' && AbortSignal.timeout && typeof query.abortSignal === 'function')
+        ? query.abortSignal(AbortSignal.timeout(FEED_TIMEOUT_MS))
+        : query;
+      const result = await timed;
+      data = result.data;
+      error = result.error;
+    } catch (netErr) {
+      thrown = netErr;
+    }
+
+    if (error || thrown) {
+      const diag = describeFeedFailure(error || thrown);
+      // supabase-js already retries a failed fetch a few times internally, so a
+      // second retry here would only keep the skeleton on screen for 15s.
+      console.error('[FEED] listings query failed:', diag.kind, diag.code, diag.message);
+      container.innerHTML = feedErrorState(diag);
+      hideSplash();
+      return;
+    }
+
+    const items = data || [];
+    writeFeedCache(filters.key, items, [filters.country, filters.category].join('|'));
+    paintFeed(items, filters);
+  })();
+
+  feedInFlight = { key: filters.key, promise: request };
+  try {
+    return await request;
+  } finally {
+    if (feedInFlight.promise === request) feedInFlight = { key: '', promise: null };
+  }
 }
 
 // The empty-state retry button runs inline HTML, so the handler has to exist on
 // window: a module-scoped function is invisible to onclick attributes.
 window.fetchListings = fetchListings;
+
 
 // ==========================================
 // AD DETAILS
@@ -1975,18 +2183,9 @@ window.sendMessage = async function() {
   chatBox.scrollTop = chatBox.scrollHeight;
   const { error } = await supabase.from('chats').insert([{ sender: userWallet, receiver: currentChatSeller, ad_title: window.currentChatAdTitle, message: msg }]);
   if (error) { await showNeonPopup(t('genericError'), t('genericErrorDesc'), 'OK'); return; }
-  // MINIKIT COMMAND: Notify seller of new message
-  try {
-    const mk = MiniKit;
-    if (mk && mk.commandsAsync && mk.commandsAsync.sendNotification) {
-      await mk.commandsAsync.sendNotification({
-        wallet_addresses: [currentChatSeller],
-        title: 'New Message',
-        message: `${currentUsername} sent you a message about "${window.currentChatAdTitle}"`,
-      });
-      return;
-    }
-  } catch (notifErr) {}
+  // Push notifications are sent by the Developer Portal API, not by a MiniKit
+  // client command (there is no commandsAsync.sendNotification in 1.9.6), so the
+  // message is stored only and the dead call is gone.
 };
 
 // ==========================================
@@ -2074,6 +2273,7 @@ window.adminDeleteAd = async function(id) {
       try { await supabase.from('listings').delete().match({ id }); deleted = true; } catch (e) {}
     }
     await showNeonPopup(deleted ? 'Success' : 'Info', deleted ? 'Ad deleted by admin.' : 'Could not delete. Run SUPABASE_SQL_DELETE.sql.', 'OK');
+    invalidateFeedCache();
     window.openAdminPanel();
     fetchListings();
   }
@@ -2142,6 +2342,7 @@ window.deleteMyAd = async function(id) {
     const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
     if (verifyData && verifyData.status === 'deleted') {
       await showNeonPopup('Deleted', 'Ad removed. Your SOW coins are safe!', 'OK');
+      invalidateFeedCache();
       window.openMyAdsScreen(); fetchListings(); return;
     }
   }
@@ -2170,6 +2371,7 @@ window.markAsSoldOut = async function(id) {
     const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
     if (verifyData && verifyData.status === 'sold') {
       await showNeonPopup('Sold', 'Ad marked as sold. Your SOW coins are safe!', 'OK');
+      invalidateFeedCache();
       window.openMyAdsScreen(); fetchListings(); return;
     }
   }
@@ -2224,6 +2426,8 @@ function setSowBalance(balance) {
   if (statsCard) statsCard.style.display = 'block';
   if (homeCount) homeCount.textContent = n;
 }
+
+window.updateSowBadge = updateSowBadge;
 
 async function updateSowBadge() {
   if (!userWallet) return;

@@ -6,6 +6,10 @@ const path = require('path');
 
 const PORT = 3457;
 const LOG_PATH = path.join(__dirname, 'mock.log');
+// Set MOCK_DELAY_MS to simulate a real mobile round trip and measure the feed
+// honestly instead of on a loopback connection.
+const DELAY_MS = Number(process.env.MOCK_DELAY_MS || 0);
+const hits = {};
 const USER = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const SELLER = '0xaaa1111111111111111111111111111111111111';
 const BUYER = '0xbbb2222222222222222222222222222222222222';
@@ -41,6 +45,10 @@ const db = {
 };
 
 const seq = { listings: 100, chats: 100, reviews: 100 };
+// Snapshot of the seed data so a second suite run starts from the same state
+// instead of inheriting the previous run's listings, reviews and balances.
+const SEED_DB = JSON.parse(JSON.stringify(db));
+const SEED_SEQ = Object.assign({}, seq);
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -151,11 +159,25 @@ function pick(row, select) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   log(`${req.method} ${req.url}`);
+  const hitKey = `${req.method} ${url.pathname}`;
+  hits[hitKey] = (hits[hitKey] || 0) + 1;
 
   // Test-harness introspection: the E2E suite asserts against real backend
   // state instead of trusting the DOM alone.
   if (url.pathname === '/__admin/state') return json(res, 200, db);
   if (url.pathname === '/__admin/log') return json(res, 200, { log: fs.readFileSync(LOG_PATH, 'utf8') });
+  if (url.pathname === '/__admin/metrics') return json(res, 200, { hits, delayMs: DELAY_MS });
+  if (url.pathname === '/__admin/reset') {
+    for (const k of Object.keys(hits)) delete hits[k];
+    fs.writeFileSync(LOG_PATH, '');
+    return json(res, 200, { reset: true });
+  }
+  if (url.pathname === '/__admin/reseed') {
+    for (const name of Object.keys(SEED_DB)) db[name] = JSON.parse(JSON.stringify(SEED_DB[name]));
+    Object.assign(seq, SEED_SEQ);
+    for (const k of Object.keys(hits)) delete hits[k];
+    return json(res, 200, { reseeded: true });
+  }
 
   if (req.method === 'OPTIONS') {
     const requested = req.headers['access-control-request-headers'];
@@ -167,6 +189,8 @@ const server = http.createServer(async (req, res) => {
     });
     return res.end();
   }
+
+  if (DELAY_MS > 0) await new Promise((r) => setTimeout(r, DELAY_MS));
 
   const body = await readBody(req);
   const params = url.searchParams;
