@@ -1,3 +1,5 @@
 .env
 node_modules/
 .DS_Store
+# local test harness + scratch output (mock backend, E2E results, logs)
+.freebuff/

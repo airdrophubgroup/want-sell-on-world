@@ -1097,6 +1097,28 @@ img { display: block; }
 }
 .btn-verify .row-chevron { color: rgba(255, 255, 255, 0.55); }
 .btn-verify .action-sub { color: rgba(255, 255, 255, 0.55); }
+.btn-legal { color: var(--ink-2); }
+.profile-version {
+  text-align: center; margin: var(--sp-md) 0 var(--sp-sm);
+  font-size: 0.68rem; color: var(--ink-3); letter-spacing: 0.02em;
+}
+
+/* ===== LEGAL PAGES ===== */
+.legal-body { background: var(--surface); color: var(--ink-2); }
+.legal-title {
+  font-size: 1.15rem; font-weight: 800; color: var(--ink);
+  letter-spacing: -0.02em; margin-bottom: 2px;
+}
+.legal-meta { font-size: 0.7rem; color: var(--ink-3); margin-bottom: var(--sp-sm); }
+.legal-body h3 {
+  margin: var(--sp-md) 0 4px; font-size: 0.86rem; font-weight: 800;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.legal-body p, .legal-body li { font-size: 0.84rem; line-height: 1.55; }
+.legal-body ul { padding-left: 18px; margin: 4px 0; }
+.legal-body li { margin-bottom: 4px; }
+.legal-body a { color: var(--primary-deep); font-weight: 600; text-decoration: none; }
+.legal-body b { color: var(--ink); font-weight: 700; }
 
 /* ===== VERIFY BADGE ===== */
 .verify-badge {

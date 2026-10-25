@@ -44,7 +44,13 @@ WantSell is a location-aware product marketplace mini-app built for World App. U
 | Self-Review Block | Users cannot review themselves |
 | Ownership Verification | Only ad owner can mark as sold |
 | Wallet Address Privacy | No wallet addresses shown in user-facing UI |
-| Content Security Policy | CSP meta tag restricts resource loading |
+| Content Security Policy | CSP meta tag restricts resource loading (World username registry explicitly allowed) |
+| Backend health check | `npm run check:backend` verifies DNS, anon key, tables, storage bucket and the SOW RPC |
+
+If the feed shows **Server unavailable (UNREACHABLE)**, the Supabase project
+itself is not answering: free projects pause after about a week of inactivity.
+Resume it in the dashboard, then re-run `npm run check:backend`. Full runbook:
+[BACKEND_RECOVERY.md](BACKEND_RECOVERY.md).
 
 ---
 
@@ -81,6 +87,8 @@ WantSell is a location-aware product marketplace mini-app built for World App. U
 - **Technical**: Handles poor connectivity, no infinite loading, works on Android + iOS
 - **MiniKit Integration**: Live `walletAuth()` + `pay()` commands via CDN v1.9.6
 - **User Support**: Email provided in Profile screen
+- **Legal**: Terms of Service, Privacy Policy and a data-deletion request live in Profile
+- **Submission**: Portal field values, assets and the reviewer test script are in [WORLD_REVIEW.md](WORLD_REVIEW.md)
 
 ---
 
@@ -140,6 +148,27 @@ write `sow_balances` and `sow_ledger` directly, replays awards, races 50 calls
 against one listing, and checks each of 400 wallets receives exactly one coin.
 Exit code `1` means a real vulnerability, `2` means it could not reach the
 project.
+
+---
+
+## End-to-end tests (no World App needed)
+
+`tools/e2e/mock-backend.cjs` is a small PostgREST stand-in and
+`tools/e2e/e2e.js` drives the real `index.html`/`app.js` through every flow:
+feed, search and filters, ad details, chat, reviews, my ads, posting (including a
+payment that never answers), profile, leaderboard, legal pages, offline banner,
+server-error retry and the admin panel. MiniKit commands are mocked per run, so
+success and failure paths are both covered without a phone.
+
+```bash
+npm run e2e:mock                 # mock database on :3457
+npm run e2e:serve                # test build of the app on :3456
+# open http://127.0.0.1:3456/?e2e=1  (add &step=1 to drive it from the console)
+```
+
+Results are written to `tools/e2e/e2e-result.json` (29 checks, all should pass).
+This suite never touches the hosted Supabase project; check the real backend
+itself with `npm run check:backend`.
 
 ---
 

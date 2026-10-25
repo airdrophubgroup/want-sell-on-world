@@ -1,0 +1,5 @@
+build/
+mock.log
+build.out
+*.out
+e2e-result.json

@@ -8,10 +8,14 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23ff6b2c'/%3E%3Cpath d='M20 13.2 13.2 20a1.7 1.7 0 0 1-2.4 0L3.8 13.2V3.8h9.4L20 10.8a1.7 1.7 0 0 1 0 2.4Z' fill='none' stroke='%23fff' stroke-width='1.8'/%3E%3Ccircle cx='8.2' cy='8.2' r='1.3' fill='%23fff'/%3E%3C/svg%3E">
   <title>WantSell</title>
+  <meta name="description" content="Buy and sell second-hand items near you. List an item for 1 WLD, chat with the seller, and earn SOW coins for every ad.">
+  <meta property="og:title" content="WantSell">
+  <meta property="og:description" content="Buy and sell items near you. 1 WLD per listing.">
+  <meta property="og:type" content="website">
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com https://nominatim.openstreetmap.org https://ipapi.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob: https:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://nominatim.openstreetmap.org https://ipapi.co; font-src 'self' https://fonts.gstatic.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://*.worldcoin.org https://fonts.googleapis.com https://fonts.gstatic.com https://nominatim.openstreetmap.org https://ipapi.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://*.supabase.co data: blob: https:; connect-src 'self' https://*.supabase.co https://*.jsdelivr.net https://*.world.org https://worldcoin.org https://usernames.worldcoin.org https://nominatim.openstreetmap.org https://ipapi.co; font-src 'self' https://fonts.gstatic.com;">
   <script>
     // Safety net: the app must never sit on an endless splash screen.
     setTimeout(function () {
@@ -310,6 +314,16 @@
       </div>
       <div id="adminStatsContainer" class="admin-stats"></div>
       <div id="adminListingsContainer" class="admin-listings"></div>
+    </div>
+  </div>
+
+  <div id="legalModal" class="modal" style="display:none;">
+    <div class="modal-content modal-full">
+      <div class="modal-header">
+        <button class="modal-back-btn" onclick="document.getElementById('legalModal').style.display='none'"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg><span data-i18n="back">Back</span></button>
+        <span id="legalModalTitle" class="modal-header-title">Legal</span>
+      </div>
+      <div id="legalBody" class="modal-body legal-body"></div>
     </div>
   </div>
 

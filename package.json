@@ -2,6 +2,11 @@
   "name": "dice-duel",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "check:backend": "node tools/check-backend.mjs",
+    "e2e:mock": "node tools/e2e/mock-backend.cjs",
+    "e2e:serve": "node tools/e2e/test-server.cjs"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",
     "@worldcoin/minikit-js": "^2.0.3",

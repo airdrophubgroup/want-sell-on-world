@@ -31,6 +31,13 @@ const LOCALES = {
     priceWld: 'Price (WLD)', photosMax: 'Photos (max 4)', postAdBtn: 'Post Ad (1 WLD)',
     back: 'Back', loading: 'Loading...', noListings: 'No active listings found.',
     networkError: 'Network error. Please check your connection and try again.',
+    connOffline: 'Your device is offline. Reconnect and tap try again.',
+    connTimeout: 'The server took too long to respond.',
+    connUnreachable: 'Cannot reach the app server. Check your connection and try again.',
+    connTitleUnreachable: 'Server unavailable',
+    connTitleTimeout: 'Slow response',
+    connSchema: 'The app database is not set up or was removed.',
+    connServer: 'The app server returned an error.',
     noListingsNearby: 'No listings found within {km} km of your location.',
     yourSowBalance: 'Your SOW Balance', rankings: 'Rankings',
     loadChat: 'Loading chat...', chatWith: 'Chat with {name}',
@@ -87,6 +94,21 @@ const LOCALES = {
     fileTooLargeDesc: 'Each image must be under 5MB.',
     paymentFailed: 'Payment Cancelled',
     paymentFailedDesc: 'Payment failed or was cancelled.',
+    payConfirmTitle: 'Confirm 1 WLD payment',
+    payConfirmDesc: 'Posting this ad costs 1 WLD, paid from your World App wallet to the WantSell account. The fee is not refundable once the ad is published.',
+    loginCancelled: 'Sign-in was cancelled.',
+    verifyUnavailable: 'Verification Unavailable',
+    verifyUnavailableDesc: 'World ID verification is not available in this version of World App. You can still browse, chat and post.',
+    verifyFailed: 'Verification Failed',
+    verifyFailedDesc: 'World ID verification could not be completed. Please try again in a moment.',
+    verifiedToast: 'World ID verified',
+    termsTitle: 'Terms of Service',
+    privacyTitle: 'Privacy Policy',
+    legalSection: 'Legal',
+    deleteData: 'Delete my data',
+    deleteDataDesc: 'This hides your listings and clears this device. We also need an email so we can delete your stored profile, chats and reviews. Send it to {email}?',
+    deleteDataSent: 'Request ready — send the email to finish deletion.',
+    seller: 'Seller',
   },
   es: {
     appName: 'WantSell', subtitle: 'Compra y vende articulos cerca de ti', connectWallet: 'Conectar Billetera',
@@ -579,67 +601,135 @@ function checkRateLimit(action, cooldownMs) {
 // ==========================================
 // ADDRESS UTILS
 // ==========================================
-function getDisplayName() { return 'User'; }
-function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
+// Live seller names. A listing stores the name it was posted with, so an old
+// row can still carry a stale fallback; the users table is the source of truth
+// and one small query covers the whole visible feed.
+let userNamesCache = {};
+let userNamesFetchedAt = 0;
 
-async function getMiniKitUsernameAsync(payload = null) {
+async function loadUserNames(force = false) {
+  if (!force && Date.now() - userNamesFetchedAt < 60000) return userNamesCache;
   try {
-    let u = null;
-    if (payload) {
-      u = payload.user || payload.profile || null;
-      if (!u && payload.finalPayload) u = payload.finalPayload.user || payload.finalPayload.profile;
+    const { data } = await supabase.from('users').select('wallet_address, username').limit(500);
+    const map = {};
+    (data || []).forEach((u) => {
+      if (u && u.wallet_address && u.username) map[String(u.wallet_address).toLowerCase()] = String(u.username);
+    });
+    userNamesCache = map;
+    userNamesFetchedAt = Date.now();
+  } catch (e) {}
+  return userNamesCache;
+}
+
+function resolveSellerName(item) {
+  const raw = item && item.seller_name ? String(item.seller_name).trim() : '';
+  const live = item && item.seller_address ? userNamesCache[String(item.seller_address).toLowerCase()] : '';
+  if (live) return live;
+  if (raw && !/^user(_|$)/i.test(raw)) return raw;
+  return t('seller');
+}
+function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
+function shortAddress(wallet) { const s = String(wallet || ''); return s.length > 10 ? s.slice(0, 6) + '...' + s.slice(-4) : (s || t('seller')); }
+
+// World App usernames come from the public username registry, not from the
+// walletAuth payload (which only carries address/message/signature). MiniKit.user
+// is filled lazily by the SDK after its own profile request, so the app resolves
+// the name itself instead of losing that race on every launch.
+const WORLD_USERNAMES_URL = 'https://usernames.worldcoin.org/api/v1/query';
+const USERNAME_CACHE_PREFIX = 'ws_username_';
+const USERNAME_LOOKUP_TIMEOUT_MS = 8000;
+
+function usernameCacheKey(wallet) { return USERNAME_CACHE_PREFIX + String(wallet || '').toLowerCase(); }
+function readCachedUsername(wallet) {
+  try { return wallet ? localStorage.getItem(usernameCacheKey(wallet)) : null; } catch (e) { return null; }
+}
+function writeCachedUsername(wallet, name) {
+  try { if (wallet && name) localStorage.setItem(usernameCacheKey(wallet), name); } catch (e) {}
+}
+function normalizeWorldUsername(raw) {
+  if (raw == null) return '';
+  const clean = String(raw).replace(/[\u0000-\u001f\u007f]/g, '').trim();
+  return clean.length >= MIN_USERNAME_LEN ? clean.slice(0, MAX_USERNAME_LEN) : '';
+}
+function isFallbackName(name) {
+  const u = String(name || '').trim();
+  if (u.length < MIN_USERNAME_LEN) return true;
+  return /^user(_|$)/i.test(u) || /^0x[0-9a-f]{4,}\.\.\./i.test(u);
+}
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error((label || 'request') + ' timed out')), ms);
+    Promise.resolve(promise).then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); }
+    );
+  });
+}
+
+// Wallet address -> World App username, using every source the runtime offers.
+async function resolveWorldUsername(address) {
+  const wallet = String(address || userWallet || '').trim();
+  if (!wallet) return null;
+  try {
+    if (typeof MiniKit !== 'undefined' && typeof MiniKit.getUserByAddress === 'function') {
+      const info = await withTimeout(MiniKit.getUserByAddress(wallet), USERNAME_LOOKUP_TIMEOUT_MS, 'MiniKit.getUserByAddress');
+      const name = normalizeWorldUsername(info && (info.username || info.name));
+      if (name) return name;
     }
-    if (!u && typeof MiniKit !== 'undefined' && MiniKit.user) u = MiniKit.user;
-    if (!u && typeof MiniKit !== 'undefined' && typeof MiniKit.getUser === 'function') {
-      try {
-        const gu = await MiniKit.getUser();
-        if (gu) u = gu;
-      } catch (e) {}
+  } catch (e) {}
+  try {
+    const res = await withTimeout(fetch(WORLD_USERNAMES_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ addresses: [wallet.toLowerCase()] }),
+    }), USERNAME_LOOKUP_TIMEOUT_MS, 'world username lookup');
+    if (res && res.ok) {
+      const rows = await res.json();
+      const row = Array.isArray(rows) ? (rows.find((r) => r && String(r.address || '').toLowerCase() === wallet.toLowerCase()) || rows[0]) : null;
+      const name = normalizeWorldUsername(row && (row.username || row.name));
+      if (name) return name;
     }
-    if (u && typeof u === 'object') {
-      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || u.worldName || u.worldcoin_username || u.worldIdUsername || (u.profile && (u.profile.username || u.profile.name || u.profile.handle)) || (u.wallet && u.wallet.username) || (u.identity && (u.identity.username || u.identity.name));
-      if (candidate && typeof candidate === 'string') return candidate.trim();
-    }
-    if (payload && typeof payload === 'object') {
-      const keys = ['username', 'name', 'displayName', 'handle', 'nickName', 'worldName', 'worldcoin_username'];
-      for (const k of keys) {
-        if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
-      }
-      if (payload.identity && typeof payload.identity === 'object') {
-        for (const k of keys) {
-          if (payload.identity[k] && typeof payload.identity[k] === 'string') return payload.identity[k].trim();
-        }
-      }
-    }
+  } catch (e) {}
+  try {
+    const u = typeof MiniKit !== 'undefined' ? MiniKit.user : null;
+    const name = normalizeWorldUsername(u && (u.username || u.name || u.displayName || u.handle));
+    if (name) return name;
   } catch (e) {}
   return null;
 }
 
+// One place that shows a username: header button, storage, open profile screen
+// and (optionally) the users row used to label listings.
+async function applyUsername(name, { sync = true } = {}) {
+  const clean = normalizeWorldUsername(name);
+  if (!clean || isFallbackName(clean)) return false;
+  currentUsername = clean;
+  try { localStorage.setItem('currentUsername', clean); } catch (e) {}
+  if (userWallet) writeCachedUsername(userWallet, clean);
+  const btn = document.getElementById('loginBtn');
+  if (btn) { btn.innerText = clean; btn.classList.add('connected'); }
+  if (document.querySelector('#screenProfile.active')) window.renderProfile();
+  if (sync && userWallet && supabase) {
+    try { await withTimeout(supabase.from('users').upsert([{ wallet_address: userWallet, username: clean }]), 6000, 'username save'); } catch (e) {}
+  }
+  return true;
+}
+
+async function getMiniKitUsernameAsync(payload = null) {
+  const live = await resolveWorldUsername((payload && payload.address) || userWallet);
+  if (live) return live;
+  return getMiniKitUsername(payload);
+}
+
 function getMiniKitUsername(payload = null) {
-  try {
-    let u = null;
-    if (payload) {
-      u = payload.user || payload.profile || null;
-      if (!u && payload.finalPayload) u = payload.finalPayload.user || payload.finalPayload.profile;
-    }
-    if (!u && typeof MiniKit !== 'undefined' && MiniKit.user) u = MiniKit.user;
-    if (u && typeof u === 'object') {
-      const candidate = u.username || u.name || u.displayName || u.handle || u.nickName || u.worldName || u.worldcoin_username || u.worldIdUsername || (u.profile && (u.profile.username || u.profile.name || u.profile.handle)) || (u.wallet && u.wallet.username) || (u.identity && (u.identity.username || u.identity.name));
-      if (candidate && typeof candidate === 'string') return candidate.trim();
-    }
-    if (payload && typeof payload === 'object') {
-      const keys = ['username', 'name', 'displayName', 'handle', 'nickName', 'worldName', 'worldcoin_username'];
-      for (const k of keys) {
-        if (payload[k] && typeof payload[k] === 'string') return payload[k].trim();
-      }
-      if (payload.identity && typeof payload.identity === 'object') {
-        for (const k of keys) {
-          if (payload.identity[k] && typeof payload.identity[k] === 'string') return payload.identity[k].trim();
-        }
-      }
-    }
-  } catch (e) {}
-  return null;
+  const source = payload && typeof payload === 'object'
+    ? (payload.user || payload.profile || payload.identity
+        || (payload.finalPayload && (payload.finalPayload.user || payload.finalPayload.profile))
+        || payload)
+    : null;
+  const name = normalizeWorldUsername(source && (source.username || source.name || source.displayName || source.handle));
+  if (name) return name;
+  return normalizeWorldUsername(readCachedUsername(userWallet)) || null;
 }
 
 // ==========================================
@@ -915,25 +1005,36 @@ function randomAlphaNumeric(len) {
 // ==========================================
 // MINIKIT COMMANDS: VERIFY (World ID)
 // ==========================================
+// The action has to exist in the Developer Portal (World ID -> Actions). When it
+// is missing World App answers with an error payload, so the failure is shown to
+// the user instead of leaving a dead button behind.
+const VERIFY_ACTION = 'post_ad';
+
 async function verifyWorldID() {
   if (isVerified) return true;
+  const mk = typeof MiniKit !== 'undefined' ? MiniKit : null;
+  if (!mk || !mk.commandsAsync || typeof mk.commandsAsync.verify !== 'function') {
+    await showNeonPopup(t('verifyUnavailable'), t('verifyUnavailableDesc'), 'OK');
+    return false;
+  }
   try {
-    const mk = MiniKit;
-    if (!mk || !mk.commandsAsync || !mk.commandsAsync.verify) {
-      return false;
-      return false;
-    }
-    const { finalPayload } = await mk.commandsAsync.verify({
-      action: 'post_ad',
-      signal_description: 'Verify your World ID to post an ad on WantSell',
-    });
+    // Never leave the profile row spinning if World App stops answering.
+    const verifyResult = await withTimeout(mk.commandsAsync.verify({
+      action: VERIFY_ACTION,
+      signal: userWallet || '',
+    }), 60000, 'verify').catch(() => null);
+    const finalPayload = verifyResult && verifyResult.finalPayload;
     if (finalPayload && finalPayload.status === 'success') {
       isVerified = true;
       localStorage.setItem('worldIdVerified', 'true');
+      showToast(t('verifiedToast'));
       return true;
     }
+    const code = finalPayload && finalPayload.error_code ? ` (${finalPayload.error_code})` : '';
+    await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc') + code, 'OK');
     return false;
   } catch (err) {
+    await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc'), 'OK');
     return false;
   }
 }
@@ -999,7 +1100,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
-    const shortAddr = savedAddress ? (savedAddress.substring(0, 6) + '...' + savedAddress.substring(savedAddress.length - 4)) : 'User'; currentUsername = savedUsername || shortAddr;
+    // A cached name keeps the header correct before any network request.
+    const cachedName = savedUsername || readCachedUsername(savedAddress);
+    currentUsername = cachedName || shortAddress(savedAddress);
     const loginBtnInit = document.getElementById('loginBtn');
     if (loginBtnInit) { loginBtnInit.innerText = currentUsername; loginBtnInit.classList.add('connected'); }
     updateSowBadge();
@@ -1007,28 +1110,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetchListings();
     if (typeof MiniKit !== 'undefined') {
       try {
-        let p = await getMiniKitUsernameAsync();
-        if (!p) p = getMiniKitUsername();
-        if (p && !isFallback(p)) {
-          currentUsername = p;
-          localStorage.setItem('currentUsername', currentUsername);
-          if (loginBtnInit) loginBtnInit.innerText = currentUsername;
-          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
-        } else {
-          // Still try to get from MiniKit.user directly
-          try {
-            if (MiniKit.user) {
-              const pu = MiniKit.user;
-              const pcand = pu.username || pu.name || pu.displayName || pu.handle || pu.worldName;
-              if (pcand && !isFallback(pcand)) {
-                currentUsername = pcand;
-                localStorage.setItem('currentUsername', currentUsername);
-                if (loginBtnInit) loginBtnInit.innerText = currentUsername;
-                try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
-              }
-            }
-          } catch (e) {}
-        }
+        const liveName = await getMiniKitUsernameAsync();
+        // Fire and forget: a slow database must never delay the first screen.
+        if (liveName) applyUsername(liveName).catch(() => {});
       } catch (e) {}
     }
   }
@@ -1042,38 +1126,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!ready) { checkWorldAppEnvironment(); return; }
 
   // Refresh the session for a returning user only. A first-time visitor is
-  // never hit with an unexplained signature prompt on launch.
+  // never hit with an unexplained signature prompt on launch. The timeout
+  // matters: when World App never answers the command, this await used to keep
+  // the splash on screen forever and no UI listener was ever attached.
   if (savedAddress && typeof MiniKit !== 'undefined') {
     try {
-      const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+      const authResult = await withTimeout(MiniKit.commandsAsync.walletAuth({
         nonce: randomAlphaNumeric(24),
         requestId: 'req_silent_' + Date.now(),
         expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         notBefore: new Date(Date.now() - 60 * 1000),
         statement: 'Sign in to WantSell',
-      });
+      }), 15000, 'silent walletAuth').catch(() => null);
+      const finalPayload = authResult && authResult.finalPayload;
       if (finalPayload?.status === 'success' && finalPayload?.address) {
         userWallet = finalPayload.address;
-        const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
-        let profileUsername = await getMiniKitUsernameAsync(finalPayload);
-        if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
-        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
-        if (profileUsername && !isFallback(profileUsername)) {
-          currentUsername = profileUsername;
-          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
-        } else if (userData?.username && !isFallback(userData.username)) {
-          currentUsername = userData.username;
-          if (profileUsername && !isFallback(profileUsername) && profileUsername !== userData.username) {
-            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); currentUsername = profileUsername; } catch (e) {}
-          }
-        } else {
-          const shortAddr2 = userWallet ? (userWallet.substring(0,6)+'...'+userWallet.substring(userWallet.length-4)) : 'User'; currentUsername = profileUsername && !isFallback(profileUsername) ? profileUsername : (userData?.username || profileUsername || shortAddr2);
-          if (profileUsername && !isFallback(profileUsername)) {
-            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: profileUsername }]); } catch (e) {}
-          }
-        }
+        let dbName = '';
+        try {
+          const { data: userData } = await withTimeout(supabase.from('users').select('username').eq('wallet_address', userWallet).maybeSingle(), 6000, 'user lookup');
+          dbName = normalizeWorldUsername(userData && userData.username);
+        } catch (e) {}
+        const liveName = await resolveWorldUsername(userWallet);
+        const chosen = liveName || dbName || readCachedUsername(userWallet);
+        if (chosen) await applyUsername(chosen, { sync: !!liveName && liveName !== dbName });
+        else currentUsername = shortAddress(userWallet);
         localStorage.setItem('userWallet', userWallet);
-        localStorage.setItem('currentUsername', currentUsername);
+        localStorage.setItem('currentUsername', currentUsername || '');
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) { loginBtn.innerText = currentUsername; loginBtn.classList.add('connected'); }
         updateSowBadge();
@@ -1090,27 +1168,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setTimeout(async () => {
     try {
       if (userWallet && typeof MiniKit !== 'undefined') {
-        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
+        // The username registry occasionally answers late on a cold start, so a
+        // few short retries replace the old MiniKit.user polling loop.
         for (let i = 0; i < 5; i++) {
-          let p = await getMiniKitUsernameAsync();
-          if (!p) p = getMiniKitUsername();
-          if (!p && MiniKit.user) {
-            const pu = MiniKit.user;
-            p = pu.username || pu.name || pu.displayName || pu.handle || pu.worldName;
-          }
-          if (!p && typeof MiniKit.getUser === 'function') {
-            try { const mu = await MiniKit.getUser(); if (mu) { p = await getMiniKitUsernameAsync(mu); if (!p) p = getMiniKitUsername(mu); } } catch (e) {}
-          }
-          if (p && !isFallback(p)) {
-            currentUsername = p;
-            localStorage.setItem('currentUsername', currentUsername);
-            const lb = document.getElementById('loginBtn');
-            if (lb) lb.innerText = currentUsername;
-            try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
-            if (document.querySelector('#screenProfile.active')) window.renderProfile();
+          const resolved = await resolveWorldUsername(userWallet);
+          if (resolved) {
+            await applyUsername(resolved, { sync: resolved !== currentUsername }).catch(() => {});
             break;
           }
-          await new Promise(r => setTimeout(r, 800));
+          await new Promise(r => setTimeout(r, 800 + i * 400));
         }
       }
     } catch (e) {}
@@ -1152,7 +1218,12 @@ function setupUI() {
   offlineBanner.className = 'offline-banner';
   offlineBanner.textContent = t('youOffline');
   document.body.appendChild(offlineBanner);
-  window.addEventListener('online', () => { offlineBanner.style.display = 'none'; if (supabase) fetchListings(); });
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) offlineBanner.style.display = 'block';
+  window.addEventListener('online', () => {
+    offlineBanner.style.display = 'none';
+    if (supabase) fetchListings();
+    if (userWallet) resolveWorldUsername(userWallet).then((name) => { if (name) applyUsername(name); }).catch(() => {});
+  });
   window.addEventListener('offline', () => { offlineBanner.style.display = 'block'; });
 }
 
@@ -1164,53 +1235,49 @@ async function handleLogin() {
   if (!supabase) { showNeonPopup('Offline', t('dbUnavailable'), 'OK'); return; }
   if (!checkRateLimit('login', 5000)) { showNeonPopup('Slow Down', t('loginRate'), 'OK'); return; }
   try {
-    const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
+    const authResult = await withTimeout(MiniKit.commandsAsync.walletAuth({
       nonce: randomAlphaNumeric(24),
       requestId: 'req_login_' + Date.now(),
       expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       notBefore: new Date(Date.now() - 60 * 1000),
       statement: 'Sign in to WantSell',
-    });      if (finalPayload?.status === 'success' && finalPayload?.address) {
+    }), 60000, 'walletAuth').catch(() => null);
+    const finalPayload = authResult && authResult.finalPayload;
+    if (finalPayload?.status === 'success' && finalPayload?.address) {
         if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', t('invalidAddress'), 'OK'); return; }
         userWallet = finalPayload.address;
-        const { data: userData } = await supabase.from('users').select('username').eq('wallet_address', userWallet).single();
-        let profileUsername = await getMiniKitUsernameAsync(finalPayload);
-        if (!profileUsername) profileUsername = getMiniKitUsername(finalPayload);
-        const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
-        if (profileUsername && !isFallback(profileUsername)) {
-          currentUsername = profileUsername;
-          try { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); } catch (e) {}
-        } else if (userData?.username && !isFallback(userData.username)) {
-          currentUsername = userData.username;
-        } else {
-          if (profileUsername && /^[a-zA-Z0-9 _\-]{2,20}$/.test(profileUsername)) {
-            currentUsername = profileUsername.replace(/[^a-zA-Z0-9 _\-]/g, '').trim();
-          } else {
-            let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
-            let attempts = 0;
-            while (attempts < 3) {
-              const v = validateUsername(usernameInput);
-              if (v.valid) { currentUsername = v.clean; break; }
-              attempts++;
-              if (attempts >= 3) { const sa = userWallet ? (userWallet.substring(0,6)+'...'+userWallet.substring(userWallet.length-4)) : 'User'; currentUsername = sa; break; }
-              usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
-            }
+        let dbName = '';
+        try {
+          const { data: userData } = await withTimeout(supabase.from('users').select('username').eq('wallet_address', userWallet).maybeSingle(), 6000, 'user lookup');
+          dbName = normalizeWorldUsername(userData && userData.username);
+        } catch (e) {}
+        const liveName = await resolveWorldUsername(userWallet);
+        let chosen = liveName || dbName || readCachedUsername(userWallet);
+        if (!chosen) {
+          let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
+          let attempts = 0;
+          while (attempts < 3) {
+            const v = validateUsername(usernameInput);
+            if (v.valid) { chosen = v.clean; break; }
+            attempts++;
+            if (attempts >= 3) { chosen = shortAddress(userWallet); break; }
+            usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
           }
-          try {
-            const { data: exUser } = await supabase.from('users').select('wallet_address').eq('wallet_address', userWallet).single();
-            if (!exUser) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
-            else { await supabase.from('users').update({ username: currentUsername }).eq('wallet_address', userWallet); }
-          } catch (e) { await supabase.from('users').upsert([{ wallet_address: userWallet, username: currentUsername }]); }
         }
+        if (chosen) await applyUsername(chosen, { sync: !!liveName || !dbName });
+        else currentUsername = shortAddress(userWallet);
       localStorage.setItem('userWallet', userWallet);
-      localStorage.setItem('currentUsername', currentUsername);
+      localStorage.setItem('currentUsername', currentUsername || '');
       document.getElementById('loginBtn').innerText = currentUsername;
       document.getElementById('loginBtn').classList.add('connected');
       updateSowBadge();
       detectUserCurrentPosition();
       fetchListings();
+    } else if (finalPayload && finalPayload.status === 'error') {
+      showNeonPopup(t('connectFailed'), t('walletConnectFailed') + (finalPayload.error_code ? ` (${escapeHtml(finalPayload.error_code)})` : ''), 'OK');
     } else {
-      showNeonPopup(t('connectFailed'), t('walletConnectFailed'), 'OK');
+      // The user closed the World App sheet: say so instead of doing nothing.
+      showToast(t('loginCancelled'));
     }
   } catch (err) {
     console.error('[LOGIN ERROR]', err.message || err);
@@ -1523,6 +1590,11 @@ async function handlePostAd(e) {
 
   if (!checkWorldAppEnvironment()) { return; }
 
+  // The charge is disclosed before anything is uploaded, so cancelling costs
+  // nothing and never leaves orphaned photos behind.
+  const payConfirmed = await showNeonPopup(t('payConfirmTitle'), t('payConfirmDesc'), 'OK', 'confirm');
+  if (!payConfirmed) return;
+
   isPosting = true;
 
   // Photos are uploaded BEFORE payment. A failed upload must never cost WLD.
@@ -1558,22 +1630,32 @@ async function handlePostAd(e) {
   // MINIKIT COMMAND: Pay the 1 WLD listing fee
   setStage(t('confirmingPayment'));
   let paymentSuccessful = false;
+  let payErrorCode = '';
   const paymentRef = randomAlphaNumeric(16);
   try {
     const WLD_SYMBOL = (Tokens && Tokens.WLD) || 'WLD';
     const tokenAmount = tokenToDecimals ? tokenToDecimals(1, WLD_SYMBOL).toString() : '1000000000000000000';
-    const { finalPayload } = await MiniKit.commandsAsync.pay({
+    // The payment sheet is interactive, so allow two minutes; a command that
+    // never answers must still end in a visible error instead of a dead button.
+    const payResult = await withTimeout(MiniKit.commandsAsync.pay({
       reference: paymentRef, to: ADMIN_WALLET,
       tokens: [{ symbol: WLD_SYMBOL, token_amount: tokenAmount }],
       description: 'Listing Fee: 1 WLD',
-    });
+    }), 120000, 'pay').catch((err) => ({ error: err }));
+    const finalPayload = payResult && payResult.finalPayload;
+    if (payResult && payResult.error) throw payResult.error;
     paymentSuccessful = (finalPayload?.status === 'success');
-  } catch (err) { paymentSuccessful = false; }
+    if (!paymentSuccessful && finalPayload && finalPayload.error_code) payErrorCode = String(finalPayload.error_code);
+  } catch (err) {
+    paymentSuccessful = false;
+    payErrorCode = err && err.message ? String(err.message).slice(0, 80) : '';
+  }
 
   if (!paymentSuccessful) {
     resetBtn();
     isPosting = false;
-    await showNeonPopup(t('paymentFailed'), t('paymentFailedDesc'), 'OK');
+    const detail = payErrorCode ? ` (${payErrorCode})` : '';
+    await showNeonPopup(t('paymentFailed'), t('paymentFailedDesc') + escapeHtml(detail), 'OK');
     return;
   }
 
@@ -1634,6 +1716,49 @@ async function handlePostAd(e) {
 }
 
 // ==========================================
+// CONNECTION DIAGNOSTICS
+// ==========================================
+// Safety net for a server that accepts the connection but never answers; a
+// dead host fails on its own after the client library's internal retries.
+const FEED_TIMEOUT_MS = 10000;
+
+// Separates "your connection is down" from "the backend is missing", so the
+// feed stops blaming the user's wifi for a server-side failure.
+function describeFeedFailure(err) {
+  const code = String((err && (err.code || err.status)) || '').trim();
+  const message = String((err && (err.message || err.error_description || err.hint)) || err || '').trim();
+  const probe = (code + ' ' + message).toLowerCase();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return { kind: 'offline', code: 'OFFLINE', message, retryable: true };
+  }
+  if (/abort|timeout|timed out/.test(probe)) {
+    return { kind: 'timeout', code: code || 'TIMEOUT', message, retryable: true };
+  }
+  if (!code || /failed to fetch|networkerror|network error|load failed|err_name|enotfound|econn|dns/.test(probe)) {
+    return { kind: 'unreachable', code: code || 'UNREACHABLE', message, retryable: true };
+  }
+  if (code === 'PGRST205' || /schema cache|does not exist|relation .* does not exist/.test(probe)) {
+    return { kind: 'schema', code, message, retryable: false };
+  }
+  return { kind: 'server', code, message, retryable: /^5/.test(code) };
+}
+
+function feedErrorState(diag) {
+  const title = diag.kind === 'offline' ? t('youOffline')
+    : diag.kind === 'unreachable' ? t('connTitleUnreachable')
+    : diag.kind === 'timeout' ? t('connTitleTimeout')
+    : (diag.kind === 'schema' || diag.kind === 'server') ? t('genericError')
+    : t('networkError');
+  const detail = diag.kind === 'offline' ? t('connOffline')
+    : diag.kind === 'timeout' ? t('connTimeout')
+    : diag.kind === 'unreachable' ? t('connUnreachable')
+    : diag.kind === 'schema' ? t('connSchema')
+    : t('connServer');
+  const ref = diag.code ? ' (' + diag.code + ')' : '';
+  return emptyState(title, detail + ref, t('retry'), 'window.fetchListings()');
+}
+
+// ==========================================
 // FETCH LISTINGS
 // ==========================================
 async function fetchListings() {
@@ -1647,23 +1772,31 @@ async function fetchListings() {
   const searchText = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   let query = supabase.from('listings').select('*').eq('status', 'active');
-  if (selectedCountry !== 'ALL') query = query.eq('country', selectedCountry);
-  if (selectedCategory !== 'ALL') query = query.eq('category', selectedCategory);
-
-  let data, error;
-  try {
-    const result = await query;
-    data = result.data;
-    error = result.error;
-  } catch (netErr) {
-    container.innerHTML = emptyState(t('networkError'), t('genericErrorDesc'), t('retry'), 'fetchListings()');
-    return;
-  }
+  // An empty value means the select has no valid option selected; treat it as
+  // "all" instead of querying category=eq. (which silently returns nothing).
+  if (selectedCountry && selectedCountry !== 'ALL') query = query.eq('country', selectedCountry);
+  if (selectedCategory && selectedCategory !== 'ALL') query = query.eq('category', selectedCategory);
 
   container.innerHTML = showSkeleton(4);
 
-  if (error) {
-    container.innerHTML = emptyState(t('networkError'), t('genericErrorDesc'), t('retry'), 'fetchListings()');
+  let data, error, thrown = null;
+  try {
+    const timed = (typeof AbortSignal !== 'undefined' && AbortSignal.timeout && typeof query.abortSignal === 'function')
+      ? query.abortSignal(AbortSignal.timeout(FEED_TIMEOUT_MS))
+      : query;
+    const result = await timed;
+    data = result.data;
+    error = result.error;
+  } catch (netErr) {
+    thrown = netErr;
+  }
+
+  if (error || thrown) {
+    const diag = describeFeedFailure(error || thrown);
+    // supabase-js already retries a failed fetch a few times internally, so a
+    // second retry here would only keep the skeleton on screen for 15s.
+    console.error('[FEED] listings query failed:', diag.kind, diag.code, diag.message);
+    container.innerHTML = feedErrorState(diag);
     return;
   }
   if (!data || data.length === 0) {
@@ -1694,11 +1827,14 @@ async function fetchListings() {
     return;
   }
 
+  await loadUserNames();
+
   const fallbackThumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 96 96%22%3E%3Crect width=%2296%22 height=%2296%22 fill=%22%23f1f1ec%22/%3E%3Crect x=%2224%22 y=%2226%22 width=%2248%22 height=%2240%22 rx=%226%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Ccircle cx=%2237%22 cy=%2239%22 r=%224%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22/%3E%3Cpath d=%22M28 60l12-12 9 9 7-7 12 12%22 fill=%22none%22 stroke=%22%23c9c9c0%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E';
   container.innerHTML = filteredData.map((item) => {
     const thumbImg = (item.image1 && item.image1.startsWith('http')) ? escapeAttr(item.image1) : fallbackThumb;
-    const dName = escapeHtml(item.seller_name || 'User');
-    const dInitial = escapeHtml((item.seller_name || 'U').trim().charAt(0).toUpperCase() || 'U');
+    const sellerName = resolveSellerName(item);
+    const dName = escapeHtml(sellerName);
+    const dInitial = escapeHtml(sellerName.trim().charAt(0).toUpperCase() || 'U');
     const iTitle = escapeHtml(item.title);
     const iPrice = escapeHtml(item.price);
     const iId = escapeAttr(item.id);
@@ -1730,6 +1866,10 @@ async function fetchListings() {
   }).join('');
 }
 
+// The empty-state retry button runs inline HTML, so the handler has to exist on
+// window: a module-scoped function is invisible to onclick attributes.
+window.fetchListings = fetchListings;
+
 // ==========================================
 // AD DETAILS
 // ==========================================
@@ -1741,7 +1881,7 @@ window.openAdDetails = async function(id) {
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
-  const dName = escapeHtml(data.seller_name || 'User');
+  const dName = escapeHtml(resolveSellerName(data));
   const sAddr = data.seller_address;
   const cBadge = getConditionBadge(data.condition);
   const pBadge = getPriceTypeBadge(data.price_type);
@@ -1799,7 +1939,15 @@ window.openChat = async function(sellerWallet, adTitle, sellerName) {
   chatBox.innerHTML = `<p class="loading-placeholder">${t('loadChat')}</p>`;
   document.getElementById('chatModal').style.display = 'flex';
   document.querySelector('#chatModal .modal-content').style.animation = 'slideInUp 0.35s ease';
-  const { data, error } = await supabase.from('chats').select('*').order('created_at', { ascending: true });
+  // The conversation is filtered on the server: downloading the whole chats
+  // table would hand every user every message ever sent.
+  const sellerWalletKey = String(sellerWallet || '');
+  const chatQuery = supabase.from('chats').select('*')
+    .eq('ad_title', adTitle)
+    .or(`and(sender.eq.${userWallet},receiver.eq.${sellerWalletKey}),and(sender.eq.${sellerWalletKey},receiver.eq.${userWallet})`)
+    .order('created_at', { ascending: true })
+    .limit(500);
+  const { data, error } = await chatQuery;
   if (!data) return;
   let chatHtml = `<div class="chat-msg system">Hello! I am interested in: ${escapeHtml(adTitle)}</div>`;
   if (data && data.length > 0) {
@@ -2016,7 +2164,7 @@ window.markAsSoldOut = async function(id) {
 
   let soldOk = false;
   try { const { data: rpcResult } = await supabase.rpc('mark_ad_sold', { p_ad_id: id, p_wallet: userWallet }); if (rpcResult && rpcResult.success) soldOk = true; } catch (rpcErr) {}
-  if (!soldOk) { try { const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id).select('id, status'); if (!updateErr && updateData && updateData.length > 0) soldOk = true; } catch (e) {} }
+  if (!soldOk) { try { const { data: updateData, error: updateErr } = await supabase.from('listings').update({ status: 'sold' }).eq('id', id).eq('seller_address', userWallet).select('id, status'); if (!updateErr && updateData && updateData.length > 0) soldOk = true; } catch (e) {} }
 
   if (soldOk) {
     const { data: verifyData } = await supabase.from('listings').select('status').eq('id', id).single();
@@ -2102,6 +2250,89 @@ async function findLatestAdId(title) {
 }
 
 // ==========================================
+// LEGAL & DATA CONTROLS
+// ==========================================
+// Reviewers look for a reachable support address, readable terms and a privacy
+// policy that matches what the app actually stores. Everything below is kept in
+// sync with the data the app really writes.
+const SUPPORT_EMAIL = 'airdrophubgroup@gmail.com';
+const APP_VERSION = '1.3.1';
+
+const LEGAL_COPY = {
+  terms: () => `
+    <h2 class="legal-title">${t('termsTitle')}</h2>
+    <p class="legal-meta">WantSell · v${APP_VERSION}</p>
+    <h3>1. What WantSell is</h3>
+    <p>WantSell is a peer-to-peer classifieds marketplace that runs inside World App. Sellers list their own items and buyers contact them directly. WantSell does not own, inspect, ship or insure any item, and does not handle payment between buyer and seller.</p>
+    <h3>2. Listing fee</h3>
+    <p>Publishing an ad costs 1 WLD, charged before the ad is published and sent to the WantSell wallet. The fee covers publishing only and is not refundable once the ad goes live. If a payment succeeds but the ad cannot be saved, contact support with the payment reference shown on screen and we will restore or refund it.</p>
+    <h3>3. Listing rules</h3>
+    <p>Listings must describe a real item you are allowed to sell, with honest photos, price and condition. Prohibited: weapons, drugs, stolen or counterfeit goods, regulated services, adult content, and anything illegal where you live. Phone numbers, messaging handles and external links are not allowed in listings, because they move deals outside the app where nothing can be reported. Ads that break these rules can be removed without refund.</p>
+    <h3>4. SOW coins</h3>
+    <p>SOW is a free in-app reward for posting. It has no monetary value, cannot be bought, sold, transferred or exchanged for WLD, and may be adjusted if abuse is detected.</p>
+    <h3>5. Safety</h3>
+    <p>Deal locally, meet in public places, inspect the item before paying, and never send money in advance to a stranger. You are responsible for your own transactions.</p>
+    <h3>6. Changes and contact</h3>
+    <p>We may update these terms as the app changes; the current version is always available in Profile. Questions: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.</p>
+  `,
+  privacy: () => `
+    <h2 class="legal-title">${t('privacyTitle')}</h2>
+    <p class="legal-meta">WantSell · v${APP_VERSION}</p>
+    <h3>What we collect</h3>
+    <ul>
+      <li><b>Wallet address</b> — read from World App when you connect. Used to identify your account and your listings.</li>
+      <li><b>Display name</b> — the name you choose or that World App provides.</li>
+      <li><b>Listing content</b> — title, description, price, category, country, the address text you type, and up to four photos you upload.</li>
+      <li><b>Messages and reviews</b> — chat you send to other users and ratings you leave.</li>
+      <li><b>Approximate location</b> — only after you tap and accept the location prompt. Used to sort listings by distance.</li>
+    </ul>
+    <h3>What we do not do</h3>
+    <p>No advertising or analytics trackers, no contact list or photo-library access beyond the photos you select, and we never sell data.</p>
+    <h3>Where it is stored</h3>
+    <p>Listings, photos, chats, reviews and profiles are stored in Supabase (database and object storage); the app itself is served from Vercel. Data is transmitted over HTTPS.</p>
+    <h3>What other people can see</h3>
+    <p>Your display name, listing text and photos, chats you send, and reviews are visible to other users. Your wallet address is stored to attribute listings but is not published as contact information.</p>
+    <h3>How long we keep it</h3>
+    <p>Until you delete it. Deleting an ad hides it immediately and removes its photos. Data deletion removes your listings, chats, reviews and profile row.</p>
+    <h3>Your choices</h3>
+    <p>Location is optional: you can skip GPS and type a city instead. To access, correct or delete your data use <b>${t('deleteData')}</b> in Profile, or email <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>. We answer deletion requests within 30 days.</p>
+    <h3>Age</h3>
+    <p>WantSell is for users 18 and older.</p>
+    <p>Contact: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></p>
+  `,
+};
+
+window.openLegal = function (kind) {
+  const body = document.getElementById('legalBody');
+  const title = document.getElementById('legalModalTitle');
+  if (!body) return;
+  const isPrivacy = kind === 'privacy';
+  if (title) title.textContent = isPrivacy ? t('privacyTitle') : t('termsTitle');
+  body.innerHTML = isPrivacy ? LEGAL_COPY.privacy() : LEGAL_COPY.terms();
+  body.scrollTop = 0;
+  document.getElementById('legalModal').style.display = 'flex';
+};
+
+// Two-step: hide the user's listings right away, then hand them a prefilled
+// request so the stored profile, chats and reviews can be removed server side.
+window.requestDataDeletion = async function () {
+  const ok = await showNeonPopup(t('deleteData'), t('deleteDataDesc', { email: SUPPORT_EMAIL }), 'OK', 'confirm');
+  if (!ok) return;
+  const wallet = userWallet || 'unknown';
+  if (userWallet) {
+    try { await supabase.from('listings').update({ status: 'deleted' }).eq('seller_address', userWallet); } catch (e) {}
+  }
+  try {
+    const keys = Object.keys(localStorage).filter((k) => /^(wantsell|userWallet|currentUsername|worldIdVerified)/.test(k));
+    keys.forEach((k) => localStorage.removeItem(k));
+  } catch (e) {}
+  showToast(t('deleteDataSent'));
+  const subject = encodeURIComponent('WantSell data deletion request');
+  const bodyText = encodeURIComponent('Please delete all WantSell data for wallet: ' + wallet);
+  window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${bodyText}`;
+};
+
+// ==========================================
 // PROFILE
 // ==========================================
 window.renderProfile = async function() {
@@ -2140,16 +2371,32 @@ window.renderProfile = async function() {
         <span class="action-text">${t('verifyAction')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>
-      <a href="mailto:airdrophubgroup@gmail.com" class="btn-profile-action btn-support">
+      <a href="mailto:${SUPPORT_EMAIL}" class="btn-profile-action btn-support">
         <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
         <span class="action-text">${t('support')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </a>
+      <button onclick="window.openLegal('terms')" class="btn-profile-action btn-legal">
+        <svg viewBox="0 0 24 24"><path d="M6 3.5h9l4 4v13H6z"/><path d="M15 3.5v4h4M9 12h7M9 15.5h7"/></svg>
+        <span class="action-text">${t('termsTitle')}</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <button onclick="window.openLegal('privacy')" class="btn-profile-action btn-legal">
+        <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.8-7 10-4-2.2-7-5.5-7-10V6Z"/><path d="M12 9.5v4M12 16h.01"/></svg>
+        <span class="action-text">${t('privacyTitle')}</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <button onclick="window.requestDataDeletion()" class="btn-profile-action btn-legal">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9L17.5 7"/><path d="M10.5 11v6M13.5 11v6"/></svg>
+        <span class="action-text">${t('deleteData')}</span>
+        <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
       ${isAdmin ? `<button onclick="window.openAdminPanel()" class="btn-profile-action btn-admin">
         <svg viewBox="0 0 24 24"><path d="M12 3.5 20 8v8l-8 4.5L4 16V8Z"/><path d="M4 8l8 4.5L20 8M12 12.5v8"/></svg>
         <span class="action-text">${t('adminPanel')}</span>
         <svg class="row-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
       </button>` : ''}
     </div>
+    <p class="profile-version">WantSell v${APP_VERSION}</p>
   `;
 };
