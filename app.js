@@ -1,4 +1,4 @@
-import { MiniKit, Tokens, tokenToDecimals, Permission } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
+import { MiniKit, Tokens, tokenToDecimals, Permission, VerificationLevel, VerificationErrorMessage } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
@@ -534,14 +534,31 @@ let isVerified = false;
 // ==========================================
 // WORLD APP ENVIRONMENT CHECK
 // ==========================================
+// The splash element doubles as the "open me in World App" screen. hideSplash()
+// fades it to opacity 0 first, so the blocker has to bring the opacity back:
+// a 0-opacity overlay at z-index 99999 covers the whole viewport invisibly and
+// still eats every tap, which left browsers with a dead-looking page.
+let worldAppBlockerShown = false;
+function showWorldAppBlocker() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  worldAppBlockerShown = true;
+  const shell = document.getElementById('appShell');
+  if (shell) shell.style.display = 'none';
+  splash.style.transition = 'none';
+  splash.style.opacity = '1';
+  splash.style.display = 'flex';
+  splash.innerHTML = `<div class="blocker-content"><div class="brand-mark brand-mark-lg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4V3.4H13l7.6 7.6a2 2 0 0 1 0 2.4Z"/><circle cx="8" cy="8" r="1.6"/></svg></div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
+}
+
 function checkWorldAppEnvironment() {
   if (!isMiniKitInstalled()) {
-    document.getElementById('splashScreen').style.display = 'flex';
-    document.getElementById('splashScreen').innerHTML = `<div class="blocker-content"><div class="brand-mark brand-mark-lg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4V3.4H13l7.6 7.6a2 2 0 0 1 0 2.4Z"/><circle cx="8" cy="8" r="1.6"/></svg></div><h1 class="blocker-title">${t('worldAppRequired')}</h1><p class="blocker-text">${t('worldAppDesc')}</p><div class="blocker-badge">${t('worldAppBadge')}</div></div>`;
+    showWorldAppBlocker();
     return false;
   }
   return true;
 }
+window.checkWorldAppEnvironment = checkWorldAppEnvironment;
 
 function isMiniKitInstalled() {
   try { return typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); }
@@ -602,29 +619,48 @@ function checkRateLimit(action, cooldownMs) {
 // ADDRESS UTILS
 // ==========================================
 // Live seller names. A listing stores the name it was posted with, so an old
-// row can still carry a stale fallback; the users table is the source of truth
-// and one small query covers the whole visible feed.
+// row can still carry a stale fallback; the users table is the source of truth,
+// queried only for the addresses that are actually on screen.
 let userNamesCache = {};
 let userNamesFetchedAt = 0;
-
 let userNamesInFlight = null;
+// Names are looked up per address, and only for the addresses on screen. The
+// whole users table used to be downloaded by every visitor, which handed out the
+// entire name directory for no reason.
+const NAME_LOOKUP_MAX_WALLETS = 60;
+const NAME_CACHE_TTL_MS = 60000;
 
-async function loadUserNames(force = false) {
-  if (!force && Date.now() - userNamesFetchedAt < 60000) return userNamesCache;
+async function loadUserNames(wallets, force = false) {
+  const wanted = Array.from(new Set((wallets || [])
+    .map((w) => String(w || '').trim().toLowerCase())
+    .filter(Boolean))).slice(0, NAME_LOOKUP_MAX_WALLETS);
+  if (!wanted.length) return userNamesCache;
+  const unknown = wanted.filter((w) => !(w in userNamesCache));
+  const stale = Date.now() - userNamesFetchedAt > NAME_CACHE_TTL_MS;
+  if (!force && !unknown.length && !stale) return userNamesCache;
   // Boot, a login and a profile render can all ask for names at once; one query
-  // answers them instead of three identical ones.
-  if (userNamesInFlight) return userNamesInFlight;
+  // answers them instead of three identical ones. A forced call must still see
+  // current data, so it waits for the running query and then asks again instead
+  // of reusing an answer that predates the change.
+  if (userNamesInFlight) {
+    if (!force) return userNamesInFlight;
+    await userNamesInFlight.catch(() => {});
+  }
+  const targets = unknown.length ? unknown : wanted;
   const request = (async () => {
     try {
+      const orFilter = targets.map((w) => `wallet_address.ilike.${w}`).join(',');
       const { data } = await withTimeout(
-        supabase.from('users').select('wallet_address, username').limit(500),
+        supabase.from('users').select('wallet_address, username').or(orFilter),
         10000, 'users lookup'
       );
-      const map = {};
+      const found = {};
       (data || []).forEach((u) => {
-        if (u && u.wallet_address && u.username) map[String(u.wallet_address).toLowerCase()] = String(u.username);
+        if (u && u.wallet_address && u.username) found[String(u.wallet_address).toLowerCase()] = String(u.username);
       });
-      userNamesCache = map;
+      // An address with no row is remembered as unknown, so the next paint does
+      // not ask for it again (and does not re-download anything).
+      targets.forEach((w) => { userNamesCache[w] = found[w] || null; });
       userNamesFetchedAt = Date.now();
     } catch (e) {}
     return userNamesCache;
@@ -638,10 +674,18 @@ async function loadUserNames(force = false) {
 }
 
 function resolveSellerName(item) {
+  const addr = item && item.seller_address ? String(item.seller_address).toLowerCase() : '';
   const raw = item && item.seller_name ? String(item.seller_name).trim() : '';
-  const live = item && item.seller_address ? userNamesCache[String(item.seller_address).toLowerCase()] : '';
+  const live = addr ? userNamesCache[addr] : '';
   if (live) return live;
-  if (raw && !/^user(_|$)/i.test(raw)) return raw;
+  // A listing stores the name it was posted with, and that snapshot is not proof
+  // of who the seller is: on a shared device one account's name once ended up on
+  // another account's listing. The viewer's own name against a different address
+  // is never a real seller, so it is dropped instead of printed.
+  const mine = normalizeWorldUsername(currentUsername);
+  const rawIsForeignMine = !!mine && normalizeWorldUsername(raw) === mine
+    && !!addr && !!userWallet && addr !== String(userWallet).toLowerCase();
+  if (raw && !rawIsForeignMine && !/^user(_|$)/i.test(raw)) return raw;
   return t('seller');
 }
 function isValidEthAddress(a) { return /^0x[a-fA-F0-9]{40}$/.test(a); }
@@ -661,6 +705,41 @@ function readCachedUsername(wallet) {
 }
 function writeCachedUsername(wallet, name) {
   try { if (wallet && name) localStorage.setItem(usernameCacheKey(wallet), name); } catch (e) {}
+}
+// Only a name cached together with its own wallet is trusted. Anything else may
+// belong to a different account on the same device.
+function readBoundUsername(wallet) {
+  const cached = normalizeWorldUsername(readCachedUsername(wallet));
+  return cached && !isFallbackName(cached) ? cached : null;
+}
+// The name written onto this user's own rows (listings, reviews). It is either
+// the name bound to this wallet or the short address, never a foreign name.
+function ownDisplayName() {
+  const mine = normalizeWorldUsername(currentUsername);
+  if (mine && !isFallbackName(mine)) return mine;
+  return userWallet ? shortAddress(userWallet) : t('seller');
+}
+// Which wallet already holds a username, if any. The database enforces the same
+// rule with a unique index; this only turns it into a readable message.
+async function usernameOwner(name) {
+  const clean = sanitizeUsername(name);
+  if (!clean || !supabase) return '';
+  try {
+    const { data } = await withTimeout(
+      supabase.from('users').select('wallet_address').ilike('username', clean).limit(1),
+      6000, 'username owner lookup');
+    return data && data[0] && data[0].wallet_address ? String(data[0].wallet_address).toLowerCase() : '';
+  } catch (e) { return ''; }
+}
+
+// The username this wallet already published, from our own table: one small
+// query beats waiting on the username registry on a cold start.
+async function lookupDbUsername(wallet) {
+  if (!wallet || !supabase) return '';
+  try {
+    const { data } = await withTimeout(supabase.from('users').select('username').eq('wallet_address', wallet).maybeSingle(), 6000, 'user lookup');
+    return normalizeWorldUsername(data && data.username);
+  } catch (e) { return ''; }
 }
 function normalizeWorldUsername(raw) {
   if (raw == null) return '';
@@ -720,7 +799,8 @@ async function applyUsername(name, { sync = true } = {}) {
   const clean = normalizeWorldUsername(name);
   if (!clean || isFallbackName(clean)) return false;
   currentUsername = clean;
-  try { localStorage.setItem('currentUsername', clean); } catch (e) {}
+  // Stored under the wallet that owns it, never globally: a shared device must
+  // not carry one account's username into the next account's session.
   if (userWallet) writeCachedUsername(userWallet, clean);
   const btn = document.getElementById('loginBtn');
   if (btn) { btn.innerText = clean; btn.classList.add('connected'); }
@@ -745,7 +825,7 @@ function getMiniKitUsername(payload = null) {
     : null;
   const name = normalizeWorldUsername(source && (source.username || source.name || source.displayName || source.handle));
   if (name) return name;
-  return normalizeWorldUsername(readCachedUsername(userWallet)) || null;
+  return readBoundUsername(userWallet);
 }
 
 // ==========================================
@@ -938,6 +1018,9 @@ function initApp() {
 let splashDismissed = false;
 function hideSplash() {
   if (splashDismissed) return;
+  // Once the "open in World App" screen owns the viewport it must stay visible:
+  // a late feed error or a language change still calls this.
+  if (worldAppBlockerShown) return;
   splashDismissed = true;
   const splash = document.getElementById('splashScreen');
   const shell = document.getElementById('appShell');
@@ -1033,10 +1116,47 @@ function randomAlphaNumeric(len) {
 // ==========================================
 // MINIKIT COMMANDS: VERIFY (World ID)
 // ==========================================
-// The action has to exist in the Developer Portal (World ID -> Actions). When it
-// is missing World App answers with an error payload, so the failure is shown to
-// the user instead of leaving a dead button behind.
+// The action has to exist in the Developer Portal (World ID -> Actions) and its
+// verification level has to be the one asked for here. When it is missing, or the
+// levels differ, World App answers with an error payload, so the failure is shown
+// to the user instead of leaving a dead button behind.
 const VERIFY_ACTION = 'post_ad';
+// MiniKit 1.9.6 sends no verification_level when the caller omits it, which asks
+// World App for an Orb proof; the legacy verify API requires the field, and the
+// portal action is registered at "Device" level (see WORLD_REVIEW.md). Changing
+// this value means changing the action's level in the portal to match.
+const VERIFY_LEVEL = (VerificationLevel && VerificationLevel.Device) || 'device';
+
+// Turns World App's error code into something the user (or whoever supports
+// them) can act on. The raw code stays in the message on purpose: "something
+// went wrong" is not a bug report.
+function verifyFailureText(code) {
+  const hints = {
+    user_rejected: 'Verification was cancelled.',
+    verification_rejected: 'World App rejected this verification.',
+    credential_unavailable: 'World ID "' + VERIFY_LEVEL + '" level is required for "' + VERIFY_ACTION + '". Finish that level in World App, or lower the action\'s level in the Developer Portal to match.',
+    max_verifications_reached: 'This World ID has already been verified the maximum number of times for "' + VERIFY_ACTION + '".',
+    malformed_request: 'World App could not read the request. Check that action "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
+    invalid_network: 'World App and the action "' + VERIFY_ACTION + '" are on different networks (production vs staging).',
+    inclusion_proof_pending: 'Your World ID is still being registered. Wait a few minutes and try again.',
+    inclusion_proof_failed: 'World App could not fetch your credential. Please try again.',
+    connection_failed: 'The connection to World App failed. Please try again.',
+    unexpected_response: 'World App sent an unexpected response. Update it and try again.',
+    failed_by_host_app: 'World App refused this verification. Contact support.',
+    generic_error: 'World App returned a generic error. The usual cause is a missing or mismatched action: check that "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
+  };
+  const sdkText = (VerificationErrorMessage && VerificationErrorMessage[code]) || '';
+  const head = hints[code] || sdkText || t('verifyFailedDesc');
+  const extra = [];
+  // A stale World App silently drops commands it does not advertise.
+  try {
+    if (MiniKit && MiniKit.isCommandAvailable && MiniKit.isCommandAvailable.verify === false) {
+      extra.push('World App did not advertise the verify command, update it');
+    }
+  } catch (e) {}
+  if (code) extra.push('code: ' + code);
+  return extra.length ? head + ' (' + extra.join('; ') + ')' : head;
+}
 
 // A second tap while World App is already showing the verification sheet would
 // open a second request and could mark the profile verified twice.
@@ -1069,6 +1189,7 @@ async function verifyWorldID() {
     const verifyResult = await withTimeout(mk.commandsAsync.verify({
       action: VERIFY_ACTION,
       signal: userWallet || '',
+      verification_level: VERIFY_LEVEL,
     }), 60000, 'verify').catch(() => null);
     const finalPayload = verifyResult && verifyResult.finalPayload;
     if (finalPayload && finalPayload.status === 'success') {
@@ -1090,15 +1211,10 @@ async function verifyWorldID() {
     }
     // World App reports why it refused; a silent "failed" makes the button look
     // broken when the action is missing in the Developer Portal.
-    const reasons = {
-      user_rejected: 'Verification was cancelled.',
-      verification_rejected: 'World App rejected this verification.',
-      invalid_action: 'World ID action "' + VERIFY_ACTION + '" is not configured for this app.',
-      invalid_network: 'World App is on a different network than this app.',
-    };
     const code = finalPayload && finalPayload.error_code ? String(finalPayload.error_code) : '';
-    const detail = reasons[code] || (code ? `World App returned ${code}.` : t('verifyFailedDesc'));
-    await showNeonPopup(t('verifyFailed'), detail, 'OK');
+    // One line for whoever has to debug this, carrying everything that matters.
+    console.error('[VERIFY] ' + (code || 'no error_code') + ' action=' + VERIFY_ACTION + ' level=' + VERIFY_LEVEL + ' app=' + APP_ID);
+    await showNeonPopup(t('verifyFailed'), verifyFailureText(code), 'OK');
     return false;
   } catch (err) {
     await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc'), 'OK');
@@ -1165,17 +1281,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Restore saved wallet immediately
   const savedAddress = localStorage.getItem('userWallet');
-  let savedUsername = localStorage.getItem('currentUsername');
-  const isFallback = (u) => !u || u.startsWith('User_') || /^User_?[0-9a-fA-F]{4,}$/.test(u) || u.length < 3;
-  if (isFallback(savedUsername)) {
-    localStorage.removeItem('currentUsername');
-    savedUsername = null;
-  }
+  // Older builds cached the name without its wallet, so the next account on the
+  // same device could be shown the previous account's username. That unbound key
+  // is dropped; only ws_username_<wallet> is read from now on.
+  try { localStorage.removeItem('currentUsername'); } catch (e) {}
   let cachedName = null;
   if (savedAddress && !userWallet) {
     userWallet = savedAddress;
-    // A cached name keeps the header correct before any network request.
-    cachedName = savedUsername || readCachedUsername(savedAddress);
+    // A name cached for THIS wallet keeps the header right before any request.
+    cachedName = readBoundUsername(savedAddress);
     currentUsername = cachedName || shortAddress(savedAddress);
     const loginBtnInit = document.getElementById('loginBtn');
     if (loginBtnInit) { loginBtnInit.innerText = currentUsername; loginBtnInit.classList.add('connected'); }
@@ -1215,17 +1329,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const finalPayload = authResult && authResult.finalPayload;
       if (finalPayload?.status === 'success' && finalPayload?.address) {
         userWallet = finalPayload.address;
-        let dbName = '';
-        try {
-          const { data: userData } = await withTimeout(supabase.from('users').select('username').eq('wallet_address', userWallet).maybeSingle(), 6000, 'user lookup');
-          dbName = normalizeWorldUsername(userData && userData.username);
-        } catch (e) {}
+        const dbName = await lookupDbUsername(userWallet);
         const liveName = await resolveWorldUsername(userWallet);
-        const chosen = liveName || dbName || readCachedUsername(userWallet);
+        const chosen = dbName || liveName || readBoundUsername(userWallet);
         if (chosen) await applyUsername(chosen, { sync: !!liveName && liveName !== dbName });
         else currentUsername = shortAddress(userWallet);
         localStorage.setItem('userWallet', userWallet);
-        localStorage.setItem('currentUsername', currentUsername || '');
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) { loginBtn.innerText = currentUsername; loginBtn.classList.add('connected'); }
         updateSowBadge();
@@ -1233,10 +1342,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {}
   }
 
-  // The username registry occasionally answers late on a cold start. Only a
-  // missing name is retried, and every wait happens after the feed is painted.
+  // A returning user already has a row in our own table, so the header is fixed
+  // with one small query instead of waiting on the username registry. The
+  // registry is still asked afterwards, and a changed name is written back.
   try {
-    if (userWallet && typeof MiniKit !== 'undefined') {
+    if (userWallet) {
+      const dbName = await lookupDbUsername(userWallet);
+      if (dbName && dbName !== currentUsername) await applyUsername(dbName, { sync: false }).catch(() => {});
       const attempts = cachedName && !isFallbackName(cachedName) ? 1 : 3;
       for (let i = 0; i < attempts; i++) {
         const resolved = await resolveWorldUsername(userWallet);
@@ -1314,19 +1426,26 @@ async function handleLogin() {
     if (finalPayload?.status === 'success' && finalPayload?.address) {
         if (!isValidEthAddress(finalPayload.address)) { showNeonPopup('Error', t('invalidAddress'), 'OK'); return; }
         userWallet = finalPayload.address;
-        let dbName = '';
-        try {
-          const { data: userData } = await withTimeout(supabase.from('users').select('username').eq('wallet_address', userWallet).maybeSingle(), 6000, 'user lookup');
-          dbName = normalizeWorldUsername(userData && userData.username);
-        } catch (e) {}
+        const dbName = await lookupDbUsername(userWallet);
         const liveName = await resolveWorldUsername(userWallet);
-        let chosen = liveName || dbName || readCachedUsername(userWallet);
+        let chosen = liveName || dbName || readBoundUsername(userWallet);
         if (!chosen) {
           let usernameInput = await showNeonPopup('Welcome!', 'Choose a Username (2-20 chars):', 'OK', 'prompt');
           let attempts = 0;
           while (attempts < 3) {
             const v = validateUsername(usernameInput);
-            if (v.valid) { chosen = v.clean; break; }
+            if (v.valid) {
+              // A name typed here must not be one that already belongs to another
+              // wallet, otherwise one account could present itself as another.
+              const owner = await usernameOwner(v.clean);
+              if (owner && owner !== String(userWallet).toLowerCase()) {
+                attempts++;
+                if (attempts >= 3) { chosen = shortAddress(userWallet); break; }
+                usernameInput = await showNeonPopup('Name Taken', 'That username belongs to another account. Choose a different one.', 'OK', 'prompt');
+                continue;
+              }
+              chosen = v.clean; break;
+            }
             attempts++;
             if (attempts >= 3) { chosen = shortAddress(userWallet); break; }
             usernameInput = await showNeonPopup('Invalid', v.error, 'OK', 'prompt');
@@ -1335,7 +1454,6 @@ async function handleLogin() {
         if (chosen) await applyUsername(chosen, { sync: !!liveName || !dbName });
         else currentUsername = shortAddress(userWallet);
       localStorage.setItem('userWallet', userWallet);
-      localStorage.setItem('currentUsername', currentUsername || '');
       document.getElementById('loginBtn').innerText = currentUsername;
       document.getElementById('loginBtn').classList.add('connected');
       updateSowBadge();
@@ -1730,7 +1848,7 @@ async function handlePostAd(e) {
   setStage(t('publishing'));
 
   const listingPayload = {
-    seller_address: userWallet, seller_name: currentUsername,
+    seller_address: userWallet, seller_name: ownDisplayName(),
     title: titleV.clean, description: descV.clean, price: priceV.clean,
     category: document.getElementById('category').value,
     country: document.getElementById('adCountry').value, address: addrV.clean,
@@ -1989,8 +2107,11 @@ function paintFeed(items, filters) {
 async function refreshSellerNames() {
   const container = document.getElementById('listingsContainer');
   if (!container) return;
+  const wallets = Array.from(container.querySelectorAll('[data-seller-wallet]'))
+    .map((el) => el.getAttribute('data-seller-wallet'))
+    .filter(Boolean);
   const before = JSON.stringify(userNamesCache);
-  await loadUserNames();
+  await loadUserNames(wallets);
   if (JSON.stringify(userNamesCache) === before) return;
   container.querySelectorAll('[data-seller-wallet]').forEach((el) => {
     const name = resolveSellerName({
@@ -2029,6 +2150,9 @@ async function fetchListings(options) {
   if (!opts.force && feedInFlight.promise && feedInFlight.key === filters.key) {
     return feedInFlight.promise;
   }
+  // A retry, a new post or a delete asks for fresh rows, so seller names are
+  // re-read too instead of being served from a cache that predates the change.
+  if (opts.force) userNamesFetchedAt = 0;
 
   const request = (async () => {
     let query = supabase.from('listings').select(FEED_COLUMNS).eq('status', 'active');
@@ -2089,7 +2213,8 @@ window.openAdDetails = async function(id) {
   const allImages = [data.image1, data.image2, data.image3, data.image4].filter(img => img && img.trim() !== "" && (img.startsWith('http://') || img.startsWith('https://')));
   const imagesUrlsJoined = allImages.join('|');
   const imagesHtml = allImages.map((img, index) => `<img src="${escapeAttr(img)}" onclick="window.openImageViewer('${escapeAttr(imagesUrlsJoined)}', ${index})" class="detail-img" alt="product">`).join('');
-  const dName = escapeHtml(resolveSellerName(data));
+  const sellerLabel = resolveSellerName(data);
+  const dName = escapeHtml(sellerLabel);
   const sAddr = data.seller_address;
   const cBadge = getConditionBadge(data.condition);
   const pBadge = getPriceTypeBadge(data.price_type);
@@ -2118,7 +2243,7 @@ window.openAdDetails = async function(id) {
           <span class="detail-seller-label">${t('seller')}</span>
           <h4 class="detail-seller-name">${dName}</h4>
         </div>
-        <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(data.seller_name || 'User')}')">${t('reviews')}</button>
+        <button class="btn-mark-sold btn-reviews" onclick="window.openReviews('${escapeAttr(sAddr)}', '${escapeAttr(sellerLabel)}')">${t('reviews')}</button>
       </div>
       <hr class="detail-divider">
       <h4 class="detail-section-title">${t('photosTap', { n: allImages.length })}</h4>
@@ -2127,7 +2252,7 @@ window.openAdDetails = async function(id) {
       <p class="detail-section detail-description">${escapeHtml(data.description)}</p>
       <div class="detail-action-bar">
         <button class="btn-chat-seller btn-back" onclick="document.getElementById('adDetailsModal').style.display='none';">${t('back')}</button>
-        <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(data.seller_name || 'User')}'); document.getElementById('adDetailsModal').style.display='none';">${t('chatSeller')}</button>
+        <button class="btn-chat-seller" onclick="window.openChat('${escapeAttr(sAddr)}', '${escapeAttr(data.title)}', '${escapeAttr(sellerLabel)}'); document.getElementById('adDetailsModal').style.display='none';">${t('chatSeller')}</button>
       </div>
     </div>`;
   document.getElementById('adDetailsModal').style.display = 'flex';
@@ -2220,7 +2345,7 @@ window.submitReview = async function() {
   const comment = commentRaw || '';
   const { data: ex } = await supabase.from('reviews').select('id').eq('seller_address', window.targetSellerAddress).eq('buyer_address', userWallet).single();
   if (ex) { await showNeonPopup('Already Reviewed', 'One review per buyer per seller.', 'OK'); return; }
-  const { error } = await supabase.from('reviews').insert([{ seller_address: window.targetSellerAddress, buyer_address: userWallet, buyer_name: currentUsername, rating, comment }]);
+  const { error } = await supabase.from('reviews').insert([{ seller_address: window.targetSellerAddress, buyer_address: userWallet, buyer_name: ownDisplayName(), rating, comment }]);
   if (!error) { document.getElementById('reviewComment').value = ''; await showNeonPopup('Success', 'Review submitted!', 'OK'); window.openReviews(window.targetSellerAddress, 'Seller'); }
   else { await showNeonPopup(t('genericError'), t('genericErrorDesc'), 'OK'); }
 };

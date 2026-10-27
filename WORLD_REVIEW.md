@@ -16,13 +16,34 @@ The current submission cannot pass review as it stands, because of the name.
 | 3 | Set the **description** (see §2) | Must be under 25 words, plain and accurate. |
 | 4 | Set **App URL** to the deployed HTTPS URL (see §2) | Must load outside World App too; ours shows a clear "open in World App" screen instead of a blank page. |
 | 5 | Set **Support email** to `airdrophubgroup@gmail.com` | A reachable support address is an explicit review requirement. |
-| 6 | **World ID → Actions**: make sure an action with id `post_ad` exists, verification level **Device** | The app calls `MiniKit.commandsAsync.verify({ action: 'post_ad' })`. If this action is missing, verification fails with an error payload. |
+| 6 | **World ID → Actions**: make sure an action with id `post_ad` exists, verification level **Device** | The app calls `MiniKit.commandsAsync.verify({ action: 'post_ad', signal: <wallet>, verification_level: 'device' })`. The level in the portal and `VERIFY_LEVEL` in [app.js](app.js) must be the same value; if the action is missing or the levels differ, World App refuses with an error payload. |
 | 7 | **Permissions**: enable **Wallet auth**, **Payments (pay)** and, if you want the post-ad reminder, **Notifications** | `pay()` must be approved in the portal or reviewers cannot post an ad. |
 | 8 | If the portal forces you to delete and re-create the app, you get a **new `app_id`** — update `APP_ID` on line 7 of [app.js](app.js) and redeploy before resubmitting | A stale `app_id` makes every MiniKit command fail inside World App. |
 | 9 | Submit for review | — |
 
 > The app id in the code today is `app_06db98c492a19f80177b8d633f056982`. If this
 > survives the reset, nothing in the code changes.
+
+### If "Verify World ID" fails
+
+MiniKit 1.9.6 omits `verification_level` when the caller does not send it, and
+World App then asks for an **Orb** proof. The app always sends the level now
+(`VERIFY_LEVEL` in [app.js](app.js), currently `device`), so the portal action and
+the app cannot drift apart silently. The popup names the real cause; the same
+line is logged as `[VERIFY] <code> action=post_ad level=device app=app_…`:
+
+| World App code | What it means here |
+|---|---|
+| `generic_error` | Catch-all. Almost always the action is missing for this `app_id`, or its level does not match `VERIFY_LEVEL`. |
+| `credential_unavailable` | The action asks for a level this account does not have (e.g. Orb). Lower the action's level or verify at that level. |
+| `malformed_request` | The payload was refused — action id spelling, wrong `app_id`, or level mismatch. |
+| `invalid_network` | The action is on staging while World App is on production (or the reverse). |
+| `user_rejected` / `verification_rejected` | The user closed or declined the World App sheet. |
+| `max_verifications_reached` | That World ID already used the action the maximum number of times. |
+
+Every MiniKit command only answers inside World App, opened through
+`https://world.org/mini-app?app_id=<app_id>&path=/` — a browser tab outside World
+App can never verify.
 
 ---
 

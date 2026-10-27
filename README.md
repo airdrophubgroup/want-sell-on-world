@@ -133,7 +133,14 @@ balance: after a listing is created it calls `award_sow_for_listing(ad_id)`, a
 
 ```
 SUPABASE_SQL_SOW_SECURITY.sql
+SUPABASE_SQL_USERNAME_GUARD.sql
 ```
+
+`SUPABASE_SQL_USERNAME_GUARD.sql` makes a username belong to exactly one wallet
+and lets the browser write only the `username` column, so a name can never be
+shared between wallets or re-pointed at someone else's address. Run
+`npm run e2e:serve` afterwards: the suite asserts that every card, chat and
+review shows the name of the wallet it belongs to.
 
 Then verify the lockdown from a machine that can reach the project:
 
@@ -166,7 +173,7 @@ npm run e2e:serve                # test build of the app on :3456
 # open http://127.0.0.1:3456/?e2e=1  (add &step=1 to drive it from the console)
 ```
 
-Results are written to `tools/e2e/e2e-result.json` (33 checks, all should pass).
+Results are written to `tools/e2e/e2e-result.json` (38 checks, all should pass).
 The suite reseeds the mock database before each run, so it can be run repeatedly
 in the same tab. It also asserts the MiniKit payloads (`verify` action/signal,
 `pay` reference/tokens/description, `requestPermission` permission) against the
@@ -193,6 +200,22 @@ The feed now paints from a `sessionStorage` cache before the network, asks once
 (60 rows, card columns only, newest first), patches seller names after paint, and
 requests 480px thumbnails from Supabase Storage instead of full-size uploads.
 The silent `walletAuth` no longer gates the first screen.
+
+### Who is who
+
+Every visible name belongs to the wallet it is printed for:
+
+- a name is cached as `ws_username_<address>`, never as one shared value, so a
+  second account on the same device cannot inherit the first one's username;
+- the `users` table is queried for the addresses on screen only (one `or=`
+  filter of `ilike` matches, max 60), instead of downloading the whole table;
+- a listing keeps the name it was posted with, but that snapshot is used only
+  when the wallet has no live name and it is not the viewer's own name on a
+  foreign address (a shared-device leftover once printed the viewer's name on
+  someone else's ad, so it now shows `Seller`);
+- chats and reviews use the same resolved name as the card, not the snapshot;
+- the header asks our own table for the signed-in wallet's name first (one small
+  query) and only then the World App username registry.
 
 ---
 

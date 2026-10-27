@@ -21,8 +21,10 @@ const db = {
     { wallet_address: BUYER, username: 'buyer_two' },
   ],
   listings: [
-    { id: 1, seller_address: SELLER, seller_name: 'seller_one', title: 'iPhone 15 Pro Max', description: 'Barely used, 256GB, with box and charger.', price: '620.00', category: 'Electronics', country: 'IN', address: 'Bandra West, Mumbai', lat: 19.0596, lng: 72.8295, condition: 'like_new', price_type: 'negotiable', image1: 'https://images.example.com/phone.jpg', image2: '', image3: '', image4: '', status: 'active', created_at: new Date(Date.now() - 3600e3).toISOString() },
-    { id: 2, seller_address: BUYER, seller_name: 'buyer_two', title: 'Wooden study table', description: 'Solid wood table, minor scratch on one leg.', price: '45.00', category: 'Home Appliances', country: 'IN', address: 'Andheri East, Mumbai', lat: 19.1136, lng: 72.8697, condition: 'good', price_type: 'fixed', image1: 'https://images.example.com/table.jpg', image2: '', image3: '', image4: '', status: 'active', created_at: new Date(Date.now() - 7200e3).toISOString() },
+    // seller_name is deliberately stale for #1 and borrowed from another wallet for
+    // #2: the users table is the source of truth and the snapshot is not trusted.
+    { id: 1, seller_address: SELLER, seller_name: 'stale_label', title: 'iPhone 15 Pro Max', description: 'Barely used, 256GB, with box and charger.', price: '620.00', category: 'Electronics', country: 'IN', address: 'Bandra West, Mumbai', lat: 19.0596, lng: 72.8295, condition: 'like_new', price_type: 'negotiable', image1: 'https://images.example.com/phone.jpg', image2: '', image3: '', image4: '', status: 'active', created_at: new Date(Date.now() - 3600e3).toISOString() },
+    { id: 2, seller_address: BUYER, seller_name: 'airdrophuman', title: 'Wooden study table', description: 'Solid wood table, minor scratch on one leg.', price: '45.00', category: 'Home Appliances', country: 'IN', address: 'Andheri East, Mumbai', lat: 19.1136, lng: 72.8697, condition: 'good', price_type: 'fixed', image1: 'https://images.example.com/table.jpg', image2: '', image3: '', image4: '', status: 'active', created_at: new Date(Date.now() - 7200e3).toISOString() },
     { id: 3, seller_address: USER, seller_name: 'airdrophuman', title: 'My old bicycle', description: 'City bike, serviced last month, new tyres.', price: '80.00', category: 'Books & Sports', country: 'IN', address: 'Powai, Mumbai', lat: 19.1176, lng: 72.9060, condition: 'used', price_type: 'fixed', image1: 'https://images.example.com/bike.jpg', image2: '', image3: '', image4: '', status: 'active', created_at: new Date(Date.now() - 900e3).toISOString() },
     { id: 4, seller_address: USER, seller_name: 'airdrophuman', title: 'Sold desk lamp', description: 'Already sold, kept for history.', price: '10.00', category: 'Home Appliances', country: 'IN', address: 'Powai, Mumbai', lat: 19.1176, lng: 72.9060, condition: 'used', price_type: 'fixed', image1: '', image2: '', image3: '', image4: '', status: 'sold', created_at: new Date(Date.now() - 86400e3).toISOString() },
     { id: 5, seller_address: SELLER, seller_name: 'seller_one', title: 'Deleted ad', description: 'Hidden from the feed.', price: '1.00', category: 'Other', country: 'IN', address: 'x', lat: 19.0, lng: 72.8, condition: 'used', price_type: 'fixed', image1: '', image2: '', image3: '', image4: '', status: 'deleted', created_at: new Date(Date.now() - 172800e3).toISOString() },
@@ -298,9 +300,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'DELETE') {
+    // Remove the matching rows themselves, not by id: users rows are keyed by
+    // wallet_address and carry no id, so an id-based filter deleted them all.
     const filtered = applyQuery(rows, params);
-    const ids = new Set(filtered.map((r) => r.id));
-    db[name] = rows.filter((r) => !ids.has(r.id));
+    const doomed = new Set(filtered);
+    db[name] = rows.filter((r) => !doomed.has(r));
     res.writeHead(204, cors);
     return res.end();
   }

@@ -33,7 +33,11 @@
   // before the module tag, so it executes first.
   try {
     localStorage.setItem('userWallet', USER);
-    localStorage.setItem('currentUsername', 'airdrophuman');
+    // The account's own name, bound to the wallet that owns it (the only key the
+    // app trusts), plus an unbound leftover from another account on this device
+    // that must never be shown to this user.
+    localStorage.setItem('ws_username_' + USER, 'airdrophuman');
+    localStorage.setItem('currentUsername', 'somebody_else');
     localStorage.setItem('lang', 'en');
     localStorage.setItem('wantsell_geo_v1', JSON.stringify({ lat: 19.0596, lng: 72.8295, label: 'Mumbai', ts: Date.now() }));
     localStorage.removeItem('worldIdVerified');
@@ -201,6 +205,15 @@
       await until(function () { return !vis($('#splashScreen')); }, 'splash hidden', 8000);
       assert(!popupOpen(), 'no popup on first paint');
       assert(/airdrophuman/.test(txt($('#loginBtn'))), 'header username, got "' + txt($('#loginBtn')) + '"');
+    }],
+
+    ['names: a name is only shown for the wallet that owns it', async function () {
+      var label = txt($('#loginBtn'));
+      assert(/airdrophuman/.test(label), 'own bound name expected, got "' + label + '"');
+      assert(label.indexOf('somebody_else') === -1, 'another account\'s name leaked into the header: ' + label);
+      assert(!localStorage.getItem('currentUsername'), 'the unbound username key must not be kept');
+      // Every wallet on the device keeps its own name, not the viewer\'s.
+      assert(localStorage.getItem('ws_username_' + SELLER) !== 'airdrophuman', 'a foreign wallet was given the viewer\'s name');
     }],
 
     ['feed: renders active listings with live usernames', async function () {
@@ -543,12 +556,41 @@
       var ok = await window.verifyWorldID();
       assert(seen && seen.action === 'post_ad', 'verify action must be post_ad, got ' + JSON.stringify(seen));
       assert(seen.signal === USER, 'verify signal must be the wallet, got ' + seen.signal);
+      // 1.9.6 falls back to an Orb proof when the level is omitted, so the level
+      // must always be sent and must match the portal action.
+      assert(seen.verification_level === 'device', 'verify must send the level explicitly, got ' + seen.verification_level);
       var stored = JSON.parse(localStorage.getItem('worldIdVerification') || 'null');
       assert(stored && stored.nullifier_hash === '0xnullifier', 'verification proof was not stored');
       assert(stored.verification_level === 'orb', 'verification level was not stored');
       assert(ok === true, 'verify success should return true');
       window.switchTab('screenProfile');
       await until(function () { return $('#profileContainer').querySelector('.verify-badge'); }, 'verified badge');
+    }],
+
+    ['world id: a refusal names the real reason instead of a generic failure', async function () {
+      // A verified user who clears app data must be able to verify again.
+      localStorage.removeItem('worldIdVerified');
+      localStorage.removeItem('worldIdVerification');
+      var codes = [
+        ['generic_error', /post_ad/, /device/, /code: generic_error/],
+        ['credential_unavailable', /level is required/i],
+        ['malformed_request', /could not read the request/i],
+        ['user_rejected', /cancelled/i],
+      ];
+      for (var i = 0; i < codes.length; i++) {
+        var code = codes[i][0];
+        window.__E2E_VERIFY = function () {
+          return Promise.resolve({ finalPayload: { status: 'error', error_code: code } });
+        };
+        var r = await act(function () { return window.verifyWorldID(); }, 'ok');
+        assert(/verification failed/i.test(r.title), code + ': title, got "' + r.title + '"');
+        for (var k = 1; k < codes[i].length; k++) {
+          assert(codes[i][k].test(r.text), code + ': expected ' + codes[i][k] + ' in "' + r.text + '"');
+        }
+        assert(r.text.length > 40, code + ': the message must explain something, got "' + r.text + '"');
+      }
+      // The stored proof is not written for a refusal.
+      assert(!localStorage.getItem('worldIdVerified'), 'a refused verify must not mark the profile verified');
     }],
 
     ['minikit: notification permission uses the requestPermission command', async function () {
@@ -573,6 +615,63 @@
       assert(/listing fee/i.test(p.description || ''), 'description must disclose the fee, got ' + p.description);
     }],
 
+    ['names: a stale snapshot never borrows the viewer\'s own name', async function () {
+      function sellerOf(title) {
+        var all = cards();
+        for (var i = 0; i < all.length; i++) {
+          if (txt(all[i].querySelector('.card-title')) === title) {
+            return txt(all[i].querySelector('.card-seller > span:last-child'));
+          }
+        }
+        return null;
+      }
+      await window.fetchListings({ force: true });
+      await until(function () { return cards().length === 3; }, 'feed ready');
+      // Listing 2 belongs to buyer_two but was stored with the viewer's name; the
+      // users table wins, so nobody sees their own name on someone else's ad.
+      await until(function () { return sellerOf('Wooden study table') === 'buyer_two'; },
+        'live name over snapshot, got "' + sellerOf('Wooden study table') + '"');
+      // With no row for that wallet at all, the card must fall back to a neutral
+      // label instead of printing the viewer's own name.
+      await fetch(API + '/rest/v1/users?wallet_address=ilike.' + BUYER, { method: 'DELETE' });
+      await window.fetchListings({ force: true });
+      // The patch that wears the new names is fire-and-forget, so give it a beat
+      // instead of asserting against the paint that happened before it.
+      await sleep(300);
+      await window.fetchListings({ force: true });
+      await until(function () { return sellerOf('Wooden study table') === 'Seller'; },
+        'neutral fallback, got "' + sellerOf('Wooden study table') + '"');
+      await fetch(API + '/rest/v1/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([{ wallet_address: BUYER, username: 'buyer_two' }]),
+      });
+      await window.fetchListings({ force: true });
+      await until(function () { return sellerOf('Wooden study table') === 'buyer_two'; }, 'restored name');
+    }],
+
+    ['names: chat and reviews carry the live seller name, not the snapshot', async function () {
+      await window.fetchListings({ force: true });
+      // Names land right after the first paint (that is the point of painting
+      // first), so wait for the card to show one before opening the ad.
+      await until(function () {
+        var card = cards().filter(function (c) { return txt(c.querySelector('.card-title')) === 'iPhone 15 Pro Max'; })[0];
+        return !!card && txt(card.querySelector('.card-seller > span:last-child')) === 'seller_one';
+      }, 'live seller name on the card');
+      await window.openAdDetails(1);
+      await until(function () { return vis($('#adDetailsModal')); }, 'details modal');
+      var buttons = $('#adDetailsBody').querySelectorAll('.btn-chat-seller');
+      var chatBtn = null;
+      for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].getAttribute('onclick').indexOf('openChat') !== -1) chatBtn = buttons[i];
+      }
+      assert(chatBtn, 'chat button missing from the ad');
+      var onclick = chatBtn.getAttribute('onclick');
+      assert(onclick.indexOf('seller_one') !== -1, 'chat must use the live name, got: ' + onclick);
+      assert(onclick.indexOf('stale_label') === -1, 'chat must not use the stored snapshot: ' + onclick);
+      closeModals();
+    }],
+
     ['feed: card photos use a resized storage URL', async function () {
       var out = window.cardImageUrl('https://x.supabase.co/storage/v1/object/public/listing/a.jpg', 480);
       assert(out.indexOf('/storage/v1/render/image/public/') !== -1, 'storage transform missing: ' + out);
@@ -594,6 +693,27 @@
       var after = await metrics();
       var delta = (after['GET /rest/v1/listings'] || 0) - (before['GET /rest/v1/listings'] || 0);
       assert(delta === 0, 'a fresh cache must not re-query listings, '+ delta + ' extra query');
+    }],
+
+    ['world app: the outside-World-App screen is visible and takes the taps', async function () {
+      // Runs last on purpose: it replaces the app with the blocker screen.
+      // A browser (a reviewer opening the App URL) never has MiniKit, so this is
+      // the first thing a reviewer sees — it must not be an invisible overlay
+      // that swallows every tap.
+      window.__E2E_MK_INSTALLED = false;
+      var allowed = window.checkWorldAppEnvironment();
+      assert(allowed === false, 'the blocker must report "not allowed" outside World App');
+      var splash = $('#splashScreen');
+      assert(vis(splash), 'the blocker must be visible');
+      assert(getComputedStyle(splash).opacity === '1', 'opacity must be restored, got ' + getComputedStyle(splash).opacity);
+      assert(/world app/i.test(txt(splash)), 'blocker copy missing: "' + txt(splash) + '"');
+      assert(txt(splash).length > 30, 'blocker must explain what to do: "' + txt(splash) + '"');
+      var r = splash.getBoundingClientRect();
+      var hit = document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2));
+      assert(hit && splash.contains(hit), 'the blocker must be the element that receives taps');
+      // A late feed error or a language change must not fade the blocker away.
+      window.hideSplash();
+      assert(vis(splash) && getComputedStyle(splash).opacity === '1', 'hideSplash must not hide the blocker');
     }],
 
     ['no uncaught errors during the run', async function () {

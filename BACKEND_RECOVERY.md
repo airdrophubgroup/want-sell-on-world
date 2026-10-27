@@ -52,6 +52,7 @@ does. In a new project:
    3. `SUPABASE_SQL_DELETE.sql` — `delete_ad()`
    4. `SUPABASE_SQL_FIX.sql` — `mark_ad_sold()`
    5. `SUPABASE_SQL_ACCESS_HARDEN.sql` — rate limits, append-only rules
+   6. `SUPABASE_SQL_USERNAME_GUARD.sql` — one username per wallet, username-only writes
 2. **Project Settings → API**: copy the Project URL and the `anon` /
    `publishable` key.
 3. Replace the two constants at the top of [`app.js`](app.js):
@@ -84,7 +85,7 @@ That is fixed in `app.js`:
 
 ## Username not appearing (airdrophuman)
 
-Two separate bugs, both fixed:
+Five separate bugs, all fixed:
 
 1. **CSP blocked the lookup.** `index.html` allowed `https://*.world.org` but
    not `https://usernames.worldcoin.org`, the host MiniKit uses to turn a wallet
@@ -98,6 +99,33 @@ Two separate bugs, both fixed:
    (`POST https://usernames.worldcoin.org/api/v1/query`), caches it per wallet
    in `localStorage` (`ws_username_<address>`), and retries a few times on a
    cold start.
+
+3. **A name was cached without its wallet.** `localStorage.currentUsername`
+   stored the last name with no owner, so on a shared device the next account
+   could be shown the previous account's username, and `seller_name` was written
+   from it when posting. The key is gone: a name is only read from
+   `ws_username_<address>` for the wallet that owns it, the header gets the name
+   from the `users` row first (one small query), and a listing whose stored
+   snapshot carries the viewer's own name against a different address shows
+   `Seller` instead. `SUPABASE_SQL_USERNAME_GUARD.sql` adds the matching database
+   rule: one username belongs to exactly one wallet, and the browser can only
+   write the username column, never the wallet key.
+
+4. **"Verify World ID" failed with a generic error.** MiniKit 1.9.6 sends no
+   `verification_level` when the caller omits it, and World App then asks for an
+   **Orb** proof while the portal action is registered at **Device** level. The
+   app now always sends `VERIFY_LEVEL` (`device`, same value the action must have
+   in the portal). Every refusal prints the code, action, level and app id, both
+   in the popup and as one `[VERIFY] …` console line, so
+   `generic_error`/`credential_unavailable`/`invalid_network` are no longer a
+   dead end. See [WORLD_REVIEW.md](WORLD_REVIEW.md#if-verify-world-id-fails).
+
+5. **Outside World App the page looked dead.** The splash element doubles as the
+   "open in World App" screen, but `hideSplash()` had already faded it to
+   `opacity: 0`; the blocker was then re-shown at `z-index: 99999` with opacity
+   still 0, so a reviewer opening the App URL saw an invisible overlay that ate
+   every tap. The blocker now restores opacity, hides the app shell and cannot be
+   faded away.
 
 Verified against the live registry:
 

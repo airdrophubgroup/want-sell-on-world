@@ -2,4 +2,5 @@ build/
 mock.log
 build.out
 *.out
+*.pid
 e2e-result.json

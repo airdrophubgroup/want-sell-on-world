@@ -29,8 +29,11 @@ function patch(name, from, to, { all = false } = {}) {
 patch('api-url', "const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';", "const SUPABASE_URL = 'http://127.0.0.1:3457';");
 // Boot: never wait for a World App that is not there.
 patch('boot-ready', 'const ready = await waitForMiniKitReady();\n  if (!ready) { checkWorldAppEnvironment(); return; }', 'const ready = true;');
-// Outside World App the blocker screen would hide the whole app.
-patch('env-gate', 'if (!isMiniKitInstalled()) {', 'if (false && !isMiniKitInstalled()) {');
+// The suite runs in a browser, outside World App, where the real check would
+// show the blocker instead of the app. Instead of short-circuiting the check,
+// report MiniKit as installed so the real code path still runs, and let a test
+// flip window.__E2E_MK_INSTALLED = false to exercise the blocker itself.
+patch('env-gate', "  try { return typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled(); }", "  try { if (window.__E2E_MK_INSTALLED === false) return false; return true; }");
 // The silent refresh never answers outside World App.
 patch('silent-auth', "if (savedAddress && typeof MiniKit !== 'undefined') {", 'if (false) {');
 // MiniKit commands are mocked from the page so success/failure paths are testable.
