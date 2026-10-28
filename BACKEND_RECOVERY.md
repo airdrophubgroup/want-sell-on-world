@@ -34,7 +34,7 @@ The Supabase docs confirm paused projects stop answering their hostname, so
 2. Open the project, press **Resume project**, wait until status is
    *Active*.
 3. Run `npm run check:backend` again. Expect every line to be `PASS`.
-4. Open the mini app in World App. Feed, username, chat and SOW all come back —
+4. Open the mini app in the supported app. Feed, username, chat and SOW all come back —
    no code change needed.
 
 Tip: free projects pause when they get no queries. A weekly `npm run
@@ -58,7 +58,7 @@ does. In a new project:
 3. Replace the two constants at the top of [`app.js`](app.js):
    `SUPABASE_URL` and `SUPABASE_KEY`. Nothing else in the app hardcodes them.
 4. `npm run check:backend` → all `PASS`.
-5. Commit and let Vercel redeploy, then re-test inside World App.
+5. Commit and let Vercel redeploy, then re-test in the app.
 
 Old listings, users, chats and reviews cannot be recreated from the repo — if
 the project is really deleted they are gone, unless you kept your own database
@@ -111,8 +111,8 @@ Five separate bugs, all fixed:
    rule: one username belongs to exactly one wallet, and the browser can only
    write the username column, never the wallet key.
 
-4. **"Verify World ID" failed with a generic error.** MiniKit 1.9.6 sends no
-   `verification_level` when the caller omits it, and World App then asks for an
+4. **"Verify" failed with a generic error.** MiniKit 1.9.6 sends no
+   `verification_level` when the caller omits it, and the app then asks for an
    **Orb** proof while the portal action is registered at **Device** level. The
    app now always sends `VERIFY_LEVEL` (`device`, same value the action must have
    in the portal). Every refusal prints the code, action, level and app id, both
@@ -120,8 +120,8 @@ Five separate bugs, all fixed:
    `generic_error`/`credential_unavailable`/`invalid_network` are no longer a
    dead end. See [WORLD_REVIEW.md](WORLD_REVIEW.md#if-verify-world-id-fails).
 
-5. **Outside World App the page looked dead.** The splash element doubles as the
-   "open in World App" screen, but `hideSplash()` had already faded it to
+5. **Outside the supported app the page looked dead.** The splash element doubles as the
+   "open in app" screen, but `hideSplash()` had already faded it to
    `opacity: 0`; the blocker was then re-shown at `z-index: 99999` with opacity
    still 0, so a reviewer opening the App URL saw an invisible overlay that ate
    every tap. The blocker now restores opacity, hides the app shell and cannot be

@@ -2,9 +2,9 @@
 
 # WantSell
 
-### Buy & Sell Locally in World App
+### Buy & Sell Locally
 
-<img src="https://img.shields.io/badge/Status-Live-10b981?style=for-the-badge" /> <img src="https://img.shields.io/badge/Platform-World%20App-6366f1?style=for-the-badge" /> <img src="https://img.shields.io/badge/Network-Worldchain-8b5cf6?style=for-the-badge" /> <img src="https://img.shields.io/badge/UI-Glassmorphism-06b6d4?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Status-Live-10b981?style=for-the-badge" /> <img src="https://img.shields.io/badge/Platform-Mini-App-6366f1?style=for-the-badge" /> <img src="https://img.shields.io/badge/Network-Mainnet-8b5cf6?style=for-the-badge" /> <img src="https://img.shields.io/badge/UI-Glassmorphism-06b6d4?style=for-the-badge" />
 
 </div>
 
@@ -12,13 +12,13 @@
 
 ## About
 
-WantSell is a location-aware product marketplace mini-app built for World App. Users list products, discover items nearby, chat with sellers, and earn SOW Coins with every ad posted.
+WantSell is a location-aware product marketplace app. Users list products, discover items nearby, chat with sellers, and earn SOW Coins with every ad posted.
 
 ---
 
 ## Features
 
-- **World App Only** - Runs exclusively inside World App via MiniKit wallet authentication. Blocked outside World App.
+- **App Only** - Runs exclusively in supported app via MiniKit wallet authentication. Blocked otherwise.
 - **GPS Location & Distance Filtering** - Auto-detects user location, filters listings within 5-500 km radius.
 - **1 WLD Listing Fee** - Posting an ad costs 1 WLD, sent to admin wallet via MiniKit `pay()` command.
 - **SOW Coin Rewards** - Earn 1 SOW Coin per ad posted. Leaderboard shows top sellers.
@@ -44,7 +44,7 @@ WantSell is a location-aware product marketplace mini-app built for World App. U
 | Self-Review Block | Users cannot review themselves |
 | Ownership Verification | Only ad owner can mark as sold |
 | Wallet Address Privacy | No wallet addresses shown in user-facing UI |
-| Content Security Policy | CSP meta tag restricts resource loading (World username registry explicitly allowed) |
+| Content Security Policy | CSP meta tag restricts resource loading |
 | Backend health check | `npm run check:backend` verifies DNS, anon key, tables, storage bucket and the SOW RPC |
 
 If the feed shows **Server unavailable (UNREACHABLE)**, the Supabase project
@@ -69,7 +69,7 @@ Resume it in the dashboard, then re-run `npm run check:backend`. Full runbook:
 
 ## How It Works
 
-1. **Open in World App** - App detects World App environment via MiniKit
+1. **Open in app** - App detects environment via MiniKit
 2. **Connect Wallet** - Silent `walletAuth()` on load, or manual via Connect button
 3. **Browse Listings** - Filter by country, category, search, and distance radius
 4. **Post an Ad** - Fill form, detect GPS, pay 1 WLD, earn +1 SOW Coin
@@ -81,7 +81,7 @@ Resume it in the dashboard, then re-run `npm run check:backend`. Full runbook:
 
 ## App Guidelines Compliance
 
-- **Naming**: "WantSell" - no "World" in name, no emojis, no generic terms
+- **Naming**: "WantSell" - no emojis, no generic terms
 - **Safety**: No prohibited content, no misleading claims, no impersonation
 - **Privacy**: Location consent before GPS, data minimization, no wallet address exposure
 - **Technical**: Handles poor connectivity, no infinite loading, works on Android + iOS
@@ -108,7 +108,7 @@ want-sell-on-world/
 
 ## Getting Started
 
-1. Open inside **World App**
+1. Open inside the supported app
 2. App auto-connects wallet on first visit
 3. Browse listings on Home tab
 4. Tap **Post Ad** to list a product (1 WLD fee)
@@ -158,7 +158,7 @@ project.
 
 ---
 
-## End-to-end tests (no World App needed)
+## End-to-end tests
 
 `tools/e2e/mock-backend.cjs` is a small PostgREST stand-in and
 `tools/e2e/e2e.js` drives the real `index.html`/`app.js` through every flow:
@@ -178,7 +178,7 @@ The suite reseeds the mock database before each run, so it can be run repeatedly
 in the same tab. It also asserts the MiniKit payloads (`verify` action/signal,
 `pay` reference/tokens/description, `requestPermission` permission) against the
 1.9.6 contract, so an SDK mismatch fails the build instead of silently doing
-nothing in World App.
+nothing externally.
 
 `MOCK_DELAY_MS=250 npm run e2e:mock` simulates a mobile round trip. `probe.js`
 records `window.__PROBE__` (first card, splash, query counts) for feed timing.
@@ -215,10 +215,10 @@ Every visible name belongs to the wallet it is printed for:
   someone else's ad, so it now shows `Seller`);
 - chats and reviews use the same resolved name as the card, not the snapshot;
 - the header asks our own table for the signed-in wallet's name first (one small
-  query) and only then the World App username registry.
+  query) and only then the username registry.
 
 ---
 
 <div align="center">
-  <p><b>Built for the World App Community</b></p>
+  <p><b>Built for the Community</b></p>
 </div>
