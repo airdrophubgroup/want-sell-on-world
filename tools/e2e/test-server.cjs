@@ -17,7 +17,9 @@ const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/jav
 
 fs.mkdirSync(OUT, { recursive: true });
 
-const appSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
+// The working copy may be CRLF (core.autocrlf=true on Windows); the patch
+// literals below are written with \n, so normalise before matching.
+const appSrc = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8').replace(/\r\n/g, '\n');
 let testApp = appSrc;
 const applied = [];
 function patch(name, from, to, { all = false } = {}) {
@@ -56,7 +58,7 @@ patch('rate-login', "checkRateLimit('login', 5000)", "checkRateLimit('login', 30
 
 fs.writeFileSync(path.join(OUT, 'app.test.js'), testApp);
 
-const indexSrc = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+const indexSrc = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
 let testHtml = indexSrc.replace(/ {0,4}<meta http-equiv="Content-Security-Policy"[^>]*>\r?\n?/, '');
 if (testHtml === indexSrc) throw new Error('CSP meta not found in index.html');
 testHtml = testHtml.replace('src="app.js"', 'src="/__app.test.js"');

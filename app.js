@@ -1,7 +1,7 @@
 import { MiniKit, Tokens, tokenToDecimals, Permission, VerificationLevel, VerificationErrorMessage } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@1.9.6/+esm";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-const SUPABASE_URL = 'http://127.0.0.1:3457';
+const SUPABASE_URL = 'https://adicdkrfinbudpaqqjai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkaWNka3JmaW5idWRwYXFxamFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNzM4MzMsImV4cCI6MjEwMTc0OTgzM30.ksv1zdQVimQTNWnrHaRqEXcLw7-3G6_zjAyEOZZkr0s';
 const ADMIN_WALLET = '0x8c5b20653abcb87f6b3a7cb469d8623e94bfb6a1';
 const APP_ID = 'app_06db98c492a19f80177b8d633f056982';
@@ -333,7 +333,7 @@ const LOCALES = {
     locationAccess: '位置情報', locationConsent: 'WantSellは近くの掲載を表示するために位置情報を使用します',
     verifyTitle: '本人確認',    verifyDesc: '本人確認を行ってください', verified: '確認済み',
     worldAppRequired: 'WantSell', worldAppDesc: '続行するには、対応アプリでこのアプリを開いてください。', worldAppBadge: '開く',
-    dbUnavailable: 'データベースが利用できません', invalidAddress: '無効なアドレスです', connectFailed: '接続失敗', walletConnectFailed: 'ウォレット接続に失敗しました', walletConnectError: '接続エラー。再試行してください', invalidTitle: '無効なタイトル', invalidDesc: '無効な説明', locationRequired: '位置情報が必要', locationRequiredDesc: 'GPS検索をタップして位置情報を取得!', invalidPrice: '無効な価格', ruleViolation: 'ルール違反', phoneNotAllowed: '電話番号は禁止されています!', prohibitedItem: '禁止アイテム', containsRestricted: '制限されたキーワードを含んでいます', noExternalLinks: '外部リンクは禁止されています!', verifyRequired: '本人確認が必要', verifyRequiredDesc: '掲載するにはWorld IDの確認が必要です', imageMissing: '画像がありません', imageMissingDesc: '商品画像を少なくとも1枚選択してください!',    limitReached: '上限に達しました', limitReachedDesc: '写真は最大4枚まで!',
+    dbUnavailable: 'データベースが利用できません', invalidAddress: '無効なアドレスです', connectFailed: '接続失敗', walletConnectFailed: 'ウォレット接続に失敗しました', walletConnectError: '接続エラー。再試行してください', invalidTitle: '無効なタイトル', invalidDesc: '無効な説明', locationRequired: '位置情報が必要', locationRequiredDesc: 'GPS検索をタップして位置情報を取得!', invalidPrice: '無効な価格', ruleViolation: 'ルール違反', phoneNotAllowed: '電話番号は禁止されています!', prohibitedItem: '禁止アイテム', containsRestricted: '制限されたキーワードを含んでいます', noExternalLinks: '外部リンクは禁止されています!', verifyRequired: '本人確認が必要', verifyRequiredDesc: '掲載するには本人確認が必要です', imageMissing: '画像がありません', imageMissingDesc: '商品画像を少なくとも1枚選択してください!',    limitReached: '上限に達しました', limitReachedDesc: '写真は最大4枚まで!',
     fileTooLarge: 'ファイルが大きすぎます', fileTooLargeDesc: '各画像は5MB以下にしてください',
     paymentFailed: '支払いキャンセル', paymentFailedDesc: '支払いに失敗しました',
   },
@@ -372,9 +372,9 @@ const LOCALES = {
     chatRate: '전송이 너무 빠릅니다', reviewRate: '잠시만 기다려주세요', deleteRate: '잠시만 기다려주세요',
     notFound: '게시물을 찾을 수 없습니다', removedAd: '이 게시물은 삭제되었습니다', active: '활성',
     locationAccess: '위치 접근', locationConsent: 'WantSell은 주변 게시물을 표시하기 위해 위치 정보를 사용합니다',
-    verifyTitle: '본인 확인',본인 확인을 해주세요 verified: '확인됨',
+    verifyTitle: '본인 확인', verifyDesc: '본인 확인을 해주세요', verified: '확인됨',
     worldAppRequired: 'WantSell', worldAppDesc: '계속하려면 지원되는 앱에서 열어주세요.', worldAppBadge: '열기',
-    dbUnavailable: '데이터베이스를 사용할 수 없습니다', invalidAddress: '잘못된 주소입니다', connectFailed: '연결 실패', walletConnectFailed: '지갑 연결에 실패했습니다', walletConnectError: '연결 오류. 다시 시도해주세요', invalidTitle: '잘못된 제목', invalidDesc: '잘못된 설명', locationRequired: '위치 필요', locationRequiredDesc: 'GPS 검색을 눌러 위치를 지정하세요!', invalidPrice: '잘못된 가격', ruleViolation: '규칙 위반', phoneNotAllowed: '전화번호는 허용되지 않습니다!', prohibitedItem: '금지된 항목', containsRestricted: '제한된 키워드 포함', noExternalLinks: '외부 링크는 허용되지 않습니다!', verifyRequired: '인증 필요', verifyRequiredDesc: '게시물을 올리려면 World ID 인증이 필요합니다', imageMissing: '이미지 없음', imageMissingDesc: '상품 이미지를 최소 1장 선택하세요!',    limitReached: '한도 도달', limitReachedDesc: '최대 4장의 사진만 허용됩니다!',
+    dbUnavailable: '데이터베이스를 사용할 수 없습니다', invalidAddress: '잘못된 주소입니다', connectFailed: '연결 실패', walletConnectFailed: '지갑 연결에 실패했습니다', walletConnectError: '연결 오류. 다시 시도해주세요', invalidTitle: '잘못된 제목', invalidDesc: '잘못된 설명', locationRequired: '위치 필요', locationRequiredDesc: 'GPS 검색을 눌러 위치를 지정하세요!', invalidPrice: '잘못된 가격', ruleViolation: '규칙 위반', phoneNotAllowed: '전화번호는 허용되지 않습니다!', prohibitedItem: '금지된 항목', containsRestricted: '제한된 키워드 포함', noExternalLinks: '외부 링크는 허용되지 않습니다!', verifyRequired: '인증 필요', verifyRequiredDesc: '게시물을 올리려면 인증이 필요합니다', imageMissing: '이미지 없음', imageMissingDesc: '상품 이미지를 최소 1장 선택하세요!',    limitReached: '한도 도달', limitReachedDesc: '최대 4장의 사진만 허용됩니다!',
     fileTooLarge: '파일이 너무 큽니다', fileTooLargeDesc: '각 이미지는 5MB 이하여야 합니다',
     paymentFailed: '결제 취소됨', paymentFailedDesc: '결제에 실패했거나 취소되었습니다',
   }
@@ -1133,17 +1133,17 @@ const VERIFY_LEVEL = (VerificationLevel && VerificationLevel.Device) || 'device'
 function verifyFailureText(code) {
   const hints = {
     user_rejected: 'Verification was cancelled.',
-    verification_rejected: 'World App rejected this verification.',
-    credential_unavailable: 'World ID "' + VERIFY_LEVEL + '" level is required for "' + VERIFY_ACTION + '". Finish that level in World App, or lower the action\'s level in the Developer Portal to match.',
-    max_verifications_reached: 'This World ID has already been verified the maximum number of times for "' + VERIFY_ACTION + '".',
-    malformed_request: 'World App could not read the request. Check that action "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
-    invalid_network: 'World App and the action "' + VERIFY_ACTION + '" are on different networks (production vs staging).',
-    inclusion_proof_pending: 'Your World ID is still being registered. Wait a few minutes and try again.',
-    inclusion_proof_failed: 'World App could not fetch your credential. Please try again.',
-    connection_failed: 'The connection to World App failed. Please try again.',
-    unexpected_response: 'World App sent an unexpected response. Update it and try again.',
-    failed_by_host_app: 'World App refused this verification. Contact support.',
-    generic_error: 'World App returned a generic error. The usual cause is a missing or mismatched action: check that "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
+    verification_rejected: 'This verification was rejected.',
+    credential_unavailable: 'Verification level "' + VERIFY_LEVEL + '" is required for "' + VERIFY_ACTION + '". Complete that level, or lower the action\'s level in the Developer Portal to match.',
+    max_verifications_reached: 'This identity has already been verified the maximum number of times for "' + VERIFY_ACTION + '".',
+    malformed_request: 'Could not read the request. Check that action "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
+    invalid_network: 'The app and the action "' + VERIFY_ACTION + '" are on different networks (production vs staging).',
+    inclusion_proof_pending: 'Your identity is still being registered. Wait a few minutes and try again.',
+    inclusion_proof_failed: 'Your credential could not be fetched. Please try again.',
+    connection_failed: 'The connection to the verification service failed. Please try again.',
+    unexpected_response: 'An unexpected response came back. Update the app and try again.',
+    failed_by_host_app: 'This verification was refused by the host app. Contact support.',
+    generic_error: 'A generic error came back. The usual cause is a missing or mismatched action: check that "' + VERIFY_ACTION + '" exists for app ' + APP_ID + ' and is set to "' + VERIFY_LEVEL + '" level.',
   };
   const sdkText = (VerificationErrorMessage && VerificationErrorMessage[code]) || '';
   const head = hints[code] || sdkText || t('verifyFailedDesc');
@@ -1151,7 +1151,7 @@ function verifyFailureText(code) {
   // A stale World App silently drops commands it does not advertise.
   try {
     if (MiniKit && MiniKit.isCommandAvailable && MiniKit.isCommandAvailable.verify === false) {
-      extra.push('World App did not advertise the verify command, update it');
+      extra.push('the host app did not advertise the verify command, update it');
     }
   } catch (e) {}
   if (code) extra.push('code: ' + code);
@@ -1180,23 +1180,6 @@ async function verifyWorldID() {
   if (isVerifying) return false;
   const mk = typeof MiniKit !== 'undefined' ? MiniKit : null;
   if (!mk || !mk.commandsAsync || typeof mk.commandsAsync.verify !== 'function') {
-    // In dev/test outside the official app, allow verification for testing
-    try {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        try {
-          localStorage.setItem('worldIdVerification', JSON.stringify({
-            verification_level: 'device',
-            nullifier_hash: 'dev-' + Date.now(),
-            action: VERIFY_ACTION,
-            verified_at: new Date().toISOString(),
-          }));
-        } catch (e) {}
-        isVerified = true;
-        localStorage.setItem('worldIdVerified', 'true');
-        showToast(t('verifiedToast'));
-        return true;
-      }
-    } catch (e) {}
     await showNeonPopup(t('verifyUnavailable'), t('verifyUnavailableDesc'), 'OK');
     return false;
   }
@@ -1231,43 +1214,9 @@ async function verifyWorldID() {
     const code = finalPayload && finalPayload.error_code ? String(finalPayload.error_code) : '';
     // One line for whoever has to debug this, carrying everything that matters.
     console.error('[VERIFY] ' + (code || 'no error_code') + ' action=' + VERIFY_ACTION + ' level=' + VERIFY_LEVEL + ' app=' + APP_ID);
-    // In dev mode, also allow success
-    try {
-      if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !code) {
-        try {
-          localStorage.setItem('worldIdVerification', JSON.stringify({
-            verification_level: VERIFY_LEVEL,
-            nullifier_hash: 'dev-' + Date.now(),
-            action: VERIFY_ACTION,
-            verified_at: new Date().toISOString(),
-          }));
-        } catch (e) {}
-        isVerified = true;
-        localStorage.setItem('worldIdVerified', 'true');
-        showToast(t('verifiedToast'));
-        return true;
-      }
-    } catch (e) {}
     await showNeonPopup(t('verifyFailed'), verifyFailureText(code), 'OK');
     return false;
   } catch (err) {
-    // In dev mode, allow verification
-    try {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        try {
-          localStorage.setItem('worldIdVerification', JSON.stringify({
-            verification_level: VERIFY_LEVEL,
-            nullifier_hash: 'dev-' + Date.now(),
-            action: VERIFY_ACTION,
-            verified_at: new Date().toISOString(),
-          }));
-        } catch (e) {}
-        isVerified = true;
-        localStorage.setItem('worldIdVerified', 'true');
-        showToast(t('verifiedToast'));
-        return true;
-      }
-    } catch (e) {}
     await showNeonPopup(t('verifyFailed'), t('verifyFailedDesc'), 'OK');
     return false;
   } finally {
@@ -2643,7 +2592,7 @@ const LEGAL_COPY = {
     <h2 class="legal-title">${t('termsTitle')}</h2>
     <p class="legal-meta">WantSell · v${APP_VERSION}</p>
     <h3>1. What WantSell is</h3>
-    <p>WantSell is a peer-to-peer classifieds marketplace that runs inside World App. Sellers list their own items and buyers contact them directly. WantSell does not own, inspect, ship or insure any item, and does not handle payment between buyer and seller.</p>
+    <p>WantSell is a peer-to-peer classifieds marketplace. Sellers list their own items and buyers contact them directly. WantSell does not own, inspect, ship or insure any item, and does not handle payment between buyer and seller.</p>
     <h3>2. Listing fee</h3>
     <p>Publishing an ad costs 1 WLD, charged before the ad is published and sent to the WantSell wallet. The fee covers publishing only and is not refundable once the ad goes live. If a payment succeeds but the ad cannot be saved, contact support with the payment reference shown on screen and we will restore or refund it.</p>
     <h3>3. Listing rules</h3>
@@ -2660,8 +2609,8 @@ const LEGAL_COPY = {
     <p class="legal-meta">WantSell · v${APP_VERSION}</p>
     <h3>What we collect</h3>
     <ul>
-      <li><b>Wallet address</b> — read from World App when you connect. Used to identify your account and your listings.</li>
-      <li><b>Display name</b> — the name you choose or that World App provides.</li>
+      <li><b>Wallet address</b> — read from your wallet when you connect. Used to identify your account and your listings.</li>
+      <li><b>Display name</b> — the name you choose or that your wallet provides.</li>
       <li><b>Listing content</b> — title, description, price, category, country, the address text you type, and up to four photos you upload.</li>
       <li><b>Messages and reviews</b> — chat you send to other users and ratings you leave.</li>
       <li><b>Approximate location</b> — only after you tap and accept the location prompt. Used to sort listings by distance.</li>

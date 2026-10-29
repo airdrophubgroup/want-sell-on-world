@@ -573,7 +573,7 @@
       localStorage.removeItem('worldIdVerification');
       var codes = [
         ['generic_error', /post_ad/, /device/, /code: generic_error/],
-        ['credential_unavailable', /level is required/i],
+        ['credential_unavailable', /level .* is required/i],
         ['malformed_request', /could not read the request/i],
         ['user_rejected', /cancelled/i],
       ];
@@ -706,7 +706,10 @@
       var splash = $('#splashScreen');
       assert(vis(splash), 'the blocker must be visible');
       assert(getComputedStyle(splash).opacity === '1', 'opacity must be restored, got ' + getComputedStyle(splash).opacity);
-      assert(/world app/i.test(txt(splash)), 'blocker copy missing: "' + txt(splash) + '"');
+      // The branding must not mention World/Worldcoin (store review), so the
+      // screen is identified by the app name instead.
+      assert(/wantsell/i.test(txt(splash)), 'blocker copy missing: "' + txt(splash) + '"');
+      assert(/open/i.test(txt(splash)), 'blocker must say how to continue: "' + txt(splash) + '"');
       assert(txt(splash).length > 30, 'blocker must explain what to do: "' + txt(splash) + '"');
       var r = splash.getBoundingClientRect();
       var hit = document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2));
